@@ -45,7 +45,7 @@
 <nav class="mobile"><button data-page="dashboard">📊<br>Home</button><button data-page="input">➕<br>Input</button><button data-page="data">📋<br>Data</button><button data-page="rekap">📈<br>Laporan</button></nav>
 <div id="toast" class="toast"></div><div id="load" class="load"><div>⏳ Memproses...</div></div>
 <script>
-const API_URL='PASTE_URL_WEB_APP_GOOGLE_APPS_SCRIPT_DI_SINI';let data=[],editId=null;
+const API_URL='https://script.google.com/macros/s/AKfycbw1mH2dCS2of2Nj_0cDk4CDxlRk0bnLrSg7YL9M63t66iJE5K4R7Apz-fge76j2ktjl/exec';let data=[],editId=null;
 const $=x=>document.getElementById(x),rp=n=>new Intl.NumberFormat('id-ID',{style:'currency',currency:'IDR',maximumFractionDigits:0}).format(+n||0),today=()=>new Date().toISOString().slice(0,10),esc=s=>String(s??'').replace(/[&<>"']/g,m=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#039;'}[m]));
 document.querySelectorAll('[data-page]').forEach(b=>b.onclick=()=>show(b.dataset.page));
 function show(id){document.querySelectorAll('.page').forEach(x=>x.classList.remove('active'));$(id).classList.add('active');document.querySelectorAll('[data-page]').forEach(x=>x.classList.toggle('active',x.dataset.page===id));$('title').textContent={dashboard:'Dashboard',input:editId?'Edit Tagihan':'Buat Tagihan',data:'Daftar Tagihan',rekap:'Laporan & Rekap',printPage:''}[id];if(id==='data')render(data);if(id==='dashboard')dashboard()}
