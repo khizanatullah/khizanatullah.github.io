@@ -1,8 +1,8 @@
-<!doctype html>
+﻿<!doctype html>
 <html lang="id">
 <head>
 <meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1">
-<meta name="theme-color" content="#166534"><title>ASPI Admin — Sistem Tagihan</title>
+<meta name="theme-color" content="#166534"><title>KHIZANATULLAH Admin — Sistem Tagihan</title>
 <style>
 :root{--g:#166534;--g2:#15803d;--bg:#f5f7f6;--card:#fff;--txt:#172018;--muted:#68736b;--line:#dfe7e1;--red:#b91c1c}
 *{box-sizing:border-box}body{margin:0;background:var(--bg);color:var(--txt);font:14px system-ui,-apple-system,Segoe UI,Roboto,Arial}.sidebar{position:fixed;inset:0 auto 0 0;width:240px;background:#12351f;color:#fff;padding:16px 12px;z-index:20}.brand{display:flex;gap:10px;align-items:center;padding:8px 8px 24px}.logo{width:42px;height:42px;border-radius:12px;background:#22c55e;display:grid;place-items:center;font-size:22px}.brand small{display:block;opacity:.65}.nav-title{font-size:10px;letter-spacing:1px;opacity:.5;margin:16px 8px 6px}.nav button{width:100%;border:0;background:none;color:#dcefe1;text-align:left;padding:12px;border-radius:10px;font-weight:700;cursor:pointer;margin:2px 0}.nav button.active,.nav button:hover{background:#1d6338;color:#fff}.content{margin-left:240px}.topbar{height:66px;background:#fff;border-bottom:1px solid var(--line);display:flex;align-items:center;justify-content:space-between;padding:0 24px;position:sticky;top:0;z-index:10}.topbar h1{font-size:18px;margin:0}.status{color:var(--muted);font-size:12px}main{max-width:1400px;margin:auto;padding:22px}.page{display:none}.page.active{display:block}.grid4{display:grid;grid-template-columns:repeat(4,1fr);gap:14px}.grid3{display:grid;grid-template-columns:repeat(3,1fr);gap:14px}.card{background:var(--card);border:1px solid var(--line);border-radius:14px;padding:16px;margin-bottom:14px;box-shadow:0 2px 8px #12351f08}.stat{position:relative}.stat small{color:var(--muted);font-weight:700}.stat strong{font-size:24px;display:block;margin-top:7px}.stat i{position:absolute;right:14px;top:14px;background:#ecfdf3;padding:9px;border-radius:10px;font-style:normal}.row{display:flex;justify-content:space-between;align-items:center;gap:10px}.actions{display:flex;gap:8px;flex-wrap:wrap}.btn{border:0;border-radius:9px;padding:10px 13px;font-weight:800;cursor:pointer}.primary{background:var(--g2);color:#fff}.secondary{background:#ecfdf3;color:var(--g)}.outline{background:#fff;border:1px solid var(--line)}.danger{background:#fef2f2;color:var(--red)}.dark{background:#172018;color:#fff}.field{margin-bottom:10px}.field label{display:block;font-size:10px;text-transform:uppercase;color:var(--muted);font-weight:800;margin-bottom:5px}input,select{width:100%;padding:10px;border:1px solid #cbd7ce;border-radius:9px;background:#fff;outline:0}input:focus,select:focus{border-color:#22c55e;box-shadow:0 0 0 3px #22c55e1c}h2{font-size:16px;margin:0 0 12px}.table-wrap{overflow:auto}table{width:100%;border-collapse:collapse}th,td{padding:9px 7px;border-bottom:1px solid var(--line);font-size:13px;white-space:nowrap}th{font-size:10px;color:var(--muted);text-align:left;text-transform:uppercase}.num{text-align:right}.tag{display:inline-block;background:#ecfdf3;color:var(--g);padding:4px 8px;border-radius:20px;font-size:11px;font-weight:800}.invoice{border:1px solid var(--line);border-radius:12px;overflow:hidden;margin:9px 0}.invoice>div{padding:10px 12px}.invoice-head{background:#fafcfb}.invoice-foot{border-top:1px solid var(--line)}.empty{text-align:center;color:var(--muted);padding:30px}.total{display:flex;justify-content:flex-end;gap:20px;align-items:center;font-weight:900;font-size:18px}.total span{color:var(--g);font-size:25px}.mobile{display:none}.toast{position:fixed;right:18px;bottom:18px;background:#172018;color:#fff;padding:12px 16px;border-radius:10px;display:none;z-index:90}.toast.show{display:block}.load{position:fixed;inset:0;background:#0004;display:none;place-items:center;z-index:100}.load.show{display:grid}.load div{background:#fff;padding:18px;border-radius:12px;font-weight:800}@media(max-width:900px){.sidebar{display:none}.content{margin:0}.mobile{display:flex;position:fixed;bottom:0;left:0;right:0;background:#fff;border-top:1px solid var(--line);z-index:30;justify-content:space-around;padding:6px}.mobile button{border:0;background:none;color:#657067;font-size:10px;font-weight:800}.mobile button.active{color:var(--g)}main{padding:13px 10px 72px}.topbar{height:58px;padding:0 14px}.status{display:none}.grid4{grid-template-columns:1fr 1fr}.grid3{grid-template-columns:1fr 1fr}}@media(max-width:520px){.grid4,.grid3{grid-template-columns:1fr}.card{padding:13px}.total{display:block;text-align:right}.total span{display:block}.topbar h1{font-size:16px}}@media print{.sidebar,.topbar,.mobile,.no-print{display:none!important}.content{margin:0}.page{display:none!important}#printPage{display:block!important}main{padding:0}.card{border:0;box-shadow:none}}
@@ -10,13 +10,13 @@
 </head>
 <body>
 <aside class="sidebar">
- <div class="brand"><div class="logo">🧾</div><div><b>ASPI ADMIN</b><small>Sistem Tagihan</small></div></div>
+ <div class="brand"><div class="logo">🧾</div><div><b>KHIZANATULLAH ADMIN</b><small>Sistem Tagihan</small></div></div>
  <div class="nav-title">MENU UTAMA</div><div class="nav">
   <button data-page="dashboard" class="active">📊 Dashboard</button><button data-page="input">➕ Buat Tagihan</button><button data-page="data">📋 Daftar Tagihan</button><button data-page="rekap">📈 Laporan & Rekap</button>
  </div><div class="nav-title">SISTEM</div><div class="nav"><button onclick="refresh()">🔄 Sinkronisasi</button></div>
 </aside>
 <div class="content">
-<header class="topbar"><h1 id="title">Dashboard</h1><div class="status">● Google Sheet</div></header>
+<header class="topbar"><h1 id="title">Dashboard</h1><div class="status">● MasWe Production</div></header>
 <main>
 <section id="dashboard" class="page active">
  <div class="grid4"><div class="card stat"><small>Total Tagihan</small><strong id="inv">0</strong><i>🧾</i></div><div class="card stat"><small>Total Pengeluaran</small><strong id="all">Rp 0</strong><i>💰</i></div><div class="card stat"><small>Jumlah Item</small><strong id="items">0</strong><i>📦</i></div><div class="card stat"><small>Bulan Ini</small><strong id="month">Rp 0</strong><i>📅</i></div></div>
@@ -24,7 +24,7 @@
 </section>
 <section id="input" class="page">
  <div class="card"><div class="row"><h2 id="formTitle">Buat Tagihan Baru</h2><button class="btn outline" onclick="resetForm()">↺ Reset</button></div>
- <div class="grid3"><div class="field"><label>Tanggal</label><input type="date" id="date"></div><div class="field"><label>Proyek / Keterangan</label><input id="project" placeholder="Contoh: ASPI 2"></div><div class="field"><label>Pelanggan / Tujuan</label><input id="customer" placeholder="Opsional"></div></div></div>
+ <div class="grid3"><div class="field"><label>Tanggal</label><input type="date" id="date"></div><div class="field"><label>Proyek / Keterangan</label><input id="project" placeholder="Contoh: ASRAMA PUTRI 2"></div><div class="field"><label>Pelanggan / Tujuan</label><input id="customer" placeholder="Opsional"></div></div></div>
  <div class="card"><div class="row"><h2>Detail Barang</h2><button class="btn secondary" onclick="addRow()">＋ Tambah Barang</button></div>
  <div class="table-wrap"><table><thead><tr><th>No</th><th style="min-width:250px">Nama Barang</th><th class="num">Qty</th><th>Satuan</th><th class="num">Harga</th><th class="num">Subtotal</th><th></th></tr></thead><tbody id="rows"></tbody></table></div>
  <div class="total">TOTAL TAGIHAN <span id="total">Rp 0</span></div></div>
@@ -65,10 +65,25 @@ function filter(){let f=$('from').value,t=$('to').value,n=$('search').value.toLo
 function clearFilter(){['from','to','search','search2'].forEach(x=>$(x).value='');render(data)}
 function edit(id){let i=data.find(x=>x.id===id);if(!i)return;editId=id;$('formTitle').textContent='Edit Tagihan';$('date').value=i.date;$('project').value=i.project||'';$('customer').value=i.customer||'';$('rows').innerHTML='';i.items.forEach(addRow);show('input')}
 async function del(id){if(!confirm('Hapus '+id+'?'))return;try{busy(true);await api('delete',{id});toast('Tagihan dihapus');await refresh()}catch(e){toast(e.message)}finally{busy(false)}}
-function invHTML(i){return `<div style="max-width:850px;margin:auto;font-family:Arial"><h1 style="text-align:center">TAGIHAN ASPI</h1><p><b>No:</b> ${esc(i.id)} &nbsp; <b>Tanggal:</b> ${esc(i.date)}<br><b>Proyek:</b> ${esc(i.project||'-')}<br><b>Tujuan:</b> ${esc(i.customer||'-')}</p><table style="width:100%;border-collapse:collapse">${'<tr><th style="border-bottom:1px solid #000;text-align:left;padding:7px">No</th><th style="border-bottom:1px solid #000;text-align:left">Nama Barang</th><th style="border-bottom:1px solid #000;text-align:right">Qty</th><th style="border-bottom:1px solid #000;text-align:left">Satuan</th><th style="border-bottom:1px solid #000;text-align:right">Harga</th><th style="border-bottom:1px solid #000;text-align:right">Subtotal</th></tr>'}${i.items.map((x,n)=>`<tr><td>${n+1}</td><td>${esc(x.name)}</td><td style="text-align:right">${x.qty}</td><td>${esc(x.unit)}</td><td style="text-align:right">${rp(x.price)}</td><td style="text-align:right">${rp(x.qty*x.price)}</td></tr>`).join('')}</table><h2 style="text-align:right">TOTAL ${rp(total(i))}</h2></div>`}
+
+function invHTML(i){return `<div style="max-width:850px;margin:auto;font-family:Arial"><h1 style="text-align:center">TAGIHAN PROYEK</h1><p><b>No:</b> ${esc(i.id)} &nbsp; <b>Tanggal:</b> ${esc(i.date)}<br><b>Proyek:</b> ${esc(i.project||'-')}<br><b>Tujuan:</b> ${esc(i.customer||'-')}</p><table style="width:100%;border-collapse:collapse">${'<tr><th style="border-bottom:1px solid #000;text-align:left;padding:7px">No</th><th style="border-bottom:1px solid #000;text-align:left">Nama Barang</th><th style="border-bottom:1px solid #000;text-align:right">Qty</th><th style="border-bottom:1px solid #000;text-align:left">Satuan</th><th style="border-bottom:1px solid #000;text-align:right">Harga</th><th style="border-bottom:1px solid #000;text-align:right">Subtotal</th></tr>'}${i.items.map((x,n)=>`<tr><td>${n+1}</td><td>${esc(x.name)}</td><td style="text-align:right">${x.qty}</td><td>${esc(x.unit)}</td><td style="text-align:right">${rp(x.price)}</td><td style="text-align:right">${rp(x.qty*x.price)}</td></tr>`).join('')}</table><h2 style="text-align:right">TOTAL ${rp(total(i))}</h2></div>`}
+
 function printInv(id){$('printContent').innerHTML=invHTML(data.find(x=>x.id===id));window.print()}function printDraft(){$('printContent').innerHTML=invHTML({id:editId||'DRAFT',date:$('date').value,project:$('project').value,customer:$('customer').value,items:items()});window.print()}
+
 function initReport(){let y=new Date().getFullYear();$('ryear').value=y;$('rmonth').innerHTML=Array.from({length:12},(_,i)=>`<option value="${i+1}">${new Date(2000,i,1).toLocaleString('id-ID',{month:'long'})}</option>`).join('');$('rmonth').value=new Date().getMonth()+1}
+
 function summary(){let y=+$('ryear').value,m=+$('rmonth').value,l=data;if($('rtype').value==='month')l=l.filter(i=>i.date.startsWith(`${y}-${String(m).padStart(2,'0')}`));else if($('rtype').value==='year')l=l.filter(i=>i.date.startsWith(y+'-'));let tt=l.reduce((a,i)=>a+total(i),0);$('rp').textContent=$('rtype').value==='month'?`${new Date(y,m-1,1).toLocaleString('id-ID',{month:'long'})} ${y}`:`Tahun ${y}`;$('rt').textContent=rp(tt);$('ri').textContent=l.length;$('rx').textContent=l.reduce((a,i)=>a+i.items.length,0);let by={};l.forEach(i=>by[i.date]=(by[i.date]||0)+total(i));$('summary').innerHTML='<table><tr><th>Tanggal</th><th class="num">Tagihan</th><th class="num">Total</th></tr>'+Object.keys(by).sort().map(d=>`<tr><td>${d}</td><td class="num">${l.filter(i=>i.date===d).length}</td><td class="num">${rp(by[d])}</td></tr>`).join('')+'</table>'}
+
+function formatTanggalIndonesia(tanggal){
+ if (!tanggal) return '-';
+ const d = new Date(tanggal + 'T00:00:00');
+ return d.toLocaleDateString('id-ID' , {
+  weekday: 'long',
+  day: 'numeric',
+  month: 'long',
+  year: 'numeric'});
+}
+
 function printSummary(){$('printContent').innerHTML=`<div style="font-family:Arial"><h1>REKAP PENGELUARAN</h1><p>Periode: ${esc($('rp').textContent)}</p>${$('summary').innerHTML}<h2 style="text-align:right">TOTAL: ${$('rt').textContent}</h2></div>`;window.print()}
 initReport();resetForm();refresh();
 </script></body></html>
