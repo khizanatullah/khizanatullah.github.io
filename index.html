@@ -1046,6 +1046,17 @@ $('btnSearch').addEventListener('click', () => {
   renderTable();
 });
 
+// Real-time search — hasil muncul langsung saat mengetik (debounce 300ms)
+let searchTimer;
+searchInput.addEventListener('input', () => {
+  clearTimeout(searchTimer);
+  searchTimer = setTimeout(() => {
+    searchQuery = searchInput.value;
+    currentPage = 1;
+    renderTable();
+  }, 300);
+});
+
 // ========== INIT ==========
 async function init() {
   try {
