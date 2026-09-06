@@ -636,7 +636,7 @@
 
 <script>
 // ========== CONFIG ==========
-const SHEET_URL = 'https://docs.google.com/spreadsheets/d/1PahOiF8JcD_e5nV-yOQ6c-vLKahE9sqzfStHASaKXaI/export?format=csv';
+const CSV_URL = 'MiniKasir.csv';  // File CSV di repo GitHub
 const ITEMS_PER_PAGE = 25;
 
 // ========== STATE ==========
@@ -716,53 +716,47 @@ function parseCSV(csvText) {
 }
 
 function extractProducts(csvText) {
+  // Parse CSV dengan parser proper (handle quoted fields)
   const rows = parseCSV(csvText);
-  if (rows.length === 0) return [];
-
-  // Data adalah satu baris raksasa. Ambil baris pertama.
-  const cells = rows[0];
-
-  // Struktur: cells[0]=NAMA BARANG, cells[1]=HARGA JUAL, cells[2]=STOK <nama_item_1>
-  // Kemudian cells[3]=harga_1, cells[4]=nama_2, cells[5]=harga_2, dst
+  if (rows.length < 2) return [];
 
   const products = [];
+  const sectionHeaders = new Set(['NAMA BARANG', 'Nama Barang', 'HARGA JUAL', 'Hrg. Jual', 'STOK']);
 
-  // Item pertama: nama dari cells[2] (tanpa prefix "STOK "), harga dari cells[3]
-  if (cells.length >= 4) {
-    let firstName = cells[2].trim();
-    if (firstName.startsWith('STOK ')) {
-      firstName = firstName.substring(5).trim();
-    }
-    const firstPrice = parsePrice(cells[3]);
-    if (firstName && firstPrice > 0) {
-      products.push({ name: firstName, price: firstPrice });
-    }
-  }
+  // Skip header row (index 0), process data rows
+  for (let i = 1; i < rows.length; i++) {
+    const row = rows[i];
+    if (row.length < 2) continue;
 
-  // Item berikutnya: pasangan (nama, harga) mulai cells[4]
-  for (let i = 4; i + 1 < cells.length; i += 2) {
-    const name = cells[i].trim();
-    const price = parsePrice(cells[i + 1]);
-    if (name && price > 0 && name !== 'NAMA BARANG' && name !== 'Nama Barang' && name !== 'HARGA JUAL' && name !== 'Hrg. Jual') {
-      products.push({ name, price });
-    }
-  }
+    const name = row[0].trim();
+    const priceStr = row[1].trim();
+    const stockStr = row[2] ? row[2].trim() : '';
 
-  // Dedup berdasarkan nama
-  const seen = new Set();
-  const unique = [];
-  for (const p of products) {
-    const key = p.name.toLowerCase().trim();
-    if (!seen.has(key)) {
-      seen.add(key);
-      unique.push(p);
+    // Skip empty rows, section headers
+    if (!name || sectionHeaders.has(name)) continue;
+    if (!priceStr || sectionHeaders.has(priceStr)) continue;
+
+    // Parse price
+    const price = parsePrice(priceStr);
+    if (price <= 0) continue;
+
+    // Parse stock jika ada
+    let stock = null;
+    if (stockStr) {
+      const s = parseInt(stockStr.replace(/\./g, '').trim());
+      if (!isNaN(s)) stock = s;
     }
+
+    // Bersihkan nama dari kutip CSV
+    const cleanName = name.replace(/^["']|["']$/g, '').trim();
+
+    products.push({ name: cleanName, price, stock });
   }
 
   // Sort A-Z
-  unique.sort((a, b) => a.name.localeCompare(b.name, 'id'));
+  products.sort((a, b) => a.name.localeCompare(b.name, 'id'));
 
-  return unique;
+  return products;
 }
 
 function parsePrice(str) {
@@ -1060,14 +1054,14 @@ searchInput.addEventListener('input', () => {
 // ========== INIT ==========
 async function init() {
   try {
-    const response = await fetch(SHEET_URL);
+    const response = await fetch(CSV_URL);
     if (!response.ok) throw new Error('HTTP ' + response.status);
     const csvText = await response.text();
 
     allProducts = extractProducts(csvText);
 
     if (allProducts.length === 0) {
-      loadingEl.innerHTML = '<p style="color:#c62828;">Gagal memuat data. Pastikan Google Sheets sudah di-publish atau akses dibuka.</p>';
+      loadingEl.innerHTML = '<p style="color:#c62828;">Gagal memuat data. Pastikan file MiniKasir.csv ada di repo.</p>';
       return;
     }
 
@@ -1075,31 +1069,16 @@ async function init() {
     contentEl.style.display = 'block';
     $('statsBar').style.display = 'flex';
 
-    // Add stock info if available (from the STOK column parsing)
-    // The CSV has stock data mixed. We'll try to extract it.
-    enrichWithStock(csvText);
-
     renderTable();
     renderCart();
   } catch (err) {
     loadingEl.innerHTML = `
-      <p style="color:#c62828;font-weight:600;">⚠ Gagal memuat data dari Google Sheets</p>
+      <p style="color:#c62828;font-weight:600;">⚠ Gagal memuat data dari MiniKasir.csv</p>
       <p style="color:#666;font-size:13px;margin-top:8px;">${err.message}</p>
-      <p style="color:#999;font-size:12px;margin-top:12px;">Pastikan link Google Sheets bisa diakses secara publik.</p>
+      <p style="color:#999;font-size:12px;margin-top:12px;">Pastikan file MiniKasir.csv ada di repo GitHub.</p>
     `;
     console.error('Fetch error:', err);
   }
-}
-
-function enrichWithStock(csvText) {
-  // Try to extract stock data from the CSV
-  // The original sheet has STOK column but it's often empty
-  // We'll mark all as "tersedia" for now
-  allProducts.forEach((p, i) => {
-    if (p.stock === undefined) {
-      p.stock = null; // unknown/available
-    }
-  });
 }
 
 function renderAll() {
