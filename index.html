@@ -686,7 +686,7 @@ function renderTable() {
 
   tableBody.innerHTML = '';
   pageItems.forEach((item, idx) => {
-    const globalIdx = start + idx;
+    const realIdx = item._idx;  // indeks asli di allProducts
     const tr = document.createElement('tr');
 
     const stockInfo = item.s !== undefined ? item.s : null;
@@ -705,14 +705,14 @@ function renderTable() {
     }
 
     const btnDisabled = stockInfo === 0 ? 'disabled' : '';
-    const btnText = stockInfo === 0 ? 'Habis' : (cart[globalIdx] ? '✓ Masuk' : 'Tambah');
+    const btnText = stockInfo === 0 ? 'Habis' : (cart[realIdx] ? '✓ Masuk' : 'Tambah');
 
     tr.innerHTML = `
       <td style="color:var(--gray-400)">${start + idx + 1}</td>
       <td class="td-name">${escapeHtml(item.n)}</td>
       <td class="td-price">${formatRp(item.p)}</td>
       <td class="td-stock ${stockClass}">${stockText}</td>
-      <td><button class="btn-add" data-idx="${globalIdx}" ${btnDisabled}>${btnText}</button></td>
+      <td><button class="btn-add" data-idx="${realIdx}" ${btnDisabled}>${btnText}</button></td>
     `;
     tableBody.appendChild(tr);
   });
@@ -732,7 +732,10 @@ function renderTable() {
 function getFilteredProducts() {
   if (!searchQuery.trim()) return allProducts;
   const q = searchQuery.toLowerCase().trim();
-  return allProducts.filter(p => p.n.toLowerCase().includes(q));
+  // Return filtered items WITH original index preserved
+  return allProducts
+    .map((p, i) => ({ ...p, _idx: i }))
+    .filter(p => p.n.toLowerCase().includes(q));
 }
 
 function escapeHtml(str) {
