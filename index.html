@@ -411,22 +411,19 @@
     align-items: center;
     gap: 8px;
   }
-  .cart-item-qty button {
-    width: 28px;
-    height: 28px;
-    border-radius: 50%;
+  .cart-item-qty .qty-input {
+    width: 70px;
+    padding: 4px 8px;
     border: 1px solid var(--gray-300);
+    border-radius: var(--radius-sm);
+    font-size: 14px;
+    font-weight: 600;
+    text-align: center;
+    color: var(--gray-800);
     background: var(--white);
-    cursor: pointer;
-    font-size: 16px;
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    color: var(--gray-700);
-    transition: all 0.15s;
+    outline: none;
   }
-  .cart-item-qty button:hover { background: var(--gray-100); border-color: var(--gray-400); }
-  .cart-item-qty button.minus { color: #c62828; }
+  .qty-input:focus { border-color: var(--blue-500); box-shadow: 0 0 0 2px rgba(42,171,238,0.2); }
   .cart-item-qty .qty-value {
     font-weight: 600;
     font-size: 14px;
@@ -824,15 +821,16 @@ function removeFromCart(idx) {
   renderTable();
 }
 
-function updateQty(idx, delta) {
-  const current = cart[idx] || 0;
-  const newQty = current + delta;
-  if (newQty <= 0) {
-    removeFromCart(idx);
+function setQty(idx, val) {
+  const qty = parseInt(val);
+  if (isNaN(qty) || qty < 1) {
+    // Reset ke 1 kalau input tidak valid
+    cart[idx] = 1;
   } else {
-    cart[idx] = newQty;
-    renderCart();
+    cart[idx] = qty;
   }
+  renderCart();
+  renderTable();
 }
 
 function renderCart() {
@@ -867,12 +865,11 @@ function renderCart() {
           <div class="cart-item-price">${formatRp(item.p)} / pcs</div>
         </div>
         <div class="cart-item-qty">
-          <button class="minus" onclick="updateQty(${idx}, -1)">−</button>
-          <span class="qty-value">${qty}</span>
-          <button onclick="updateQty(${idx}, 1)">+</button>
+          <input type="number" class="qty-input" value="${qty}" min="1" 
+                 onchange="setQty(${idx}, this.value)" oninput="this.value = Math.max(1, parseInt(this.value) || 1)">
+          <button class="cart-item-remove" onclick="removeFromCart(${idx})" title="Hapus">✕</button>
         </div>
         <div class="cart-item-total">${formatRp(item.p * qty)}</div>
-        <button class="cart-item-remove" onclick="removeFromCart(${idx})" title="Hapus">✕</button>
       </div>`;
   }
   cartItemsEl.innerHTML = html;
