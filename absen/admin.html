@@ -84,6 +84,9 @@
       <div id="add-user-msg" class="msg"></div>
     </div>
 
+    <!-- Notifikasi Aksi Admin -->
+    <div id="admin-msg" class="msg"></div>
+
     <!-- Gaji Mingguan Semua Karyawan -->
     <div class="card">
       <h2>💰 Gaji Mingguan — Semua Karyawan</h2>
@@ -174,11 +177,13 @@
               return "Rp " + formatRupiah(half);
             }) + "</td>" +
             "<td>" +
-              "<button class='btn btn-outline' style='padding:6px 10px;font-size:12px;' " +
-              "onclick='editSalary(\"" + u.id + "\", " + (u.salary||0) + ", " +
-              (u.halfSalary || Math.floor((u.salary||0)/2)) + ")'>✏️</button> " +
-              "<button class='btn btn-danger' style='padding:6px 10px;font-size:12px;' " +
-              "onclick='deleteUser(\"" + u.id + "\", \"" + escapeHtml(u.name) + "\")'>🗑️</button>" +
+              "<button class='btn btn-outline btn-action-edit' style='padding:6px 10px;font-size:12px;' " +
+              "data-userid=\"" + u.id + "\" " +
+              "data-full=\"" + (u.salary||0) + "\" " +
+              "data-half=\"" + (u.halfSalary || Math.floor((u.salary||0)/2)) + "\">✏️</button> " +
+              "<button class='btn btn-danger btn-action-delete' style='padding:6px 10px;font-size:12px;' " +
+              "data-userid=\"" + u.id + "\" " +
+              "data-name=\"" + escapeHtml(u.name) + "\">🗑️</button>" +
             "</td>";
           tbody.appendChild(tr);
         }
@@ -290,12 +295,68 @@
         if (!confirm("Hapus karyawan '" + name + "'? Semua data absensinya juga akan hilang.")) return;
         var result = AbsenApp.deleteUser(userId);
         if (result.error) {
-          alert(result.error);
+          showAdminMsg(result.error, "error");
           return;
         }
-        alert("✅ Karyawan '" + name + "' berhasil dihapus.");
+        showAdminMsg("✅ Karyawan '" + name + "' berhasil dihapus.", "success");
         window.location.reload();
       };
+
+      // ===================================================================
+      // Event Delegation untuk tombol aksi
+      // ===================================================================
+      var usersBody = document.getElementById("users-body");
+      usersBody.addEventListener("click", function (e) {
+        var target = e.target;
+        // Cari button terdekat (kalau user klik area dalam button)
+        var btn = target.closest("button");
+        if (!btn) return;
+
+        var userId = btn.getAttribute("data-userid");
+        if (!userId) return;
+
+        if (btn.classList.contains("btn-action-edit")) {
+          var full = Number(btn.getAttribute("data-full") || 0);
+          var half = Number(btn.getAttribute("data-half") || 0);
+          var newFull = prompt("Gaji penuh / hari (Rp):", full);
+          if (newFull === null) return;
+          var newHalf = prompt("Gaji setengah / hari (Rp):", half);
+          if (newHalf === null) return;
+
+          var result = AbsenApp.setUserSalary(userId, newFull, newHalf);
+          if (result.error) {
+            showAdminMsg(result.error, "error");
+            return;
+          }
+          showAdminMsg("✅ Gaji diperbarui.\n" + result.user.name + " — Full: Rp " + window.formatRupiah(result.user.salary) +
+            " · Half: Rp " + window.formatRupiah(result.user.halfSalary), "success");
+          window.location.reload();
+        } else if (btn.classList.contains("btn-action-delete")) {
+          var name = btn.getAttribute("data-name") || "karyawan ini";
+          if (!confirm("Hapus karyawan '" + name + "'? Semua data absensinya juga akan hilang.")) return;
+          var result = AbsenApp.deleteUser(userId);
+          if (result.error) {
+            showAdminMsg(result.error, "error");
+            return;
+          }
+          showAdminMsg("✅ Karyawan '" + name + "' berhasil dihapus.", "success");
+          window.location.reload();
+        }
+      });
+
+      // ===================================================================
+      // Helper: tampilkan pesan di #admin-msg
+      // ===================================================================
+      function showAdminMsg(text, type) {
+        var el = document.getElementById("admin-msg");
+        if (!el) return;
+        el.textContent = text;
+        el.className = "msg " + (type || "");
+        setTimeout(function () {
+          el.textContent = "";
+          el.className = "msg";
+        }, 4000);
+      }
 
     })();
   </script>
