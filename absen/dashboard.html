@@ -1,0 +1,269 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Dashboard — Absen Karyawan</title>
+  <link rel="stylesheet" href="assets/css/style.css">
+</head>
+<body>
+
+  <!-- Header -->
+  <div class="page-header">
+    <div class="header-inner">
+      <h1>📋 Absen Harian</h1>
+      <div class="user-info" id="header-user">Loading...</div>
+      <button class="btn-logout" id="btn-logout" onclick="AbsenApp.logout()">Logout</button>
+    </div>
+  </div>
+
+  <!-- Main Content -->
+  <div class="main-content">
+
+    <!-- Today's Attendance Card -->
+    <div class="card">
+      <div class="attendance-card" id="attendance-card">
+        <div class="date" id="today-date"></div>
+
+        <span class="status-badge" id="status-badge">Loading...</span>
+
+        <div class="checkin-time" id="checkin-time"></div>
+        <div class="checkout-time" id="checkout-time"></div>
+
+        <div class="btn-group">
+          <button class="btn btn-success btn-lg" id="btn-checkin" onclick="doCheckIn()">
+            🟢 DATANG
+          </button>
+          <button class="btn btn-primary btn-lg" id="btn-checkout" onclick="doCheckOut()">
+            🔴 PULANG
+          </button>
+        </div>
+
+        <div id="notif-lambat" class="notif-lambat hidden">
+          ⚠️ ANDA TERLAMBAT — Datang setelah 07:15 WIB
+        </div>
+      </div>
+    </div>
+
+    <!-- Today's Info -->
+    <div class="card">
+      <h3>ℹ️ Informasi Hari Ini</h3>
+      <p style="font-size:14px;color:var(--gray-500);">
+        <strong>Jam datang batas:</strong> 07:15 WIB &nbsp;|&nbsp;
+        <strong>Jam pulang setengah hari:</strong> before 14:00 WIB &nbsp;|&nbsp;
+        <strong>Jam pulang penuh:</strong> after 15:50 WIB
+      </p>
+      <p style="font-size:14px;color:var(--gray-500);margin-top:8px;">
+        Datang pukul &lt; 07:15 → tidak terlambat. Datang &gt; 07:15 → terlambat.
+      </p>
+    </div>
+
+    <!-- History -->
+    <div class="card">
+      <h3>📅 Riwayat Absensi</h3>
+
+      <div id="history-empty" class="empty-state">
+        <p>📭 Belum ada catatan absensi.</p>
+      </div>
+
+      <table class="history-table hidden" id="history-table">
+        <thead>
+          <tr>
+            <th>Tanggal</th>
+            <th>Datang</th>
+            <th>Pulang</th>
+            <th>Status</th>
+            <th>Catatan Gaji</th>
+          </tr>
+        </thead>
+        <tbody id="history-body"></tbody>
+      </table>
+    </div>
+  </div>
+
+  <!-- Footer -->
+  <div class="app-footer">
+    Absen Karyawan · Disimpan di browser ini (localStorage)
+  </div>
+
+  <script src="assets/js/app.js"></script>
+  <script>
+    // =============================================
+    // Dashboard Logic
+    // =============================================
+
+    (function () {
+      var user = AbsenApp.currentUser();
+
+      // Redirect kalau belum login
+      if (!user) {
+        window.location.href = "index.html";
+        return;
+      }
+
+      // Isi header
+      document.getElementById("header-user").textContent =
+        user.name + " · " + user.email + " · " + (user.role === "admin" ? "Admin" : "Karyawan");
+
+      // Tanggal hari ini
+      document.getElementById("today-date").textContent =
+        new Date().toLocaleDateString("id-ID", {
+          weekday: "long",
+          year: "numeric",
+          month: "long",
+          day: "numeric"
+        }) + " · " + new Date().toLocaleTimeString("id-ID", { hour: "2-digit", minute: "2-digit" }) + " WIB";
+
+      var todayRecord = AbsenApp.getTodayRecord(user.id);
+
+      // Render status badge & times
+      var statusBadge = document.getElementById("status-badge");
+      var checkinEl = document.getElementById("checkin-time");
+      var checkoutEl = document.getElementById("checkout-time");
+
+      if (todayRecord && todayRecord.checkIn) {
+        var info = AbsenApp.hitungStatus(todayRecord.checkIn, todayRecord.checkOut);
+        setStatus(info.status, todayRecord);
+        checkinEl.textContent = "🕐 Datang: " + todayRecord.checkIn + " WIB";
+        if (todayRecord.checkOut) {
+          checkoutEl.textContent = "🕐 Pulang: " + todayRecord.checkOut + " WIB";
+        }
+        // Notif terlambat
+        var notif = document.getElementById("notif-lambat");
+        if (info.status === "terlambat") {
+          notif.classList.remove("hidden");
+        } else {
+          notif.classList.add("hidden");
+        }
+      } else {
+        setStatus("belum_mulai", null);
+      }
+
+      // --- Fungsi bantuan ---
+      function setStatus(status, record) {
+        var badge = statusBadge;
+        badge.className = "status-badge";
+
+        var statusMap = {
+          "hadir_penuh":     { text: "✅ Hari Penuh", cls: "hadir_penuh" },
+          "hadir_setengah":  { text: "⏳ Setengah Hari", cls: "hadir_setengah" },
+          "terlambat":       { text: "⚠️ Terlambat", cls: "terlambat" },
+          "hadir":           { text: "🟢 Sedang Absen", cls: "hadir_setengah" },
+          "belum_mulai":     { text: "📌 Belum Absen Hari Ini", cls: "belum_mulai" },
+          "alpha":           { text: "❌ Alpha", cls: "alpha" }
+        };
+
+        var s = statusMap[status];
+        if (s) {
+          badge.textContent = s.text;
+          badge.classList.add(s.cls);
+        } else {
+          badge.textContent = "❓ " + status;
+        }
+
+        // Tampilkan tombol DATANG/PULANG sesuai kondisi
+        var btnIn = document.getElementById("btn-checkin");
+        var btnOut = document.getElementById("btn-checkout");
+
+        if (status === "belum_mulai") {
+          btnIn.classList.remove("hidden");
+          btnOut.classList.add("hidden");
+          btnIn.disabled = false;
+        } else if (status === "hadir" || (record && record.checkIn && !record.checkOut)) {
+          // Sudah datang tapi belum pulang
+          btnIn.classList.add("hidden");
+          btnOut.classList.remove("hidden");
+          btnOut.disabled = false;
+          // Update teks tombol DATANG jadi hidden
+          btnIn.classList.add("hidden");
+        } else if (record && record.checkIn && record.checkOut) {
+          // Sudah check-in dan check-out hari ini
+          btnIn.classList.add("hidden");
+          btnOut.classList.add("hidden");
+        } else {
+          btnIn.classList.add("hidden");
+          btnOut.classList.add("hidden");
+        }
+      }
+
+      // --- Check In ---
+      window.doCheckIn = function () {
+        var result = AbsenApp.checkIn(user.id);
+        if (result.error) {
+          alert(result.error);
+          return;
+        }
+        // Refresh halaman
+        alert("✅ Berhasil absen datang pukul " + result.record.checkIn + " WIB.");
+        location.reload();
+      };
+
+      // --- Check Out ---
+      window.doCheckOut = function () {
+        var result = AbsenApp.checkOut(user.id);
+        if (result.error) {
+          alert(result.error);
+          return;
+        }
+        var info = AbsenApp.hitungStatus(result.record.checkIn, result.record.checkOut);
+        var msg = "✅ Berhasil absen pulang pukul " + result.record.checkOut + " WIB.\n" +
+          "Status: " + (info.status === "hadir_penuh" ? "Hari Penuh" :
+                        info.status === "hadir_setengah" ? "Setengah Hari" :
+                        info.status === "terlambat" ? "Terlambat" : "—") +
+          "\n" + info.salaryNote;
+        alert(msg);
+        location.reload();
+      };
+
+      // --- Riwayat ---
+      (function renderHistory() {
+        var history = AbsenApp.getAttendanceByUser(user.id);
+        var empty = document.getElementById("history-empty");
+        var table = document.getElementById("history-table");
+        var body = document.getElementById("history-body");
+
+        if (history.length === 0) {
+          empty.classList.remove("hidden");
+          table.classList.add("hidden");
+          return;
+        }
+
+        empty.classList.add("hidden");
+        table.classList.remove("hidden");
+
+        body.innerHTML = "";
+        for (var i = 0; i < history.length; i++) {
+          var r = history[i];
+          var info = AbsenApp.hitungStatus(r.checkIn, r.checkOut);
+          var tr = document.createElement("tr");
+          tr.innerHTML =
+            "<td>" + formatTanggal(r.date) + "</td>" +
+            "<td>" + (r.checkIn ? r.checkIn + " WIB" : "—") + "</td>" +
+            "<td>" + (r.checkOut ? r.checkOut + " WIB" : "—") + "</td>" +
+            "<td class='status-cell'>" + statusText(info.status) + "</td>" +
+            "<td>" + (info.salaryNote || "—") + "</td>";
+          body.appendChild(tr);
+        }
+      })();
+
+      function formatTanggal(iso) {
+        var d = new Date(iso);
+        return d.toLocaleDateString("id-ID", { weekday: "short", year: "numeric", month: "short", day: "numeric" });
+      }
+
+      function statusText(s) {
+        var map = {
+          "hadir_penuh": "✅ Hari Penuh",
+          "hadir_setengah": "⏳ Setengah Hari",
+          "terlambat": "⚠️ Terlambat",
+          "hadir": "🟢 Hadir",
+          "belum_mulai": "—",
+          "alpha": "❌ Alpha"
+        };
+        return map[s] || s;
+      }
+    })();
+  </script>
+
+</body>
+</html>

@@ -1,0 +1,540 @@
+/* ============================================
+   Absen Karyawan — Global Styles
+   ============================================ */
+
+:root {
+  --primary: #2563eb;
+  --primary-dark: #1d4ed8;
+  --primary-light: #dbeafe;
+  --success: #16a34a;
+  --success-light: #dcfce7;
+  --warning: #ea580c;
+  --warning-light: #ffedd5;
+  --danger: #dc2626;
+  --danger-light: #fee2e2;
+  --gray-50: #f9fafb;
+  --gray-100: #f3f4f6;
+  --gray-200: #e5e7eb;
+  --gray-300: #d1d5db;
+  --gray-500: #6b7280;
+  --gray-700: #374151;
+  --gray-900: #111827;
+  --radius: 12px;
+  --shadow: 0 1px 3px rgba(0,0,0,0.1), 0 1px 2px rgba(0,0,0,0.06);
+  --shadow-lg: 0 10px 25px rgba(0,0,0,0.1);
+}
+
+* {
+  margin: 0;
+  padding: 0;
+  box-sizing: border-box;
+}
+
+body {
+  font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Oxygen,
+    Ubuntu, Cantarell, sans-serif;
+  background: var(--gray-50);
+  color: var(--gray-900);
+  line-height: 1.6;
+  min-height: 100vh;
+}
+
+a { color: var(--primary); text-decoration: none; }
+a:hover { text-decoration: underline; }
+
+/* ========== Layout ========== */
+
+.container {
+  max-width: 480px;
+  margin: 0 auto;
+  padding: 20px;
+}
+
+/* ========== Auth Card ========== */
+
+.auth-container {
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  min-height: 100vh;
+  padding: 20px 0;
+}
+
+.auth-card {
+  background: #fff;
+  border-radius: var(--radius);
+  box-shadow: var(--shadow-lg);
+  padding: 32px 28px;
+  width: 100%;
+}
+
+.auth-header {
+  text-align: center;
+  margin-bottom: 24px;
+}
+
+.auth-header h1 {
+  font-size: 24px;
+  font-weight: 700;
+  color: var(--gray-900);
+}
+
+.auth-header p {
+  color: var(--gray-500);
+  font-size: 14px;
+  margin-top: 4px;
+}
+
+/* ========== Forms ========== */
+
+.form-group {
+  margin-bottom: 16px;
+}
+
+.form-group label {
+  display: block;
+  font-size: 13px;
+  font-weight: 600;
+  color: var(--gray-700);
+  margin-bottom: 6px;
+}
+
+.form-group input {
+  width: 100%;
+  padding: 12px 14px;
+  border: 1.5px solid var(--gray-200);
+  border-radius: 8px;
+  font-size: 15px;
+  color: var(--gray-900);
+  background: #fff;
+  transition: border-color 0.2s, box-shadow 0.2s;
+}
+
+.form-group input:focus {
+  outline: none;
+  border-color: var(--primary);
+  box-shadow: 0 0 0 3px var(--primary-light);
+}
+
+/* ========== Buttons ========== */
+
+.btn {
+  display: inline-block;
+  padding: 12px 20px;
+  border: none;
+  border-radius: 8px;
+  font-size: 15px;
+  font-weight: 600;
+  cursor: pointer;
+  transition: background 0.2s, transform 0.1s;
+  text-align: center;
+}
+
+.btn:active { transform: scale(0.98); }
+
+.btn-primary {
+  background: var(--primary);
+  color: #fff;
+  width: 100%;
+}
+
+.btn-primary:hover { background: var(--primary-dark); }
+
+.btn-block { display: block; width: 100%; }
+
+.btn-outline {
+  background: #fff;
+  color: var(--gray-700);
+  border: 1.5px solid var(--gray-200);
+}
+
+.btn-outline:hover { background: var(--gray-100); }
+
+.btn-success {
+  background: var(--success);
+  color: #fff;
+}
+
+.btn-success:hover { background: #15803d; }
+
+.btn-danger {
+  background: var(--danger);
+  color: #fff;
+}
+
+.btn-danger:hover { background: #b91c1c; }
+
+.btn-warning {
+  background: var(--warning);
+  color: #fff;
+}
+
+.btn-lg {
+  padding: 16px 24px;
+  font-size: 17px;
+}
+
+/* ========== Messages ========== */
+
+.msg {
+  margin-top: 12px;
+  padding: 10px 14px;
+  border-radius: 8px;
+  font-size: 14px;
+  font-weight: 500;
+  text-align: center;
+}
+
+.msg.error {
+  background: var(--danger-light);
+  color: var(--danger);
+  border: 1px solid #fecaca;
+}
+
+.msg.success {
+  background: var(--success-light);
+  color: var(--success);
+  border: 1px solid #bbf7d0;
+}
+
+.msg.warning {
+  background: var(--warning-light);
+  color: var(--warning);
+  border: 1px solid #fed7aa;
+}
+
+/* ========== Auth Switch ========== */
+
+.auth-switch {
+  text-align: center;
+  margin-top: 20px;
+  font-size: 14px;
+  color: var(--gray-500);
+}
+
+.auth-switch a {
+  font-weight: 600;
+  color: var(--primary);
+}
+
+.auth-switch a:hover { text-decoration: underline; }
+
+.hidden { display: none !important; }
+
+/* ========== Header Nav ========== */
+
+.page-header {
+  background: #fff;
+  border-bottom: 1px solid var(--gray-200);
+  padding: 16px 0;
+  position: sticky;
+  top: 0;
+  z-index: 10;
+}
+
+.page-header .header-inner {
+  max-width: 960px;
+  margin: 0 auto;
+  padding: 0 20px;
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+}
+
+.page-header h1 {
+  font-size: 18px;
+  font-weight: 700;
+}
+
+.page-header .user-info {
+  font-size: 13px;
+  color: var(--gray-500);
+}
+
+.page-header .btn-logout {
+  background: none;
+  border: none;
+  color: var(--danger);
+  font-size: 13px;
+  cursor: pointer;
+  font-weight: 600;
+  padding: 4px 8px;
+  border-radius: 6px;
+}
+
+.page-header .btn-logout:hover {
+  background: var(--danger-light);
+  text-decoration: none;
+}
+
+/* ========== Main Content ========== */
+
+.main-content {
+  max-width: 960px;
+  margin: 0 auto;
+  padding: 24px 20px 40px;
+}
+
+/* ========== Cards ========== */
+
+.card {
+  background: #fff;
+  border-radius: var(--radius);
+  border: 1px solid var(--gray-200);
+  padding: 24px;
+  margin-bottom: 20px;
+}
+
+.card h2 {
+  font-size: 17px;
+  font-weight: 700;
+  margin-bottom: 16px;
+  color: var(--gray-900);
+}
+
+.card h3 {
+  font-size: 15px;
+  font-weight: 600;
+  margin-bottom: 12px;
+}
+
+/* ========== Attendance Card (Dashboard) ========== */
+
+.attendance-card {
+  background: linear-gradient(135deg, var(--primary-light), #fff);
+  border: 2px solid var(--primary);
+  border-radius: var(--radius);
+  padding: 28px 24px;
+  text-align: center;
+}
+
+.attendance-card .date {
+  font-size: 14px;
+  color: var(--gray-500);
+  margin-bottom: 8px;
+}
+
+.attendance-card .status-badge {
+  display: inline-block;
+  padding: 4px 12px;
+  border-radius: 20px;
+  font-size: 13px;
+  font-weight: 600;
+  margin-bottom: 16px;
+}
+
+.status-badge.hadir_penuh {
+  background: var(--success-light);
+  color: var(--success);
+}
+
+.status-badge.hadir_setengah {
+  background: #fef3c7;
+  color: #d97706;
+}
+
+.status-badge.terlambat {
+  background: var(--warning-light);
+  color: var(--warning);
+}
+
+.status-badge.alpha {
+  background: var(--danger-light);
+  color: var(--danger);
+}
+
+.status-badge.belum_mulai {
+  background: var(--gray-200);
+  color: var(--gray-500);
+}
+
+.attendance-card .checkin-time,
+.attendance-card .checkout-time {
+  font-size: 14px;
+  color: var(--gray-500);
+  margin: 4px 0;
+}
+
+.attendance-card .btn-group {
+  display: flex;
+  gap: 12px;
+  justify-content: center;
+  margin-top: 20px;
+  flex-wrap: wrap;
+}
+
+.attendance-card .btn-group .btn {
+  min-width: 140px;
+}
+
+.notif-lambat {
+  background: var(--warning-light);
+  border: 1px solid #fed7aa;
+  border-radius: 8px;
+  padding: 12px 16px;
+  margin-top: 16px;
+  font-size: 14px;
+  font-weight: 600;
+  color: var(--warning);
+  text-align: center;
+}
+
+/* ========== Tables ========== */
+
+table {
+  width: 100%;
+  border-collapse: collapse;
+  font-size: 14px;
+}
+
+th, td {
+  padding: 10px 12px;
+  text-align: left;
+  border-bottom: 1px solid var(--gray-200);
+}
+
+th {
+  background: var(--gray-50);
+  font-weight: 600;
+  color: var(--gray-700);
+  font-size: 13px;
+  text-transform: uppercase;
+  letter-spacing: 0.03em;
+}
+
+td {
+  color: var(--gray-700);
+}
+
+tr:hover { background: var(--gray-50); }
+
+/* ========== Badge ========== */
+
+.badge {
+  display: inline-block;
+  padding: 2px 8px;
+  border-radius: 12px;
+  font-size: 12px;
+  font-weight: 600;
+}
+
+.badge.admin { background: var(--primary-light); color: var(--primary); }
+.badge.user { background: var(--gray-200); color: var(--gray-500); }
+
+/* ========== Form Row ========== */
+
+.form-row {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.form-row input[type="number"] {
+  width: 120px;
+  padding: 8px 10px;
+  border: 1.5px solid var(--gray-200);
+  border-radius: 6px;
+  font-size: 14px;
+  text-align: center;
+}
+
+.form-row input[type="number"]:focus {
+  outline: none;
+  border-color: var(--primary);
+  box-shadow: 0 0 0 3px var(--primary-light);
+}
+
+/* ========== Summary Box ========== */
+
+.summary-box {
+  background: var(--gray-900);
+  color: #fff;
+  border-radius: var(--radius);
+  padding: 20px 24px;
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  flex-wrap: wrap;
+  gap: 12px;
+}
+
+.summary-box .label {
+  font-size: 13px;
+  color: var(--gray-300);
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+}
+
+.summary-box .value {
+  font-size: 28px;
+  font-weight: 700;
+  color: #fff;
+}
+
+.summary-box .breakdown {
+  font-size: 13px;
+  color: var(--gray-300);
+  margin-top: 4px;
+}
+
+/* ========== History Table ========== */
+
+.history-table th:first-child,
+.history-table td:first-child {
+  width: 100px;
+}
+
+.history-table .status-cell {
+  font-size: 13px;
+}
+
+/* ========== Empty State ========== */
+
+.empty-state {
+  text-align: center;
+  padding: 32px 16px;
+  color: var(--gray-500);
+}
+
+.empty-state p { margin-top: 8px; }
+
+/* ========== Page Titles ========== */
+
+.page-title {
+  font-size: 22px;
+  font-weight: 700;
+  margin-bottom: 4px;
+}
+
+.page-subtitle {
+  color: var(--gray-500);
+  font-size: 14px;
+  margin-bottom: 20px;
+}
+
+/* ========== Responsive ========== */
+
+@media (max-width: 600px) {
+  .container { padding: 12px; }
+  .auth-card { padding: 24px 18px; }
+  .main-content { padding: 16px 12px 32px; }
+  .card { padding: 16px; }
+  .attendance-card { padding: 20px 16px; }
+  .attendance-card .btn-group { flex-direction: column; }
+  .attendance-card .btn-group .btn { width: 100%; }
+  .summary-box { flex-direction: column; align-items: stretch; text-align: center; }
+  .form-row { flex-direction: column; align-items: stretch; }
+  .form-row input[type="number"] { width: 100%; }
+  th, td { padding: 8px; font-size: 13px; }
+}
+
+/* ========== Footer ========== */
+
+.app-footer {
+  text-align: center;
+  padding: 16px;
+  color: var(--gray-500);
+  font-size: 12px;
+  border-top: 1px solid var(--gray-200);
+  margin-top: 20px;
+}

@@ -1,0 +1,319 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Admin — Absen Karyawan</title>
+  <link rel="stylesheet" href="assets/css/style.css">
+</head>
+<body>
+
+  <!-- Header -->
+  <div class="page-header">
+    <div class="header-inner">
+      <h1>🛡️ Admin Panel</h1>
+      <div class="user-info" id="header-user">Loading...</div>
+      <button class="btn-logout" id="btn-logout" onclick="AbsenApp.logout()">Logout</button>
+    </div>
+  </div>
+
+  <!-- Main Content -->
+  <div class="main-content">
+
+    <!-- Info Jam -->
+    <div class="card">
+      <h3>⏰ Informasi Absensi</h3>
+      <ul style="font-size:14px;color:var(--gray-500);padding-left:20px;line-height:1.8;">
+        <li><strong>Datang ≤ 07:15 + Pulang &lt; 14:00</strong> → Setengah hari (50%)</li>
+        <li><strong>Datang ≤ 07:15 + Pulang ≥ 14:00</strong> → Hari penuh (100%)</li>
+        <li><strong>Datang &gt; 07:15</strong> → Terlambat (0%)</li>
+      </ul>
+    </div>
+
+    <!-- Daftar Karyawan -->
+    <div class="card">
+      <h2>👥 Data Karyawan</h2>
+
+      <table id="users-table">
+        <thead>
+          <tr>
+            <th>Nama</th>
+            <th>Email</th>
+            <th>Role</th>
+            <th>Gaji Penuh</th>
+            <th>Gaji Setengah</th>
+            <th>Aksi</th>
+          </tr>
+        </thead>
+        <tbody id="users-body">
+          <tr>
+            <td colspan="6" class="empty-state">Loading...</td>
+          </tr>
+        </tbody>
+      </table>
+    </div>
+
+    <!-- Tambah Karyawan -->
+    <div class="card">
+      <h3>➕ Tambah Karyawan Baru</h3>
+      <form id="add-user-form">
+        <div class="form-group">
+          <label for="add-name">Nama Lengkap</label>
+          <input type="text" id="add-name" placeholder="Nama karyawan" required>
+        </div>
+        <div class="form-group">
+          <label for="add-email">Email</label>
+          <input type="email" id="add-email" placeholder="email@contoh.com" required>
+        </div>
+        <div class="form-group">
+          <label for="add-pass">Password</label>
+          <input type="password" id="add-pass" placeholder="minimal 6 karakter" minlength="6" required>
+        </div>
+        <div class="form-row">
+          <div class="form-group" style="flex:1;">
+            <label for="add-full-salary">Gaji Penuh / hari</label>
+            <input type="number" id="add-full-salary" min="0" step="1000" value="100000" required>
+          </div>
+          <div class="form-group" style="flex:1;">
+            <label for="add-half-salary">Gaji Setengah / hari</label>
+            <input type="number" id="add-half-salary" min="0" step="1000" value="50000" required>
+          </div>
+        </div>
+        <button type="submit" class="btn btn-primary btn-block" style="margin-top:12px;">Tambah Karyawan</button>
+      </form>
+      <div id="add-user-msg" class="msg"></div>
+    </div>
+
+    <!-- Gaji Mingguan Semua Karyawan -->
+    <div class="card">
+      <h2>💰 Gaji Mingguan — Semua Karyawan</h2>
+
+      <div class="summary-box" id="weekly-summary">
+        <div>
+          <div class="label">Total Gaji Semua Karyawan (Seminggu)</div>
+          <div class="value" id="grand-total">Rp 0</div>
+          <div class="breakdown" id="grand-breakdown"></div>
+        </div>
+      </div>
+
+      <table id="weekly-table" style="margin-top:16px;">
+        <thead>
+          <tr>
+            <th>Nama</th>
+            <th>Senin</th>
+            <th>Selasa</th>
+            <th>Rabu</th>
+            <th>Kamis</th>
+            <th>Jumat</th>
+            <th>Total</th>
+          </tr>
+        </thead>
+        <tbody id="weekly-body">
+          <tr>
+            <td colspan="7" class="empty-state">Loading...</td>
+          </tr>
+        </tbody>
+      </table>
+    </div>
+
+  </div>
+
+  <!-- Footer -->
+  <div class="app-footer">
+    Admin Panel · Absen Karyawan · Data disimpan di browser (localStorage)
+  </div>
+
+  <script src="assets/js/app.js"></script>
+  <script>
+    // =============================================
+    // Admin Panel Logic
+    // =============================================
+
+    (function () {
+      var user = AbsenApp.currentUser();
+
+      // Redirect kalau belum login atau bukan admin
+      if (!user) {
+        window.location.href = "index.html";
+        return;
+      }
+      if (user.role !== "admin") {
+        alert("Anda tidak memiliki akses admin. Silakan login dengan akun admin.");
+        window.location.href = "index.html";
+        return;
+      }
+
+      document.getElementById("header-user").textContent =
+        user.name + " · " + user.email + " · Admin";
+
+      // ===================================================================
+      // 1. Load & render tabel karyawan
+      // ===================================================================
+      var users = AbsenApp.getAllUsers();
+      var tbody = document.getElementById("users-body");
+
+      if (users.length === 0) {
+        tbody.innerHTML = "<tr><td colspan='6' class='empty-state'>📭 Belum ada karyawan terdaftar.</td></tr>";
+      } else {
+        tbody.innerHTML = "";
+        for (var i = 0; i < users.length; i++) {
+          var u = users[i];
+          var tr = document.createElement("tr");
+
+          var salaryHtml = "Rp " + formatRupiah(u.salary || 0);
+
+          tr.innerHTML =
+            "<td>" + escapeHtml(u.name) + "</td>" +
+            "<td>" + escapeHtml(u.email) + "</td>" +
+            "<td><span class='badge " + (u.role === "admin" ? "admin" : "user") + "'>" +
+              (u.role === "admin" ? "Admin" : "Karyawan") + "</span></td>" +
+            "<td style='font-weight:600;'>" + salaryHtml + "</td>" +
+            "<td>" + salaryHtml.replace(/^Rp ([\d.]+)$/, function (m, num) {
+              // gaji setengah = 50% dari penuh (default) atau ambil halfSalary
+              var half = u.halfSalary || Math.floor((u.salary || 0) / 2);
+              return "Rp " + formatRupiah(half);
+            }) + "</td>" +
+            "<td>" +
+              "<button class='btn btn-outline' style='padding:6px 10px;font-size:12px;' " +
+              "onclick='editSalary(\"" + u.id + "\", " + (u.salary||0) + ", " +
+              (u.halfSalary || Math.floor((u.salary||0)/2)) + ")'>✏️</button> " +
+              "<button class='btn btn-danger' style='padding:6px 10px;font-size:12px;' " +
+              "onclick='deleteUser(\"" + u.id + "\", \"" + escapeHtml(u.name) + "\")'>🗑️</button>" +
+            "</td>";
+          tbody.appendChild(tr);
+        }
+      }
+
+      // ===================================================================
+      // 2. Gaji mingguan
+      // ===================================================================
+      (function renderWeekly() {
+        var dates = AbsenApp.getThisWeekDates();  // misal 5 hari kerja
+        var users = AbsenApp.getAllUsers();
+        var body = document.getElementById("weekly-body");
+        var grandTotalEl = document.getElementById("grand-total");
+        var grandBreakdownEl = document.getElementById("grand-breakdown");
+
+        if (users.length === 0) {
+          body.innerHTML = "<tr><td colspan='7' class='empty-state'>📭 Belum ada karyawan.</td></tr>";
+          grandTotalEl.textContent = "Rp 0";
+          grandBreakdownEl.textContent = "—";
+          return;
+        }
+
+        var grandTotal = 0;
+        body.innerHTML = "";
+
+        for (var i = 0; i < users.length; i++) {
+          var u = users[i];
+          var gaji = AbsenApp.hitungGajiMingguan(u, dates);
+          var total = gaji.total;
+          grandTotal += total;
+
+          var tr = document.createElement("tr");
+          var cells = "<td>" + escapeHtml(u.name) + "</td>";
+
+          for (var d = 0; d < dates.length; d++) {
+            var dayInfo = gaji.breakdown[d];
+            var val = dayInfo ? dayInfo.amount : 0;
+            var text = val > 0 ? "Rp " + formatRupiah(val) : "—";
+            var style = "style='text-align:center;'";
+            cells += "<td " + style + ">" + text + "</td>";
+          }
+
+          var fmtTotal = "Rp " + formatRupiah(total);
+          cells += "<td style='text-align:right;font-weight:700;'>" + fmtTotal + "</td>";
+
+          tr.innerHTML = cells;
+          body.appendChild(tr);
+        }
+
+        grandTotalEl.textContent = "Rp " + formatRupiah(grandTotal);
+        var summary = gaji.summary;
+        var sb = "Hari penuh: " + summary.full + " · Setengah: " + summary.half +
+          " · Terlambat: " + summary.late + " · Belum absen: " + summary.missing;
+        grandBreakdownEl.textContent = sb;
+      })();
+
+      // ===================================================================
+      // 3. Form tambah karyawan
+      // ===================================================================
+      document.getElementById("add-user-form").addEventListener("submit", function (e) {
+        e.preventDefault();
+        var name = document.getElementById("add-name").value.trim();
+        var email = document.getElementById("add-email").value.trim();
+        var pass = document.getElementById("add-pass").value;
+        var fullSalary = document.getElementById("add-full-salary").value;
+        var halfSalary = document.getElementById("add-half-salary").value;
+
+        var result = AbsenApp.addUser(name, email, pass, "user", fullSalary, halfSalary);
+        var msgEl = document.getElementById("add-user-msg");
+
+        if (result.error) {
+          msgEl.className = "msg error";
+          msgEl.textContent = result.error;
+          return;
+        }
+
+        msgEl.className = "msg success";
+        msgEl.textContent = "✅ Berhasil tambah " + result.user.name + " (" + result.user.email + ")";
+        document.getElementById("add-user-form").reset();
+        document.getElementById("add-full-salary").value = 100000;
+        document.getElementById("add-half-salary").value = 50000;
+
+        // Refresh tabel & gaji
+        setTimeout(function () {
+          window.location.reload();
+        }, 1500);
+      });
+
+      // ===================================================================
+      // Fungsi global untuk edit & delete
+      // ===================================================================
+      window.editSalary = function (userId, fullSalary, halfSalary) {
+        var newFull = prompt("Gaji penuh / hari (Rp):", fullSalary);
+        if (newFull === null) return;
+        var newHalf = prompt("Gaji setengah / hari (Rp):", halfSalary);
+        if (newHalf === null) return;
+
+        var result = AbsenApp.setUserSalary(userId, Number(newFull), Number(newHalf));
+        if (result.error) {
+          alert(result.error);
+          return;
+        }
+        alert("✅ Gaji diperbarui.\n" + result.user.name + " — Full: Rp " + formatRupiah(result.user.salary) +
+          " · Half: Rp " + formatRupiah(result.user.halfSalary));
+        window.location.reload();
+      };
+
+      window.deleteUser = function (userId, name) {
+        if (!confirm("Hapus karyawan '" + name + "'? Semua data absensinya juga akan hilang.")) return;
+        var result = AbsenApp.deleteUser(userId);
+        if (result.error) {
+          alert(result.error);
+          return;
+        }
+        alert("✅ Karyawan '" + name + "' berhasil dihapus.");
+        window.location.reload();
+      };
+
+      // ===================================================================
+      // Helpers
+      // ===================================================================
+      function escapeHtml(str) {
+        var div = document.createElement("div");
+        div.appendChild(document.createTextNode(str));
+        return div.innerHTML;
+      }
+
+      function formatRupiah(angka) {
+        var str = String(Math.round(Number(angka) || 0));
+        var rev = str.split("").reverse().join("");
+        var formatted = rev.replace(/(\d{3})(?=\d)/g, "$1.");
+        return formatted.split("").reverse().join("");
+      }
+    })();
+  </script>
+
+</body>
+</html>
