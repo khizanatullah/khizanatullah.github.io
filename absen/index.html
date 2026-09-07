@@ -4,7 +4,7 @@
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>Absen Karyawan</title>
-  <link rel="stylesheet" href="assets/css/style.css">
+  <link rel="stylesheet" href="style.css">
 </head>
 <body>
 
@@ -64,7 +64,52 @@
     </div>
   </div>
 
-  <script src="assets/js/app.js"></script>
+  <script src="app.js"></script>
+  <script>
+    // === Login Handler ===
+    document.getElementById('login-form').addEventListener('submit', function(e) {
+      e.preventDefault();
+      var email = document.getElementById('login-email').value.trim();
+      var password = document.getElementById('login-pass').value;
+      var msgEl = document.getElementById('login-msg');
+      var result = AbsenApp.login(email, password);
+      if (result.error) {
+        msgEl.className = 'msg error';
+        msgEl.textContent = result.error;
+      } else {
+        AbsenApp.setCurrentUser(result.user.email);
+        if (result.user.role === 'admin') {
+          window.location.href = 'admin.html';
+        } else {
+          window.location.href = 'dashboard.html';
+        }
+      }
+    });
+    // === Register Handler ===
+    document.getElementById('register-form').addEventListener('submit', function(e) {
+      e.preventDefault();
+      var name = document.getElementById('reg-name').value.trim();
+      var email = document.getElementById('reg-email').value.trim();
+      var password = document.getElementById('reg-pass').value;
+      var msgEl = document.getElementById('register-msg');
+      var result = AbsenApp.register(name, email, password);
+      if (result.error) {
+        msgEl.className = 'msg error';
+        msgEl.textContent = result.error;
+      } else {
+        msgEl.className = 'msg success';
+        msgEl.textContent = '✅ Pendaftaran berhasil! Login otomatis...';
+        AbsenApp.setCurrentUser(result.user.email);
+        setTimeout(function() {
+          if (result.user.role === 'admin') {
+            window.location.href = 'admin.html';
+          } else {
+            window.location.href = 'dashboard.html';
+          }
+        }, 1200);
+      }
+    });
+  </script>
   <script>
     // Handle panel toggle
     document.getElementById('show-register').addEventListener('click', e => {
