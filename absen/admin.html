@@ -297,21 +297,6 @@
         window.location.reload();
       };
 
-      // ===================================================================
-      // Helpers
-      // ===================================================================
-      function escapeHtml(str) {
-        var div = document.createElement("div");
-        div.appendChild(document.createTextNode(str));
-        return div.innerHTML;
-      }
-
-      function formatRupiah(angka) {
-        var str = String(Math.round(Number(angka) || 0));
-        var rev = str.split("").reverse().join("");
-        var formatted = rev.replace(/(\d{3})(?=\d)/g, "$1.");
-        return formatted.split("").reverse().join("");
-      }
     })();
   </script>
 
