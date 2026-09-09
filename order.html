@@ -1,0 +1,555 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Kirim Pesanan — TB KHIZANATULLAH</title>
+<style>
+  * { box-sizing: border-box; }
+  body {
+    font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+    background: #f3f4f6;
+    margin: 0;
+    padding: 0;
+    color: #111827;
+  }
+  .app {
+    max-width: 520px;
+    margin: 0 auto;
+    padding: 16px 12px;
+  }
+  h1 {
+    font-size: 1.3rem;
+    margin: 0 0 4px;
+  }
+  .sub {
+    font-size: 0.8rem;
+    color: #6b7280;
+    margin-bottom: 18px;
+  }
+  .card {
+    background: #fff;
+    border-radius: 10px;
+    padding: 14px;
+    margin-bottom: 14px;
+    box-shadow: 0 1px 3px rgba(0,0,0,0.06);
+    border: 1px solid #e5e7eb;
+  }
+  .card h2 {
+    font-size: 1rem;
+    margin: 0 0 10px;
+    color: #111827;
+  }
+  .row {
+    display: flex;
+    gap: 8px;
+    margin-bottom: 10px;
+    align-items: flex-end;
+    flex-wrap: wrap;
+  }
+  .field {
+    flex: 1;
+    min-width: 120px;
+  }
+  .field-sm { max-width: 90px; }
+  label {
+    display: block;
+    font-size: 0.75rem;
+    font-weight: 600;
+    margin-bottom: 3px;
+    color: #4b5563;
+  }
+  input, textarea, select {
+    width: 100%;
+    padding: 8px 10px;
+    border: 1px solid #d1d5db;
+    border-radius: 6px;
+    font-size: 0.9rem;
+    background: #fff;
+  }
+  textarea {
+    min-height: 50px;
+    resize: vertical;
+    font-family: inherit;
+  }
+  button {
+    padding: 8px 14px;
+    border: none;
+    border-radius: 6px;
+    font-size: 0.85rem;
+    font-weight: 600;
+    cursor: pointer;
+    transition: background 0.15s;
+    white-space: nowrap;
+  }
+  button:active { transform: scale(0.97); }
+  .btn-primary { background: #2563eb; color: #fff; }
+  .btn-primary:hover { background: #1d4ed8; }
+  .btn-success { background: #16a34a; color: #fff; }
+  .btn-success:hover { background: #15803d; }
+  .btn-danger { background: #dc2626; color: #fff; }
+  .btn-danger:hover { background: #b91c1c; }
+  .btn-secondary { background: #6b7280; color: #fff; }
+  .btn-secondary:hover { background: #4b5563; }
+  .btn-outline { background: transparent; color: #374151; border: 1px solid #d1d5db; }
+  .btn-outline:hover { background: #f3f4f6; }
+  table {
+    width: 100%;
+    border-collapse: collapse;
+    font-size: 0.85rem;
+  }
+  th {
+    background: #f9fafb;
+    font-weight: 600;
+    color: #374151;
+    padding: 6px 8px;
+    border-bottom: 1px solid #e5e7eb;
+    text-align: left;
+  }
+  td {
+    padding: 6px 8px;
+    border-bottom: 1px solid #f3f4f6;
+    vertical-align: middle;
+  }
+  .empty-state {
+    text-align: center;
+    color: #9ca3af;
+    padding: 14px 0;
+    font-style: italic;
+    font-size: 0.85rem;
+  }
+  .tag {
+    display: inline-block;
+    background: #e5e7eb;
+    color: #374151;
+    border-radius: 999px;
+    padding: 2px 10px;
+    font-size: 0.75rem;
+    font-family: monospace;
+  }
+  .badge {
+    display: inline-block;
+    background: #dbeafe;
+    color: #1e40af;
+    border-radius: 6px;
+    padding: 2px 8px;
+    font-size: 0.7rem;
+    font-weight: 600;
+    margin-left: 6px;
+  }
+  .summary {
+    background: #f0fdf4;
+    border: 1px solid #bbf7d0;
+    border-radius: 6px;
+    padding: 10px 12px;
+    font-size: 0.85rem;
+    margin: 10px 0;
+    color: #166534;
+  }
+  .preview-box {
+    background: #fefce8;
+    border: 1px solid #fde68a;
+    border-radius: 6px;
+    padding: 12px;
+    font-size: 0.85rem;
+    white-space: pre-wrap;
+    max-height: 260px;
+    overflow-y: auto;
+    display: none;
+    margin-top: 8px;
+  }
+  .notice {
+    background: #fef3c7;
+    border-left: 3px solid #f59e0b;
+    padding: 8px 12px;
+    font-size: 0.8rem;
+    margin: 10px 0;
+    color: #92400e;
+  }
+  .footer-note {
+    font-size: 0.7rem;
+    color: #9ca3af;
+    text-align: center;
+    padding: 10px 0 4px;
+    border-top: 1px solid #e5e7eb;
+    margin-top: 10px;
+  }
+</style>
+</head>
+<body>
+
+<div class="app">
+
+<h1>📦 Kirim Pesanan</h1>
+<div class="sub">TB KHIZANATULLAH — Input pesanan & kirim via WhatsApp</div>
+
+<!-- ===== FORM INPUT ===== -->
+<div class="card">
+  <h2>1. Input Pesanan</h2>
+  <div class="row">
+    <div class="field">
+      <label for="nama">Nama Barang</label>
+      <input id="nama" type="text" placeholder="misal: Cat Dinding">
+    </div>
+    <div class="field field-sm">
+      <label for="jumlah">Jumlah</label>
+      <input id="jumlah" type="number" min="1" value="1" style="width:100%">
+    </div>
+    <button class="btn-success" onclick="addPesanan()">➕ Tambah</button>
+  </div>
+  <div class="row">
+    <div class="field">
+      <label for="spek">Spesifikasi (opsional)</label>
+      <input id="spek" type="text" placeholder="misal: Warna biru, 10L">
+    </div>
+  </div>
+</div>
+
+<!-- ===== LIST PESANAN ===== -->
+<div class="card">
+  <h2>2. List Pesanan</h2>
+  <div id="listArea">
+    <div class="empty-state" id="emptyList">Belum ada pesanan.</div>
+    <table id="pesananTable" style="display:none">
+      <thead>
+        <tr>
+          <th style="width:30px">#</th>
+          <th>Nama Barang</th>
+          <th>Spesifikasi</th>
+          <th style="width:70px">Jumlah</th>
+          <th style="width:50px"></th>
+        </tr>
+      </thead>
+      <tbody id="pesananBody"></tbody>
+    </table>
+  </div>
+  <div class="summary" id="summaryBox" style="display:none"></div>
+  <div style="display:flex; gap:8px; flex-wrap:wrap; margin-top:10px; align-items:center;">
+    <button class="btn-secondary" onclick="clearList()">🗑️ Kosongkan</button>
+    <button class="btn-danger" id="btnKirim" style="display:none;" onclick="kirimWA()">
+      📲 Kirim ke WhatsApp
+    </button>
+  </div>
+</div>
+
+<!-- ===== KONTAK ===== -->
+<div class="card">
+  <h2>3. Kontak Sales</h2>
+  <div class="row">
+    <div class="field">
+      <label for="kName">Nama / Label</label>
+      <input id="kName" type="text" placeholder="misal: Pak Budi">
+    </div>
+    <div class="field">
+      <label for="kPhone">Nomor WhatsApp</label>
+      <input id="kPhone" type="text" placeholder="085728389595 / 62857... / +62857...">
+    </div>
+    <button class="btn-success" onclick="tambahKontak()">➕ Tambah</button>
+  </div>
+  <div style="margin-top:4px;">
+    <label for="fileInput">Atau upload</label>
+    <input type="file" id="fileInput" accept=".txt" style="margin-top:2px; font-size:0.8rem; color:#6b7280;">
+    <div style="font-size:0.7rem; color:#9ca3af; margin-top:2px;">
+      sales.txt: tiap baris — nama + nomor, atau nomor saja
+    </div>
+  </div>
+  <div id="kontakArea" style="margin-top:10px;">
+    <div class="empty-state" id="emptyKontak">Belum ada kontak.</div>
+    <table id="kontakTable" style="display:none">
+      <thead>
+        <tr>
+          <th style="width:30px">#</th>
+          <th>Nama</th>
+          <th>Nomor</th>
+          <th style="width:50px"></th>
+        </tr>
+      </thead>
+      <tbody id="kontakBody"></tbody>
+    </table>
+  </div>
+</div>
+
+<!-- ===== PREVIEW ===== -->
+<div class="card">
+  <h2>4. Preview Teks</h2>
+  <button class="btn-outline" onclick="previewTeks()">📝 Lihat Preview</button>
+  <div class="preview-box" id="previewBox"></div>
+</div>
+
+<div class="footer-note">
+  Nomor otomatis di-parse: 085* → +6285* &nbsp;|&nbsp; 6285* → +6285* &nbsp;|&nbsp; +6285* → tetap
+</div>
+
+</div>
+
+<script>
+/* ===== STATE ===== */
+let pesananList = [];
+let kontakList = [];
+let nextId = 1;
+
+/* ===== HELPERS ===== */
+function escapeHtml(s) {
+  return String(s).replace(/[&<>"']/g, c => ({
+    '&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'
+  }[c]));
+}
+
+function normalizePhone(raw) {
+  let s = raw.trim();
+  const hadPlus = s.startsWith('+');
+  s = s.replace(/[^\d+]/g, '');
+  if (s.startsWith('+')) s = s.slice(1);
+
+  if (s.startsWith('08') && s.length >= 10)  return '+' + '62' + s.slice(1);
+  if (s.startsWith('628'))                     return '+' + s;
+  if (s.startsWith('85') && s.length >= 9)    return '+' + '62' + s;
+  if (s.startsWith('8') && s.length >= 9)     return '+' + '62' + s;
+  if (hadPlus && s.startsWith('62'))           return '+' + s;
+  return s;
+}
+
+function isValidPhone(p) {
+  return /^\+628\d{8,12}$/.test(p);
+}
+
+/* ===== PESANAN ===== */
+function addPesanan() {
+  const nama = document.getElementById('nama').value.trim();
+  const spek = document.getElementById('spek').value.trim();
+  const jumlah = parseInt(document.getElementById('jumlah').value, 10);
+
+  if (!nama) { alert('Nama barang wajib diisi.'); return; }
+  if (isNaN(jumlah) || jumlah < 1) { alert('Jumlah harus ≥ 1.'); return; }
+
+  pesananList.push({ id: nextId++, nama, spek, jumlah });
+  document.getElementById('nama').value = '';
+  document.getElementById('spek').value = '';
+  document.getElementById('jumlah').value = '1';
+  renderAll();
+}
+
+function hapusPesanan(id) {
+  pesananList = pesananList.filter(p => p.id !== id);
+  renderAll();
+}
+
+function clearList() {
+  if (!pesananList.length) return;
+  if (!confirm('Hapus semua pesanan?')) return;
+  pesananList = [];
+  renderAll();
+}
+
+function renderPesanan() {
+  const emptyEl = document.getElementById('emptyList');
+  const table = document.getElementById('pesananTable');
+  const btnKirim = document.getElementById('btnKirim');
+  const body = document.getElementById('pesananBody');
+  const summary = document.getElementById('summaryBox');
+
+  if (!pesananList.length) {
+    emptyEl.style.display = 'block';
+    table.style.display = 'none';
+    btnKirim.style.display = 'none';
+    summary.style.display = 'none';
+    return;
+  }
+
+  emptyEl.style.display = 'none';
+  table.style.display = 'table';
+  btnKirim.style.display = 'inline-block';
+
+  body.innerHTML = pesananList.map(p => `
+    <tr>
+      <td>${p.id}</td>
+      <td>${escapeHtml(p.nama)}</td>
+      <td>${escapeHtml(p.spek || '—')}</td>
+      <td>${p.jumlah}</td>
+      <td><button class="btn-danger" style="padding:3px 8px;font-size:0.75rem;" onclick="hapusPesanan(${p.id})">✕</button></td>
+    </tr>
+  `).join('');
+
+  const totalJenis = pesananList.length;
+  const totalQty = pesananList.reduce((s, p) => s + p.jumlah, 0);
+  summary.style.display = 'block';
+  summary.textContent = `Total: ${totalJenis} jenis · ${totalQty} buah`;
+}
+
+/* ===== KONTAK ===== */
+function tambahKontak() {
+  const name = document.getElementById('kName').value.trim() || 'Tanpa Nama';
+  const raw = document.getElementById('kPhone').value.trim();
+
+  if (!raw) { alert('Nomor wajib diisi.'); return; }
+
+  const phone = normalizePhone(raw);
+  if (!isValidPhone(phone)) {
+    if (!confirm(`Hasil parse: "${phone}"\nTidak terlihat seperti nomor WhatsApp Indonesia.\nLanjutkan?`)) return;
+  }
+  if (kontakList.some(k => k.phone === phone)) {
+    alert('Nomor ini sudah ada.');
+    return;
+  }
+
+  kontakList.push({ name, phone, raw });
+  document.getElementById('kName').value = '';
+  document.getElementById('kPhone').value = '';
+  renderKontak();
+}
+
+function hapusKontak(idx) {
+  kontakList.splice(idx, 1);
+  renderKontak();
+}
+
+function renderKontak() {
+  const emptyEl = document.getElementById('emptyKontak');
+  const table = document.getElementById('kontakTable');
+  const body = document.getElementById('kontakBody');
+
+  if (!kontakList.length) {
+    emptyEl.style.display = 'block';
+    table.style.display = 'none';
+    return;
+  }
+
+  emptyEl.style.display = 'none';
+  table.style.display = 'table';
+  body.innerHTML = kontakList.map((k, i) => `
+    <tr>
+      <td>${i + 1}</td>
+      <td>${escapeHtml(k.name)}</td>
+      <td><span class="tag">${escapeHtml(k.phone)}</span></td>
+      <td><button class="btn-danger" style="padding:3px 8px;font-size:0.75rem;" onclick="hapusKontak(${i})">✕</button></td>
+    </tr>
+  `).join('');
+}
+
+/* ===== SALES.TXT ===== */
+function parseSalesFile(text) {
+  const lines = text.split(/\r?\n/);
+  const out = [];
+  for (const line of lines) {
+    const trimmed = line.trim();
+    if (!trimmed || trimmed.startsWith('#')) continue;
+    const parts = trimmed.split(/\s+/);
+    if (parts.length === 1) {
+      const ph = normalizePhone(trimmed);
+      if (isValidPhone(ph)) out.push({ name: '📞 Nomor', phone: ph });
+    } else {
+      const candidate = normalizePhone(parts[parts.length - 1]);
+      if (isValidPhone(candidate)) {
+        const namePart = parts.slice(0, -1).join(' ');
+        out.push({ name: namePart || '📞 Nomor', phone: candidate });
+      }
+    }
+  }
+  return out;
+}
+
+document.getElementById('fileInput').addEventListener('change', function(e) {
+  if (!e.target.files.length) return;
+  const file = e.target.files[0];
+  const reader = new FileReader();
+  reader.onload = function(ev) {
+    const parsed = parseSalesFile(ev.target.result);
+    if (!parsed.length) {
+      alert('Tidak menemukan kontak valid. Pastikan format: nama + nomor, atau nomor saja.');
+      return;
+    }
+    let added = 0;
+    for (const p of parsed) {
+      if (!kontakList.some(k => k.phone === p.phone)) {
+        kontakList.push(p);
+        added++;
+      }
+    }
+    renderKontak();
+    alert(`${added} kontak baru dari sales.txt`);
+  };
+  reader.readAsText(file);
+});
+
+/* ===== PREVIEW ===== */
+function buildMessage() {
+  const lines = [];
+  lines.push('🛒 Pesanan TB KHIZANATULLAH');
+  lines.push('═'.repeat(28));
+  lines.push('');
+  pesananList.forEach((p, i) => {
+    lines.push(`${i + 1}. ${p.nama}`);
+    if (p.spek) lines.push(`   Spesifikasi: ${p.spek}`);
+    lines.push(`   Jumlah: ${p.jumlah}`);
+    lines.push('');
+  });
+  lines.push('═'.repeat(28));
+  const totalJenis = pesananList.length;
+  const totalQty = pesananList.reduce((s, p) => s + p.jumlah, 0);
+  lines.push(`Total: ${totalJenis} jenis · ${totalQty} buah`);
+  lines.push('');
+  lines.push('Kontak tujuan:');
+  kontakList.forEach((k, i) => {
+    lines.push(`${i + 1}. ${k.name} — ${k.phone}`);
+  });
+  lines.push('');
+  lines.push('Silakan dikonfirmasi.');
+  return lines.join('\n');
+}
+
+function previewTeks() {
+  if (!pesananList.length) { alert('Belum ada pesanan.'); return; }
+  if (!kontakList.length) { alert('Belum ada kontak.'); return; }
+  const msg = buildMessage();
+  const box = document.getElementById('previewBox');
+  box.textContent = msg;
+  box.style.display = 'block';
+}
+
+/* ===== KIRIM KE WHATSAPP ===== */
+function kirimWA() {
+  if (!pesananList.length) { alert('Belum ada pesanan.'); return; }
+  if (!kontakList.length) { alert('Belum ada kontak.'); return; }
+
+  const msg = buildMessage();
+  const encoded = encodeURIComponent(msg);
+
+  const labelList = kontakList.map((k, i) => `${i + 1}. ${k.name} — ${k.phone}`);
+  const pilihan = prompt(
+    `Pilih kontak tujuan:\n${labelList.join('\n')}\n\nMasukkan nomor urutan, atau ketik "all" untuk semua:`,
+    '1'
+  );
+  if (pilihan === null) return;
+
+  const trimmed = pilihan.trim().toLowerCase();
+  if (trimmed === 'all') {
+    kontakList.forEach(k => {
+      const phoneNoPlus = k.phone.replace(/^\+/, '');
+      const url = `https://wa.me/${encodeURIComponent(phoneNoPlus)}?text=${encoded}`;
+      window.open(url, '_blank');
+    });
+    alert(`Terbuka ${kontakList.length} tab WhatsApp.`);
+    return;
+  }
+
+  const idx = parseInt(trimmed, 10) - 1;
+  if (isNaN(idx) || idx < 0 || idx >= kontakList.length) {
+    alert('Nomor urutan tidak valid.');
+    return;
+  }
+
+  const target = kontakList[idx];
+  const phoneNoPlus = target.phone.replace(/^\+/, '');
+  const url = `https://wa.me/${encodeUrIComponent(phoneNoPlus)}?text=${encoded}`;
+  window.open(url, '_blank');
+}
+
+/* ===== RENDER ALL ===== */
+function renderAll() {
+  renderPesanan();
+  renderKontak();
+}
+</script>
+
+</body>
+</html>
