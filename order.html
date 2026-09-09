@@ -250,13 +250,6 @@
     </div>
     <button class="btn-success" onclick="tambahKontak()">➕ Tambah</button>
   </div>
-  <div style="margin-top:4px;">
-    <label for="fileInput">Atau upload</label>
-    <input type="file" id="fileInput" accept=".txt" style="margin-top:2px; font-size:0.8rem; color:#6b7280;">
-    <div style="font-size:0.7rem; color:#9ca3af; margin-top:2px;">
-      sales.txt: tiap baris — nama + nomor, atau nomor saja
-    </div>
-  </div>
   <div id="kontakArea" style="margin-top:10px;">
     <div class="empty-state" id="emptyKontak">Belum ada kontak.</div>
     <table id="kontakTable" style="display:none">
@@ -517,6 +510,123 @@ function previewTeks() {
   const box = document.getElementById('previewBox');
   box.textContent = msg;
   box.style.display = 'block';
+}
+
+/* ===== LOAD KONTAK DARI FILE TXT ===== */
+function loadContactsFromFile() {
+  const statusEl = document.getElementById('loadStatus');
+  const savedContacts = localStorage.getItem('kontak_saved');
+  if (savedContacts) {
+    try {
+      const parsed = JSON.parse(savedContacts);
+      if (Array.isArray(parsed) && parsed.length > 0) {
+        let added = 0;
+        for (const p of parsed) {
+          if (!kontakList.some(k => k.phone === p.phone)) {
+            kontakList.push(p);
+            added++;
+          }
+        }
+        renderKontak();
+        statusEl.textContent = `✅ Loaded ${added} kontak dari localStorage`;
+        return;
+      }
+    } catch (e) {}
+  }
+  statusEl.textContent = '⚠️ Belum ada kontak tersimpan. Tambahkan manual.';
+  setTimeout(() => statusEl.textContent = '', 3000);
+}
+
+function saveContactsToFile() {
+  if (kontakList.length === 0) {
+    alert('Tidak ada kontak untuk disimpan.');
+    return;
+  }
+  localStorage.setItem('kontak_saved', JSON.stringify(kontakList));
+  alert(`✅ ${kontakList.length} kontak disimpan.`);
+}
+
+function clearKontak() {
+  if (kontakList.length === 0) return;
+  if (!confirm('Hapus semua kontak?')) return;
+  kontakList = [];
+  localStorage.removeItem('kontak_saved');
+  renderKontak();
+  document.getElementById('loadStatus').textContent = '';
+}
+
+/* ===== IMPORT EXPORT TXT (Manual) ===== */
+function importContactsFromTxt() {
+  const areaId = 'importArea';
+  let area = document.getElementById(areaId);
+  if (!area) {
+    area = document.createElement('div');
+    area.id = areaId;
+    area.style.marginTop = '8px';
+    document.querySelector('.card:last-child').appendChild(area);
+  }
+  area.innerHTML = '';
+  const textarea = document.createElement('textarea');
+  textarea.style.width = '100%';
+  textarea.style.height = '120px';
+  textarea.style.marginBottom = '6px';
+  textarea.placeholder = '# Format tiap baris:\n#nama | 085728389595\n#atau cukup nomor:\n#085728389595\n\n085728389595\nPak Budi | 6285728389595';
+  area.appendChild(textarea);
+  const row = document.createElement('div');
+  row.style.marginTop = '6px';
+  row.innerHTML = `
+    <button class="btn-success" onclick="doImport()">📥 Import</button>
+    <button class="btn-secondary" onclick="document.getElementById('${areaId}').innerHTML=''">Batal</button>
+  `;
+  area.appendChild(row);
+}
+
+function doImport() {
+  const area = document.getElementById('importArea');
+  if (!area) return;
+  const textarea = area.querySelector('textarea');
+  if (!textarea) return;
+  const text = textarea.value;
+  if (!text.trim()) { alert('Tidak ada kontak untuk diimport.'); return; }
+  const lines = text.split(/\r?\n/);
+  let count = 0;
+  for (const line of lines) {
+    const t = line.trim();
+    if (!t || t.startsWith('#')) continue;
+    const parts = t.split('|').map(s => s.trim());
+    let name, phoneRaw;
+    if (parts.length >= 2) {
+      name = parts[0];
+      phoneRaw = parts[1];
+    } else {
+      name = '📞 Nomor';
+      phoneRaw = parts[0];
+    }
+    const phone = normalizePhone(phoneRaw);
+    if (isValidPhone(phone) && !kontakList.some(k => k.phone === phone)) {
+      kontakList.push({ name, phone, raw: phoneRaw });
+      count++;
+    }
+  }
+  renderKontak();
+  alert(`✅ ${count} kontak diimport.`);
+  area.innerHTML = '';
+}
+
+function exportContactsToTxt() {
+  if (kontakList.length === 0) { alert('Tidak ada kontak untuk diekspor.'); return; }
+  let content = '# Kontak Sales - TB KHIZANATULLAH\n';
+  content += '# Format: nama | nomor\n\n';
+  kontakList.forEach(k => {
+    content += `${k.name} | ${k.phone}\n`;
+  });
+  const blob = new Blob([content], { type: 'text/plain' });
+  const url = URL.createObjectURL(blob);
+  const a = document.createElement('a');
+  a.href = url;
+  a.download = 'sales.txt';
+  a.click();
+  URL.revokeObjectURL(url);
 }
 
 /* ===== KIRIM KE WHATSAPP ===== */
