@@ -195,6 +195,10 @@
       <label for="jumlah">Jumlah</label>
       <input id="jumlah" type="number" min="1" value="1" style="width:100%">
     </div>
+    <div class="field">
+      <label for="satuan">Satuan</label>
+      <input id="satuan" type="text" value="pcs" placeholder="pcs, kg, liter, box, roll, m">
+    </div>
     <button class="btn-success" onclick="addPesanan()">➕ Tambah</button>
   </div>
   <div class="row">
@@ -276,6 +280,15 @@
   <div class="preview-box" id="previewBox"></div>
 </div>
 
+<!-- ===== FALLBACK LINK BOX ===== -->
+<div class="card" id="fallbackBox" style="display:none;">
+  <h2>📲 Link WhatsApp (klik manual)</h2>
+  <div id="fallbackLinks" style="font-size:0.9rem;"></div>
+  <div style="font-size:0.75rem;color:#6b7280;margin-top:8px;">
+    Kalau link nggak otomatis buka WhatsApp, klik salah satu di atas.
+  </div>
+</div>
+
 <div class="footer-note">
   Nomor otomatis di-parse: 085* → +6285* &nbsp;|&nbsp; 6285* → +6285* &nbsp;|&nbsp; +6285* → tetap
 </div>
@@ -318,14 +331,16 @@ function addPesanan() {
   const nama = document.getElementById('nama').value.trim();
   const spek = document.getElementById('spek').value.trim();
   const jumlah = parseInt(document.getElementById('jumlah').value, 10);
+  const satuan = document.getElementById('satuan').value.trim() || 'pcs';
 
   if (!nama) { alert('Nama barang wajib diisi.'); return; }
   if (isNaN(jumlah) || jumlah < 1) { alert('Jumlah harus ≥ 1.'); return; }
 
-  pesananList.push({ id: nextId++, nama, spek, jumlah });
+  pesananList.push({ id: nextId++, nama, spek, jumlah, satuan });
   document.getElementById('nama').value = '';
   document.getElementById('spek').value = '';
   document.getElementById('jumlah').value = '1';
+  document.getElementById('satuan').value = 'pcs';
   renderAll();
 }
 
@@ -365,6 +380,7 @@ function renderPesanan() {
       <td>${p.id}</td>
       <td>${escapeHtml(p.nama)}</td>
       <td>${escapeHtml(p.spek || '—')}</td>
+      <td>${escapeHtml(p.satuan || 'pcs')}</td>
       <td>${p.jumlah}</td>
       <td><button class="btn-danger" style="padding:3px 8px;font-size:0.75rem;" onclick="hapusPesanan(${p.id})">✕</button></td>
     </tr>
@@ -372,8 +388,9 @@ function renderPesanan() {
 
   const totalJenis = pesananList.length;
   const totalQty = pesananList.reduce((s, p) => s + p.jumlah, 0);
+  const unit = pesananList.length ? pesananList[0].satuan : 'buah';
   summary.style.display = 'block';
-  summary.textContent = `Total: ${totalJenis} jenis · ${totalQty} buah`;
+  summary.textContent = `Total: ${totalJenis} jenis · ${totalQty} ${unit}`;
 }
 
 /* ===== KONTAK ===== */
@@ -480,7 +497,7 @@ function buildMessage() {
   pesananList.forEach((p, i) => {
     lines.push(`${i + 1}. ${p.nama}`);
     if (p.spek) lines.push(`   Spesifikasi: ${p.spek}`);
-    lines.push(`   Jumlah: ${p.jumlah}`);
+    lines.push(`   Jumlah: ${p.jumlah} ${p.satuan}`);
     lines.push('');
   });
   lines.push('═'.repeat(28));
@@ -523,12 +540,17 @@ function kirimWA() {
 
   const trimmed = pilihan.trim().toLowerCase();
   if (trimmed === 'all') {
-    kontakList.forEach(k => {
+    kontakList.forEach((k) => {
       const phoneNoPlus = k.phone.replace(/^\+/, '');
       const url = `https://wa.me/${encodeURIComponent(phoneNoPlus)}?text=${encoded}`;
-      window.open(url, '_blank');
+      window.location.href = url;
     });
-    alert(`Terbuka ${kontakList.length} tab WhatsApp.`);
+    alert(`Mengirim ke ${kontakList.length} kontak. Kalau nggak otomatis, klik link di bawah.`);
+    document.getElementById('fallbackBox').style.display = 'block';
+    document.getElementById('fallbackLinks').innerHTML = kontakList.map(k => {
+      const cleanPhone = k.phone.replace(/^\+/, '');
+      return `<a href="https://wa.me/${encodeURIComponent(cleanPhone)}?text=${encoded}" target="_blank" style="display:block;margin:4px 0;color:#2563eb;">${k.name} — ${k.phone}</a>`;
+    }).join('');
     return;
   }
 
@@ -540,8 +562,9 @@ function kirimWA() {
 
   const target = kontakList[idx];
   const phoneNoPlus = target.phone.replace(/^\+/, '');
-  const url = `https://wa.me/${encodeUrIComponent(phoneNoPlus)}?text=${encoded}`;
-  window.open(url, '_blank');
+  const url = `https://wa.me/${encodeURIComponent(phoneNoPlus)}?text=${encoded}`;
+  window.location.href = url;
+  setTimeout(() => window.open(url, '_blank'), 300);
 }
 
 /* ===== RENDER ALL ===== */
