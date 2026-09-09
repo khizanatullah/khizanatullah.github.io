@@ -503,12 +503,8 @@ function buildMessage() {
   lines.push('═'.repeat(28));
   const totalJenis = pesananList.length;
   const totalQty = pesananList.reduce((s, p) => s + p.jumlah, 0);
-  lines.push(`Total: ${totalJenis} jenis · ${totalQty} buah`);
-  lines.push('');
-  lines.push('Kontak tujuan:');
-  kontakList.forEach((k, i) => {
-    lines.push(`${i + 1}. ${k.name} — ${k.phone}`);
-  });
+  const unit = pesananList.length ? pesananList[0].satuan : 'buah';
+  lines.push(`Total: ${totalJenis} jenis · ${totalQty} ${unit}`);
   lines.push('');
   lines.push('Silakan dikonfirmasi.');
   return lines.join('\n');
