@@ -1,89 +1,625 @@
-﻿<!doctype html>
+<!DOCTYPE html>
 <html lang="id">
 <head>
-<meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1">
-<meta name="theme-color" content="#166534"><title>KHIZANATULLAH Admin — Sistem Tagihan</title>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>CRUD Sales Bahan Bangunan</title>
 <style>
-:root{--g:#166534;--g2:#15803d;--bg:#f5f7f6;--card:#fff;--txt:#172018;--muted:#68736b;--line:#dfe7e1;--red:#b91c1c}
-*{box-sizing:border-box}body{margin:0;background:var(--bg);color:var(--txt);font:14px system-ui,-apple-system,Segoe UI,Roboto,Arial}.sidebar{position:fixed;inset:0 auto 0 0;width:240px;background:#12351f;color:#fff;padding:16px 12px;z-index:20}.brand{display:flex;gap:10px;align-items:center;padding:8px 8px 24px}.logo{width:42px;height:42px;border-radius:12px;background:#22c55e;display:grid;place-items:center;font-size:22px}.brand small{display:block;opacity:.65}.nav-title{font-size:10px;letter-spacing:1px;opacity:.5;margin:16px 8px 6px}.nav button{width:100%;border:0;background:none;color:#dcefe1;text-align:left;padding:12px;border-radius:10px;font-weight:700;cursor:pointer;margin:2px 0}.nav button.active,.nav button:hover{background:#1d6338;color:#fff}.content{margin-left:240px}.topbar{height:66px;background:#fff;border-bottom:1px solid var(--line);display:flex;align-items:center;justify-content:space-between;padding:0 24px;position:sticky;top:0;z-index:10}.topbar h1{font-size:18px;margin:0}.status{color:var(--muted);font-size:12px}main{max-width:1400px;margin:auto;padding:22px}.page{display:none}.page.active{display:block}.grid4{display:grid;grid-template-columns:repeat(4,1fr);gap:14px}.grid3{display:grid;grid-template-columns:repeat(3,1fr);gap:14px}.card{background:var(--card);border:1px solid var(--line);border-radius:14px;padding:16px;margin-bottom:14px;box-shadow:0 2px 8px #12351f08}.stat{position:relative}.stat small{color:var(--muted);font-weight:700}.stat strong{font-size:24px;display:block;margin-top:7px}.stat i{position:absolute;right:14px;top:14px;background:#ecfdf3;padding:9px;border-radius:10px;font-style:normal}.row{display:flex;justify-content:space-between;align-items:center;gap:10px}.actions{display:flex;gap:8px;flex-wrap:wrap}.btn{border:0;border-radius:9px;padding:10px 13px;font-weight:800;cursor:pointer}.primary{background:var(--g2);color:#fff}.secondary{background:#ecfdf3;color:var(--g)}.outline{background:#fff;border:1px solid var(--line)}.danger{background:#fef2f2;color:var(--red)}.dark{background:#172018;color:#fff}.field{margin-bottom:10px}.field label{display:block;font-size:10px;text-transform:uppercase;color:var(--muted);font-weight:800;margin-bottom:5px}input,select{width:100%;padding:10px;border:1px solid #cbd7ce;border-radius:9px;background:#fff;outline:0}input:focus,select:focus{border-color:#22c55e;box-shadow:0 0 0 3px #22c55e1c}h2{font-size:16px;margin:0 0 12px}.table-wrap{overflow:auto}table{width:100%;border-collapse:collapse}th,td{padding:9px 7px;border-bottom:1px solid var(--line);font-size:13px;white-space:nowrap}th{font-size:10px;color:var(--muted);text-align:left;text-transform:uppercase}.num{text-align:right}.tag{display:inline-block;background:#ecfdf3;color:var(--g);padding:4px 8px;border-radius:20px;font-size:11px;font-weight:800}.invoice{border:1px solid var(--line);border-radius:12px;overflow:hidden;margin:9px 0}.invoice>div{padding:10px 12px}.invoice-head{background:#fafcfb}.invoice-foot{border-top:1px solid var(--line)}.empty{text-align:center;color:var(--muted);padding:30px}.total{display:flex;justify-content:flex-end;gap:20px;align-items:center;font-weight:900;font-size:18px}.total span{color:var(--g);font-size:25px}.mobile{display:none}.toast{position:fixed;right:18px;bottom:18px;background:#172018;color:#fff;padding:12px 16px;border-radius:10px;display:none;z-index:90}.toast.show{display:block}.load{position:fixed;inset:0;background:#0004;display:none;place-items:center;z-index:100}.load.show{display:grid}.load div{background:#fff;padding:18px;border-radius:12px;font-weight:800}@media(max-width:900px){.sidebar{display:none}.content{margin:0}.mobile{display:flex;position:fixed;bottom:0;left:0;right:0;background:#fff;border-top:1px solid var(--line);z-index:30;justify-content:space-around;padding:6px}.mobile button{border:0;background:none;color:#657067;font-size:10px;font-weight:800}.mobile button.active{color:var(--g)}main{padding:13px 10px 72px}.topbar{height:58px;padding:0 14px}.status{display:none}.grid4{grid-template-columns:1fr 1fr}.grid3{grid-template-columns:1fr 1fr}}@media(max-width:520px){.grid4,.grid3{grid-template-columns:1fr}.card{padding:13px}.total{display:block;text-align:right}.total span{display:block}.topbar h1{font-size:16px}}@media print{.sidebar,.topbar,.mobile,.no-print{display:none!important}.content{margin:0}.page{display:none!important}#printPage{display:block!important}main{padding:0}.card{border:0;box-shadow:none}}
+  * { box-sizing: border-box; margin: 0; padding: 0; }
+  body { font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif; background: #f5f5f5; padding: 16px; color: #222; }
+  .container { max-width: 760px; margin: 0 auto; }
+  h1 { font-size: 22px; margin-bottom: 4px; }
+  .subtitle { color: #666; font-size: 13px; margin-bottom: 20px; }
+  .card { background: #fff; border-radius: 10px; padding: 16px; box-shadow: 0 1px 3px rgba(0,0,0,0.08); margin-bottom: 16px; }
+  .card-title { font-size: 15px; font-weight: 600; margin-bottom: 12px; color: #333; }
+  .form-row { display: flex; gap: 10px; margin-bottom: 10px; }
+  .form-group { flex: 1; }
+  .form-group label { display: block; font-size: 12px; font-weight: 500; color: #555; margin-bottom: 4px; }
+  .form-group input, .form-group select {
+    width: 100%; padding: 9px 10px; border: 1px solid #ddd; border-radius: 6px;
+    font-size: 14px; background: #fff; transition: border-color 0.15s;
+  }
+  .form-group input:focus { outline: none; border-color: #2563eb; box-shadow: 0 0 0 2px rgba(37,99,235,0.15); }
+  .btn {
+    display: inline-flex; align-items: center; gap: 6px; padding: 10px 18px;
+    border: none; border-radius: 8px; font-size: 14px; font-weight: 500;
+    cursor: pointer; transition: background 0.15s, transform 0.1s; background: #2563eb; color: #fff;
+  }
+  .btn:hover { background: #1d4ed8; }
+  .btn:active { transform: scale(0.98); }
+  .btn-danger { background: #dc2626; }
+  .btn-danger:hover { background: #b91c1c; }
+  .btn-success { background: #16a34a; }
+  .btn-success:hover { background: #15803d; }
+  .btn-outline { background: #fff; color: #2563eb; border: 1px solid #2563eb; }
+  .btn-outline:hover { background: #eff6ff; }
+  .btn-sm { padding: 6px 12px; font-size: 12px; }
+  .btn-group { display: flex; gap: 8px; margin-top: 12px; flex-wrap: wrap; }
+  .msg { padding: 10px 14px; border-radius: 8px; font-size: 13px; margin-bottom: 12px; display: none; }
+  .msg-error { background: #fef2f2; color: #b91c1c; border: 1px solid #fecaca; }
+  .msg-success { background: #f0fdf4; color: #15803d; border: 1px solid #bbf7d0; }
+  .msg-info { background: #eff6ff; color: #1d4ed8; border: 1px solid #bfdbfe; }
+  table { width: 100%; border-collapse: collapse; font-size: 13px; }
+  th { background: #f8fafc; padding: 8px 10px; text-align: left; font-weight: 600; color: #444; border-bottom: 1px solid #e2e8f0; }
+  td { padding: 8px 10px; border-bottom: 1px solid #f1f5f9; vertical-align: top; }
+  tr:hover td { background: #f8fafc; }
+  .badge { display: inline-block; padding: 2px 8px; border-radius: 10px; font-size: 11px; font-weight: 500; background: #e0e7ff; color: #3730a3; }
+  .empty { text-align: center; padding: 24px; color: #999; font-size: 14px; }
+  .config-card { background: #fff7ed; border: 1px solid #fed7aa; }
+  .config-card label { color: #9a3412; }
+  .config-card input { background: #fff; }
+  .status-dot { display: inline-block; width: 10px; height: 10px; border-radius: 50%; margin-right: 6px; vertical-align: middle; }
+  .status-online { background: #22c55e; }
+  .status-offline { background: #ef4444; }
+  .toast { position: fixed; bottom: 20px; left: 50%; transform: translateX(-50%); padding: 12px 20px; border-radius: 10px; font-size: 14px; font-weight: 500; z-index: 999; opacity: 0; transition: opacity 0.3s, transform 0.3s; pointer-events: none; }
+  .toast.show { opacity: 1; transform: translateX(-50%) translateY(0); }
+  .toast-success { background: #16a34a; color: #fff; }
+  .toast-error { background: #dc2626; color: #fff; }
+  .header-actions { display: flex; justify-content: space-between; align-items: center; margin-bottom: 12px; }
+  .record-count { font-size: 12px; color: #666; }
+  .hint { font-size: 11px; color: #999; margin-top: 4px; }
+  kbd { background: #f1f5f9; padding: 1px 5px; border-radius: 3px; font-size: 11px; border: 1px solid #e2e8f0; font-family: inherit; }
 </style>
 </head>
 <body>
-<aside class="sidebar">
- <div class="brand"><div class="logo">🧾</div><div><b>KHIZANATULLAH ADMIN</b><small>Sistem Tagihan</small></div></div>
- <div class="nav-title">MENU UTAMA</div><div class="nav">
-  <button data-page="dashboard" class="active">📊 Dashboard</button><button data-page="input">➕ Buat Tagihan</button><button data-page="data">📋 Daftar Tagihan</button><button data-page="rekap">📈 Laporan & Rekap</button>
- </div><div class="nav-title">SISTEM</div><div class="nav"><button onclick="refresh()">🔄 Sinkronisasi</button></div>
-</aside>
-<div class="content">
-<header class="topbar"><h1 id="title">Dashboard</h1><div class="status">● MasWe Production</div></header>
-<main>
-<section id="dashboard" class="page active">
- <div class="grid4"><div class="card stat"><small>Total Tagihan</small><strong id="inv">0</strong><i>🧾</i></div><div class="card stat"><small>Total Pengeluaran</small><strong id="all">Rp 0</strong><i>💰</i></div><div class="card stat"><small>Jumlah Item</small><strong id="items">0</strong><i>📦</i></div><div class="card stat"><small>Bulan Ini</small><strong id="month">Rp 0</strong><i>📅</i></div></div>
- <div class="grid3"><div class="card" style="grid-column:span 2"><div class="row"><h2>Tagihan Terbaru</h2><button class="btn secondary" onclick="show('data')">Lihat semua</button></div><div id="recent"></div></div><div class="card"><h2>Ringkasan Bulan Ini</h2><div id="mini"></div></div></div>
-</section>
-<section id="input" class="page">
- <div class="card"><div class="row"><h2 id="formTitle">Buat Tagihan Baru</h2><button class="btn outline" onclick="resetForm()">↺ Reset</button></div>
- <div class="grid3"><div class="field"><label>Tanggal</label><input type="date" id="date"></div><div class="field"><label>Proyek / Keterangan</label><input id="project" placeholder="Contoh: ASRAMA PUTRI 2"></div><div class="field"><label>Pelanggan / Tujuan</label><input id="customer" placeholder="Opsional"></div></div></div>
- <div class="card"><div class="row"><h2>Detail Barang</h2><button class="btn secondary" onclick="addRow()">＋ Tambah Barang</button></div>
- <div class="table-wrap"><table><thead><tr><th>No</th><th style="min-width:250px">Nama Barang</th><th class="num">Qty</th><th>Satuan</th><th class="num">Harga</th><th class="num">Subtotal</th><th></th></tr></thead><tbody id="rows"></tbody></table></div>
- <div class="total">TOTAL TAGIHAN <span id="total">Rp 0</span></div></div>
- <div class="card actions no-print"><button class="btn primary" onclick="save()">💾 Simpan</button><button class="btn dark" onclick="printDraft()">🖨️ Cetak</button></div>
-</section>
-<section id="data" class="page">
- <div class="card"><div class="row"><h2>Daftar Tagihan</h2><button class="btn primary" onclick="show('input')">＋ Baru</button></div>
- <div class="grid4"><div class="field"><label>Dari</label><input type="date" id="from"></div><div class="field"><label>Sampai</label><input type="date" id="to"></div><div class="field"><label>Nama Barang</label><input id="search" placeholder="Cari barang..."></div><div class="field"><label>ID / Proyek</label><input id="search2" placeholder="Cari..."></div></div>
- <div class="actions"><button class="btn primary" onclick="filter()">🔍 Cari</button><button class="btn outline" onclick="clearFilter()">Reset</button></div></div>
- <div class="card"><div class="row"><h2>Hasil</h2><span id="count" class="tag">0 data</span></div><div id="list"></div></div>
-</section>
-<section id="rekap" class="page">
- <div class="card"><h2>📈 Laporan Pengeluaran</h2><div class="grid3"><div class="field"><label>Jenis</label><select id="rtype"><option value="month">Bulanan</option><option value="year">Tahunan</option><option value="week">Mingguan</option></select></div><div class="field"><label>Tahun</label><input type="number" id="ryear"></div><div class="field"><label>Bulan</label><select id="rmonth"></select></div></div><div class="actions"><button class="btn primary" onclick="summary()">Tampilkan</button><button class="btn dark" onclick="printSummary()">🖨️ Cetak</button></div></div>
- <div class="grid4"><div class="card stat"><small>Periode</small><strong id="rp">-</strong></div><div class="card stat"><small>Total</small><strong id="rt">Rp 0</strong></div><div class="card stat"><small>Tagihan</small><strong id="ri">0</strong></div><div class="card stat"><small>Item</small><strong id="rx">0</strong></div></div><div class="card"><div id="summary"></div></div>
-</section>
-<section id="printPage" class="page"><div id="printContent"></div></section>
-</main></div>
-<nav class="mobile"><button data-page="dashboard">📊<br>Home</button><button data-page="input">➕<br>Input</button><button data-page="data">📋<br>Data</button><button data-page="rekap">📈<br>Laporan</button></nav>
-<div id="toast" class="toast"></div><div id="load" class="load"><div>⏳ Memproses...</div></div>
+<div class="container">
+  <h1>📦 CRUD Sales Bahan Bangunan</h1>
+  <p class="subtitle">Data lengkap: nama, WA, toko/gudang, rekening — tersimpan di GitHub sebagai CSV</p>
+
+  <div id="toast" class="toast"></div>
+
+  <!-- Status bar -->
+  <div class="card" style="padding: 12px 16px;">
+    <div class="header-actions">
+      <div>
+        <span id="statusDot" class="status-dot status-offline"></span>
+        <span id="statusText" style="font-size:13px; color:#666;">Belum terhubung ke GitHub</span>
+      </div>
+      <span id="recordCount" class="record-count">0 data</span>
+    </div>
+  </div>
+
+  <!-- Config card -->
+  <div id="configCard" class="card config-card">
+    <div class="card-title">⚙️ Konfigurasi GitHub</div>
+    <div style="font-size:12px; color:#9a3412; margin-bottom:10px;">
+      Buat <strong>Fine-grained PAT</strong> → GitHub Settings → Developer settings → Fine-grained tokens.
+      Scopes: <code>Contents: Read & Write</code>. Akses hanya ke 1 repo tertentu.
+    </div>
+    <div class="form-row">
+      <div class="form-group">
+        <label>Owner / Username</label>
+        <input id="cfgOwner" type="text" placeholder="username atau org" value="khizanatullah">
+      </div>
+      <div class="form-group" style="flex:2;">
+        <label>Repo</label>
+        <input id="cfgRepo" type="text" placeholder="nama-repo" value="khizanatullah.github.io">
+      </div>
+    </div>
+    <div class="form-row">
+      <div class="form-group">
+        <label>Token PAT</label>
+        <input id="cfgToken" type="password" placeholder="ghp_... atau github_pat_..." value="">
+      </div>
+      <div class="form-group">
+        <label>Nama file CSV</label>
+        <input id="cfgFile" type="text" value="data-sales.csv">
+      </div>
+    </div>
+    <div class="btn-group">
+      <button class="btn btn-outline btn-sm" onclick="saveConfig()">💾 Simpan config</button>
+      <button class="btn btn-sm" onclick="connectGitHub()">🔗 Hubungkan</button>
+      <button class="btn btn-outline btn-sm" onclick="clearConfig()">Hapus config</button>
+    </div>
+    <div id="configMsg" style="font-size:11px; margin-top:8px; min-height:18px;"></div>
+    <div class="hint">Token disimpan di <kbd>localStorage</kbd> browser. Hanya aman untuk penggunaan pribadi.</div>
+  </div>
+
+  <!-- Form CRUD -->
+  <div class="card">
+    <div class="card-title">✏️ <span id="formTitle">Tambah Data Sales</span></div>
+    <input type="hidden" id="editId" value="">
+
+    <div class="form-row">
+      <div class="form-group">
+        <label>Nama Sales <span style="color:#999;">(opsional)</span></label>
+        <input id="fldName" type="text" placeholder="Contoh: Budi Santoso">
+      </div>
+    </div>
+    <div class="form-row">
+      <div class="form-group">
+        <label>No WA <span style="color:#999;">(opsional)</span></label>
+        <input id="fldWA" type="text" placeholder="Contoh: 081234567890">
+      </div>
+      <div class="form-group">
+        <label>Nama toko / gudang <span style="color:#999;">(opsional)</span></label>
+        <input id="fldShop" type="text" placeholder="Contoh: Toko Maju Sentosa">
+      </div>
+    </div>
+    <div class="form-row">
+      <div class="form-group">
+        <label>No rekening <span style="color:#999;">(opsional)</span></label>
+        <input id="fldAccount" type="text" placeholder="Contoh: 1234567890">
+      </div>
+      <div class="form-group">
+        <label>Atas nama <span style="color:#999;">(opsional)</span></label>
+        <input id="fldAccountName" type="text" placeholder="Contoh: Budi Santoso">
+      </div>
+    </div>
+
+    <div class="btn-group">
+      <button class="btn btn-success" id="btnSave" onclick="saveRecord()">💾 Simpan Data</button>
+      <button class="btn" id="btnCancel" style="display:none;" onclick="cancelEdit()">Batal</button>
+    </div>
+  </div>
+
+  <!-- Data table -->
+  <div class="card">
+    <div class="card-title">📋 Daftar Sales</div>
+    <div id="dataBody">
+      <div class="empty">Belum ada data. Tambahkan dari form di atas.</div>
+    </div>
+  </div>
+
+  <div style="text-align:center; padding:16px 0 8px; font-size:11px; color:#aaa;">
+    Dibuat dengan GitHub REST API · Data tersimpan di repo kamu sebagai CSV
+  </div>
+</div>
+
 <script>
-const API_URL='https://script.google.com/macros/s/AKfycby4yJez6BPPzHohjiLkwtBKxT5ob0g2hF_1NLcOJY6hYjK1-jcWkY5EVlS_aeAMvS0q/exec';let data=[],editId=null;
-const $=x=>document.getElementById(x),rp=n=>new Intl.NumberFormat('id-ID',{style:'currency',currency:'IDR',maximumFractionDigits:0}).format(+n||0),today=()=>new Date().toISOString().slice(0,10),esc=s=>String(s??'').replace(/[&<>"']/g,m=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#039;'}[m]));
-document.querySelectorAll('[data-page]').forEach(b=>b.onclick=()=>show(b.dataset.page));
-function show(id){document.querySelectorAll('.page').forEach(x=>x.classList.remove('active'));$(id).classList.add('active');document.querySelectorAll('[data-page]').forEach(x=>x.classList.toggle('active',x.dataset.page===id));$('title').textContent={dashboard:'Dashboard',input:editId?'Edit Tagihan':'Buat Tagihan',data:'Daftar Tagihan',rekap:'Laporan & Rekap',printPage:''}[id];if(id==='data')render(data);if(id==='dashboard')dashboard()}
-function toast(s){$('toast').textContent=s;$('toast').classList.add('show');setTimeout(()=>$('toast').classList.remove('show'),2500)}function busy(v){$('load').classList.toggle('show',v)}
-function api(action,p={}){return new Promise((ok,no)=>{if(API_URL.startsWith('PASTE_'))return no(Error('URL Apps Script belum dipasang.'));let cb='cb'+Date.now(),s=document.createElement('script');s.src=API_URL+'?action='+encodeURIComponent(action)+'&payload='+encodeURIComponent(JSON.stringify(p))+'&callback='+cb;window[cb]=d=>{delete window[cb];s.remove();d.ok?ok(d):no(Error(d.error||'Gagal'))};s.onerror=()=>no(Error('Koneksi gagal'));document.body.appendChild(s);setTimeout(()=>{if(window[cb]){delete window[cb];s.remove();no(Error('Timeout'))}},20000)})}
-function addRow(x={}){let t=document.createElement('tr');t.innerHTML=`<td class="no"></td><td><input class="name" value="${esc(x.name||'')}" placeholder="Nama barang"></td><td><input class="qty" type="number" min="0" value="${x.qty??1}"></td><td><input class="unit" value="${esc(x.unit||'PCS')}"></td><td><input class="price" type="number" min="0" value="${x.price??0}"></td><td class="num sub">${rp((x.qty||0)*(x.price||0))}</td><td><button class="btn danger" onclick="this.closest('tr').remove();calc()">×</button></td>`;$('rows').appendChild(t);t.querySelectorAll('input').forEach(i=>i.oninput=calc);calc()}
-function calc(){let t=0;[...$('rows').children].forEach((r,i)=>{r.querySelector('.no').textContent=i+1;let s=(+r.querySelector('.qty').value||0)*(+r.querySelector('.price').value||0);r.querySelector('.sub').textContent=rp(s);t+=s});$('total').textContent=rp(t)}
-function resetForm(){editId=null;$('formTitle').textContent='Buat Tagihan Baru';$('date').value=today();$('project').value='';$('customer').value='';$('rows').innerHTML='';addRow()}
-function items(){return [...$('rows').children].map(r=>({name:r.querySelector('.name').value.trim(),qty:+r.querySelector('.qty').value||0,unit:r.querySelector('.unit').value.trim()||'PCS',price:+r.querySelector('.price').value||0})).filter(x=>x.name)}
-async function save(){let it=items();if(!$('date').value||!it.length)return toast('Tanggal dan minimal satu barang wajib diisi.');try{busy(true);await api(editId?'update':'save',{id:editId,date:$('date').value,project:$('project').value,customer:$('customer').value,items:it});toast(editId?'Tagihan diperbarui':'Tagihan tersimpan');resetForm();await refresh();show('data')}catch(e){toast(e.message)}finally{busy(false)}}
-async function refresh(){try{busy(true);data=(await api('list')).invoices||[];dashboard();render(data)}catch(e){toast(e.message)}finally{busy(false)}}
-function total(i){return(i.items||[]).reduce((a,x)=>a+x.qty*x.price,0)}
-function dashboard(){let all=data.reduce((a,i)=>a+total(i),0),m=today().slice(0,7),mt=data.filter(i=>String(i.date).startsWith(m)).reduce((a,i)=>a+total(i),0);$('inv').textContent=data.length;$('all').textContent=rp(all);$('items').textContent=data.reduce((a,i)=>a+i.items.length,0);$('month').textContent=rp(mt);let r=[...data].sort((a,b)=>b.date.localeCompare(a.date)).slice(0,5);$('recent').innerHTML=r.length?r.map(card).join(''):'<div class="empty">Belum ada tagihan.</div>';$('mini').innerHTML=`<p>Total bulan ini</p><h2 style="font-size:25px;color:var(--g)">${rp(mt)}</h2><p style="color:var(--muted)">${data.filter(i=>String(i.date).startsWith(m)).length} tagihan</p>`}
-function card(i){return `<div class="invoice"><div class="invoice-head"><div class="row"><b>${esc(i.id)}</b><span class="tag">${esc(i.date)}</span></div><div style="color:var(--muted);font-size:12px">${esc(i.project||'Tanpa proyek')}</div></div><div><div class="row"><span>${i.items.length} item</span><b>${rp(total(i))}</b></div></div><div class="invoice-foot actions"><button class="btn secondary" onclick="edit('${esc(i.id)}')">✏️ Edit</button><button class="btn danger" onclick="del('${esc(i.id)}')">🗑️ Hapus</button><button class="btn dark" onclick="printInv('${esc(i.id)}')">🖨️ Cetak</button></div></div>`}
-function render(l){$('count').textContent=l.length+' data';$('list').innerHTML=l.length?l.map(card).join(''):'<div class="empty">Data tidak ditemukan.</div>'}
-function filter(){let f=$('from').value,t=$('to').value,n=$('search').value.toLowerCase(),q=$('search2').value.toLowerCase();render(data.filter(i=>(!f||i.date>=f)&&(!t||i.date<=t)&&(!n||i.items.some(x=>x.name.toLowerCase().includes(n)))&&(!q||(i.id+i.project).toLowerCase().includes(q))))}
-function clearFilter(){['from','to','search','search2'].forEach(x=>$(x).value='');render(data)}
-function edit(id){let i=data.find(x=>x.id===id);if(!i)return;editId=id;$('formTitle').textContent='Edit Tagihan';$('date').value=i.date;$('project').value=i.project||'';$('customer').value=i.customer||'';$('rows').innerHTML='';i.items.forEach(addRow);show('input')}
-async function del(id){if(!confirm('Hapus '+id+'?'))return;try{busy(true);await api('delete',{id});toast('Tagihan dihapus');await refresh()}catch(e){toast(e.message)}finally{busy(false)}}
+'use strict';
 
-function invHTML(i){return `<div style="max-width:850px;margin:auto;font-family:Arial"><h1 style="text-align:center">TAGIHAN PROYEK</h1><p><b>No:</b> ${esc(i.id)} &nbsp; <b>Tanggal:</b> ${esc(i.date)}<br><b>Proyek:</b> ${esc(i.project||'-')}<br><b>Tujuan:</b> ${esc(i.customer||'-')}</p><table style="width:100%;border-collapse:collapse">${'<tr><th style="border-bottom:1px solid #000;text-align:left;padding:7px">No</th><th style="border-bottom:1px solid #000;text-align:left">Nama Barang</th><th style="border-bottom:1px solid #000;text-align:right">Qty</th><th style="border-bottom:1px solid #000;text-align:left">Satuan</th><th style="border-bottom:1px solid #000;text-align:right">Harga</th><th style="border-bottom:1px solid #000;text-align:right">Subtotal</th></tr>'}${i.items.map((x,n)=>`<tr><td>${n+1}</td><td>${esc(x.name)}</td><td style="text-align:right">${x.qty}</td><td>${esc(x.unit)}</td><td style="text-align:right">${rp(x.price)}</td><td style="text-align:right">${rp(x.qty*x.price)}</td></tr>`).join('')}</table><h2 style="text-align:right">TOTAL ${rp(total(i))}</h2></div>`}
+// ======================== STATE ========================
+const CONFIG_KEY = 'sales-crud-config-v1';
+let config = loadConfig();
+let records = [];
+let isConnected = false;
 
-function printInv(id){$('printContent').innerHTML=invHTML(data.find(x=>x.id===id));window.print()}function printDraft(){$('printContent').innerHTML=invHTML({id:editId||'DRAFT',date:$('date').value,project:$('project').value,customer:$('customer').value,items:items()});window.print()}
+// ======================== DOM REFS ========================
+const $ = id => document.getElementById(id);
+const cfgOwner      = $('cfgOwner');
+const cfgRepo       = $('cfgRepo');
+const cfgToken      = $('cfgToken');
+const cfgFile       = $('cfgFile');
+const configMsg     = $('configMsg');
+const statusDot     = $('statusDot');
+const statusText    = $('statusText');
+const recordCount   = $('recordCount');
+const dataBody      = $('dataBody');
+const editId        = $('editId');
+const formTitle     = $('formTitle');
+const btnSave       = $('btnSave');
+const btnCancel     = $('btnCancel');
+const fldName       = $('fldName');
+const fldWA         = $('fldWA');
+const fldShop       = $('fldShop');
+const fldAccount    = $('fldAccount');
+const fldAccountName= $('fldAccountName');
+const toastEl       = $('toast');
 
-function initReport(){let y=new Date().getFullYear();$('ryear').value=y;$('rmonth').innerHTML=Array.from({length:12},(_,i)=>`<option value="${i+1}">${new Date(2000,i,1).toLocaleString('id-ID',{month:'long'})}</option>`).join('');$('rmonth').value=new Date().getMonth()+1}
-
-function summary(){let y=+$('ryear').value,m=+$('rmonth').value,l=data;if($('rtype').value==='month')l=l.filter(i=>i.date.startsWith(`${y}-${String(m).padStart(2,'0')}`));else if($('rtype').value==='year')l=l.filter(i=>i.date.startsWith(y+'-'));let tt=l.reduce((a,i)=>a+total(i),0);$('rp').textContent=$('rtype').value==='month'?`${new Date(y,m-1,1).toLocaleString('id-ID',{month:'long'})} ${y}`:`Tahun ${y}`;$('rt').textContent=rp(tt);$('ri').textContent=l.length;$('rx').textContent=l.reduce((a,i)=>a+i.items.length,0);let by={};l.forEach(i=>by[i.date]=(by[i.date]||0)+total(i));$('summary').innerHTML='<table><tr><th>Tanggal</th><th class="num">Tagihan</th><th class="num">Total</th></tr>'+Object.keys(by).sort().map(d=>`<tr><td>${d}</td><td class="num">${l.filter(i=>i.date===d).length}</td><td class="num">${rp(by[d])}</td></tr>`).join('')+'</table>'}
-
-function formatTanggalIndonesia(tanggal){
- if (!tanggal) return '-';
- const d = new Date(tanggal + 'T00:00:00');
- return d.toLocaleDateString('id-ID' , {
-  weekday: 'long',
-  day: 'numeric',
-  month: 'long',
-  year: 'numeric'});
+// ======================== CONFIG ========================
+function loadConfig() {
+  try {
+    const raw = localStorage.getItem(CONFIG_KEY);
+    return raw ? JSON.parse(raw) : {};
+  } catch { return {}; }
 }
 
-function printSummary(){$('printContent').innerHTML=`<div style="font-family:Arial"><h1>REKAP PENGELUARAN</h1><p>Periode: ${esc($('rp').textContent)}</p>${$('summary').innerHTML}<h2 style="text-align:right">TOTAL: ${$('rt').textContent}</h2></div>`;window.print()}
-initReport();resetForm();refresh();
-</script></body></html>
+function saveConfig() {
+  const c = {
+    owner: cfgOwner.value.trim(),
+    repo:  cfgRepo.value.trim(),
+    token: cfgToken.value.trim(),
+    file:  (cfgFile.value || 'data-sales.csv').trim(),
+  };
+  if (!c.owner || !c.repo || !c.token) {
+    configMsg.textContent = '⚠️ Owner, repo, dan token wajib diisi.';
+    configMsg.style.color = '#9a3412';
+    toastEl.textContent = 'Isi owner, repo, dan token';
+    toastEl.className = 'toast toast-error show';
+    setTimeout(() => { toastEl.className = 'toast'; }, 2000);
+    return;
+  }
+  localStorage.setItem(CONFIG_KEY, JSON.stringify(c));
+  config = c;
+  cfgOwner.value = c.owner;
+  cfgRepo.value  = c.repo;
+  cfgFile.value  = c.file;
+  configMsg.textContent = '✅ Config tersimpan di browser.';
+  configMsg.style.color = '#15803d';
+  toastEl.textContent = 'Config tersimpan';
+  toastEl.className = 'toast toast-success show';
+  setTimeout(() => { toastEl.className = 'toast'; }, 2000);
+}
+
+function clearConfig() {
+  localStorage.removeItem(CONFIG_KEY);
+  config = {};
+  cfgOwner.value = '';
+  cfgRepo.value  = '';
+  cfgToken.value = '';
+  cfgFile.value  = 'data-sales.csv';
+  configMsg.textContent = 'Config dihapus.';
+  configMsg.style.color = '#9a3412';
+  isConnected = false;
+  updateStatus();
+  records = [];
+  renderTable();
+  toastEl.textContent = 'Config dihapus';
+  toastEl.className = 'toast toast-success show';
+  setTimeout(() => { toastEl.className = 'toast'; }, 2000);
+}
+
+// ======================== TOAST ========================
+let toastTimer;
+function toastShow(msg, cls = 'toast-success') {
+  toastEl.textContent = msg;
+  toastEl.className = 'toast ' + cls + ' show';
+  clearTimeout(toastTimer);
+  toastTimer = setTimeout(() => { toastEl.className = 'toast'; }, 2500);
+}
+
+// ======================== STATUS ========================
+function updateStatus(connected = isConnected) {
+  statusDot.className = 'status-dot ' + (connected ? 'status-online' : 'status-offline');
+  statusText.textContent = connected
+    ? `Terkoneksi · ${escHtml(config.owner)}/${escHtml(config.repo)}`
+    : 'Belum terhubung ke GitHub';
+  recordCount.textContent = connected
+    ? `${records.length} data`
+    : '0 data';
+}
+
+// ======================== GITHUB API ========================
+async function githubFetch(path, options = {}) {
+  const url = `https://api.github.com/repos/${config.owner}/${config.repo}/contents${path}`;
+  const headers = {
+    'Authorization': `Bearer ${config.token}`,
+    'Accept': 'application/vnd.github+json',
+    'X-GitHub-Api-Version': '2022-11-28',
+    'Content-Type': 'application/json',
+  };
+  const res = await fetch(url, { ...options, headers });
+  const data = await res.json();
+  if (!res.ok) {
+    throw new Error(data.message || `HTTP ${res.status}`);
+  }
+  return data;
+}
+
+async function connectGitHub() {
+  if (!config.owner || !config.repo || !config.token) {
+    toastShow('Isi config dulu: owner, repo, token', 'toast-error');
+    return;
+  }
+  try {
+    await githubFetch('/');
+    isConnected = true;
+    updateStatus(true);
+    configMsg.textContent = '✅ Terkoneksi!';
+    configMsg.style.color = '#15803d';
+    toastShow('Terkoneksi ke GitHub ✓', 'toast-success');
+    await loadData();
+  } catch (e) {
+    isConnected = false;
+    updateStatus(false);
+    configMsg.textContent = '❌ Gagal: ' + e.message;
+    configMsg.style.color = '#dc2626';
+    toastShow('Gagal connect: ' + e.message, 'toast-error');
+  }
+}
+
+async function loadData() {
+  if (!isConnected) return;
+  try {
+    const data = await githubFetch('/' + encodeURIComponent(config.file));
+    const decoded = decodeBase64(data.content);
+    records = parseCSV(decoded);
+    renderTable();
+    updateStatus(true);
+    configMsg.textContent = `✅ ${records.length} data dimuat`;
+    configMsg.style.color = '#15803d';
+  } catch (e) {
+    if (e.message.includes('Not Found')) {
+      records = [];
+      renderTable();
+      updateStatus(true);
+      configMsg.textContent = '📄 File CSV belum ada — akan dibuat saat simpan pertama.';
+      configMsg.style.color = '#1d4ed8';
+    } else {
+      configMsg.textContent = '⚠️ Error baca: ' + e.message;
+      configMsg.style.color = '#dc2626';
+      toastShow('Error load: ' + e.message, 'toast-error');
+    }
+  }
+}
+
+async function pushData() {
+  if (!isConnected) throw new Error('Not connected');
+  const csv = buildCSV(records);
+  const content = encodeBase64(csv);
+  const path = '/' + encodeURIComponent(config.file);
+
+  try {
+    const existing = await githubFetch(path);
+    await githubFetch(path, {
+      method: 'PUT',
+      body: JSON.stringify({
+        message: `chore: CRUD update ${records.length} record [automated]`,
+        content: content,
+        sha: existing.sha,
+      }),
+    });
+  } catch (e) {
+    if (e.message.includes('Not Found')) {
+      await githubFetch(path, {
+        method: 'PUT',
+        body: JSON.stringify({
+          message: `chore: CRUD create ${records.length} record [automated]`,
+          content: content,
+        }),
+      });
+    } else {
+      throw e;
+    }
+  }
+}
+
+// ======================== BASE64 ========================
+function encodeBase64(str) {
+  return btoa(unescape(encodeURIComponent(str)));
+}
+function decodeBase64(str) {
+  return decodeURIComponent(escape(atob(str)));
+}
+
+// ======================== CSV PARSE / BUILD ========================
+const CSV_COLUMNS = ['nama', 'wa', 'toko', 'rekening', 'atas_nama'];
+
+function parseCSV(text) {
+  if (!text || !text.trim()) return [];
+  const lines = text.split(/\r?\n/).filter(l => l.trim());
+  if (lines.length === 0) return [];
+
+  const first = lines[0].toLowerCase();
+  const hasHeader = CSV_COLUMNS.every(col => first.includes(col));
+  const startIdx = hasHeader ? 1 : 0;
+
+  const result = [];
+  for (let i = startIdx; i < lines.length; i++) {
+    const row = parseCSVLine(lines[i]);
+    if (row.length === 0) continue;
+    result.push({
+      id: 0,
+      nama:       row[0] || '',
+      wa:         row[1] || '',
+      toko:       row[2] || '',
+      rekening:   row[3] || '',
+      atas_nama:  row[4] || '',
+    });
+  }
+  result.forEach((r, idx) => r.id = idx + 1);
+  return result;
+}
+
+function parseCSVLine(line) {
+  const fields = [];
+  let current = '';
+  let inQuote = false;
+  for (let i = 0; i < line.length; i++) {
+    const ch = line[i];
+    if (ch === '"') {
+      if (inQuote && i + 1 < line.length && line[i + 1] === '"') {
+        current += '"';
+        i++;
+      } else {
+        inQuote = !inQuote;
+      }
+    } else if (ch === ',' && !inQuote) {
+      fields.push(current);
+      current = '';
+    } else {
+      current += ch;
+    }
+  }
+  fields.push(current);
+  return fields.map(f => f.trim());
+}
+
+function buildCSV(records) {
+  const header = CSV_COLUMNS.join(',');
+  const rows = records.map(r => {
+    return [
+      escapeCSV(r.nama),
+      escapeCSV(r.wa),
+      escapeCSV(r.toko),
+      escapeCSV(r.rekening),
+      escapeCSV(r.atas_nama),
+    ].join(',');
+  });
+  return [header, ...rows].join('\n') + (rows.length ? '\n' : '');
+}
+
+function escapeCSV(val) {
+  const s = String(val ?? '');
+  if (s.includes(',') || s.includes('"') || s.includes('\n')) {
+    return '"' + s.replace(/"/g, '""') + '"';
+  }
+  return s;
+}
+
+// ======================== RENDER TABLE ========================
+function renderTable() {
+  if (records.length === 0) {
+    dataBody.innerHTML = '<div class="empty">Belum ada data. Tambahkan dari form di atas.</div>';
+    updateStatus(true);
+    return;
+  }
+  let html = '<table><thead><tr>';
+  html += '<th style="width:40px;">#</th>';
+  html += '<th>Nama Sales</th>';
+  html += '<th>No WA</th>';
+  html += '<th>Toko/Gudang</th>';
+  html += '<th>Rekening</th>';
+  html += '<th>Atas Nama</th>';
+  html += '<th style="width:90px;">Aksi</th>';
+  html += '</tr></thead><tbody>';
+  records.forEach((r, idx) => {
+    const no = idx + 1;
+    html += '<tr>'
+      + `<td><span class="badge">${no}</span></td>`
+      + `<td>${escHtml(r.nama) || '<span style="color:#ccc;">—</span>'}</td>`
+      + `<td>${escHtml(r.wa) || '<span style="color:#ccc;">—</span>'}</td>`
+      + `<td>${escHtml(r.toko) || '<span style="color:#ccc;">—</span>'}</td>`
+      + `<td>${escHtml(r.rekening) || '<span style="color:#ccc;">—</span>'}</td>`
+      + `<td>${escHtml(r.atas_nama) || '<span style="color:#ccc;">—</span>'}</td>`
+      + `<td>`
+      + `<button class="btn btn-outline btn-sm" onclick="editRecord(${r.id})" title="Edit" style="margin-right:4px;">✏️</button>`
+      + `<button class="btn btn-danger btn-sm" onclick="deleteRecord(${r.id})" title="Hapus">🗑️</button>`
+      + `</td></tr>`;
+  });
+  html += '</tbody></table>';
+  dataBody.innerHTML = html;
+  updateStatus(true);
+}
+
+function escHtml(s) {
+  if (!s) return '';
+  return String(s)
+    .replace(/&/g, '&amp;')
+    .replace(/</g, '&lt;')
+    .replace(/>/g, '&gt;')
+    .replace(/"/g, '&quot;');
+}
+
+// ======================== CRUD ACTIONS ========================
+function clearForm() {
+  editId.value = '';
+  fldName.value = '';
+  fldWA.value = '';
+  fldShop.value = '';
+  fldAccount.value = '';
+  fldAccountName.value = '';
+  formTitle.textContent = 'Tambah Data Sales';
+  btnSave.textContent = '💾 Simpan Data';
+  btnSave.className = 'btn btn-success';
+  btnCancel.style.display = 'none';
+}
+
+function editRecord(id) {
+  const r = records.find(x => x.id === id);
+  if (!r) return;
+  editId.value = id;
+  fldName.value = r.nama;
+  fldWA.value = r.wa;
+  fldShop.value = r.toko;
+  fldAccount.value = r.rekening;
+  fldAccountName.value = r.atas_nama;
+  formTitle.textContent = 'Edit Data Sales';
+  btnSave.textContent = '💾 Update Data';
+  btnSave.className = 'btn';
+  btnCancel.style.display = 'inline-flex';
+  document.querySelector('.card:nth-child(4)').scrollIntoView({ behavior: 'smooth', block: 'center' });
+}
+
+function cancelEdit() {
+  clearForm();
+}
+
+async function saveRecord() {
+  if (!isConnected) {
+    toastShow('Hubungkan ke GitHub dulu', 'toast-error');
+    return;
+  }
+
+  const data = {
+    nama:        fldName.value.trim(),
+    wa:          fldWA.value.trim(),
+    toko:        fldShop.value.trim(),
+    rekening:    fldAccount.value.trim(),
+    atas_nama:   fldAccountName.value.trim(),
+  };
+
+  const filledCount = Object.values(data).filter(v => v.length > 0).length;
+  if (filledCount === 0) {
+    toastShow('Isi minimal satu field', 'toast-error');
+    return;
+  }
+
+  try {
+    if (editId.value) {
+      const id = parseInt(editId.value, 10);
+      const idx = records.findIndex(r => r.id === id);
+      if (idx === -1) throw new Error('Record tidak ditemukan');
+      records[idx] = { ...records[idx], ...data };
+      await pushData();
+      toastShow('✅ Data berhasil diupdate', 'toast-success');
+    } else {
+      const maxId = records.length > 0 ? Math.max(...records.map(r => r.id)) : 0;
+      records.push({ id: maxId + 1, ...data });
+      await pushData();
+      toastShow('✅ Data berhasil ditambahkan', 'toast-success');
+    }
+    clearForm();
+    renderTable();
+  } catch (e) {
+    toastShow('❌ Gagal: ' + e.message, 'toast-error');
+    configMsg.textContent = '⚠️ Error simpan: ' + e.message;
+    configMsg.style.color = '#dc2626';
+  }
+}
+
+async function deleteRecord(id) {
+  if (!isConnected) {
+    toastShow('Hubungkan ke GitHub dulu', 'toast-error');
+    return;
+  }
+  if (!confirm('Hapus data sales ini? Tindakan tidak bisa dibatalkan.')) return;
+
+  try {
+    records = records.filter(r => r.id !== id);
+    records.forEach((r, idx) => r.id = idx + 1);
+    await pushData();
+    toastShow('🗑️ Data berhasil dihapus', 'toast-success');
+    renderTable();
+    clearForm();
+  } catch (e) {
+    toastShow('❌ Gagal hapus: ' + e.message, 'toast-error');
+  }
+}
+
+// ======================== KEYBOARD SHORTCUTS ========================
+function handleKeydown(e) {
+  if ((e.ctrlKey || e.metaKey) && e.key === 'Enter') {
+    e.preventDefault();
+    saveRecord();
+  }
+  if (e.key === 'Escape' && editId.value) {
+    cancelEdit();
+  }
+}
+
+// ======================== INIT ========================
+function init() {
+  if (config.owner) cfgOwner.value = config.owner;
+  if (config.repo)  cfgRepo.value  = config.repo;
+  if (config.file)  cfgFile.value  = config.file;
+
+  document.addEventListener('keydown', handleKeydown);
+
+  if (config.owner && config.repo && config.token) {
+    configMsg.textContent = 'Config tersedia. Klik "Hubungkan" untuk connect.';
+    configMsg.style.color = '#1d4ed8';
+    setTimeout(() => {
+      if (!isConnected) connectGitHub();
+    }, 500);
+  } else {
+    configMsg.textContent = 'Isi config lalu klik Hubungkan.';
+    configMsg.style.color = '#9a3412';
+  }
+}
+
+init();
+</script>
+</body>
+</html>
