@@ -119,7 +119,7 @@
   </div>
 
   <!-- Form CRUD -->
-  <div class="card hidden" id="crudFormCard">
+  <div class="card" id="crudFormCard">
     <div class="card-title">✏️ <span id="formTitle">Tambah Data Sales</span></div>
     <input type="hidden" id="editId" value="">
 
@@ -154,7 +154,7 @@
       <button class="btn btn-success" id="btnSave" onclick="saveRecord()">💾 Simpan Data</button>
       <button class="btn" id="btnCancel" style="display:none;" onclick="cancelEdit()">Batal</button>
     </div>
-    <div class="hint" id="editHint">Edit hanya aktif kalau sudah terhubung ke GitHub.</div>
+    <div class="hint" id="editHint">Simpan butuh koneksi ke GitHub. Read-only tanpa login.</div>
   </div>
 
   <!-- Data table -->
@@ -272,14 +272,12 @@ function toggleConfig() {
 }
 
 function showEditFeatures() {
-  crudFormCard.classList.remove('hidden');
-  editHint.textContent = 'Edit aktif — terhubung ke GitHub.';
+  editHint.textContent = 'Simpan/edit aktif — terhubung ke GitHub.';
   editHint.style.color = '#15803d';
 }
 
 function hideEditFeatures() {
-  crudFormCard.classList.add('hidden');
-  editHint.textContent = 'Edit hanya aktif kalau sudah terhubung ke GitHub.';
+  editHint.textContent = 'Simpan butuh koneksi ke GitHub. Read-only tanpa login.';
   editHint.style.color = '#999';
 }
 
