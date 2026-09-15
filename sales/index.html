@@ -3,7 +3,7 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>Daftar Kontak Sales</title>
+<title>Daftar Kontak Sales — TB. KHIZANATULLAH</title>
 <style>
   * { box-sizing: border-box; margin: 0; padding: 0; }
   body { font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif; background: #f5f5f5; padding: 16px; color: #222; }
@@ -45,7 +45,6 @@
   .empty { text-align: center; padding: 24px; color: #999; font-size: 14px; }
   .config-card { background: #fff7ed; border: 1px solid #fed7aa; }
   .config-card label { color: #9a3412; }
-  .config-card input { background: #fff; }
   .status-dot { display: inline-block; width: 10px; height: 10px; border-radius: 50%; margin-right: 6px; vertical-align: middle; }
   .status-online { background: #22c55e; }
   .status-offline { background: #ef4444; }
@@ -59,16 +58,14 @@
   kbd { background: #f1f5f9; padding: 1px 5px; border-radius: 3px; font-size: 11px; border: 1px solid #e2e8f0; font-family: inherit; }
   .wa-link { color: #2563eb; text-decoration: none; font-weight: 500; }
   .wa-link:hover { text-decoration: underline; }
-  .config-toggle-area { display: flex; justify-content: flex-end; }
   .hidden { display: none !important; }
   .collapse-btn-area { margin-top: 8px; text-align: right; }
-  .config-card.shifted { margin-bottom: 4px; }
 </style>
 </head>
 <body>
 <div class="container">
   <h1>📦 TB. KHIZANATULLAH</h1>
-  <p class="subtitle">Daftar Kontak Sales</p>
+  <p class="subtitle">Daftar Kontak Sales · Buka langsung, tanpa login</p>
 
   <div id="toast" class="toast"></div>
 
@@ -77,21 +74,20 @@
     <div class="header-actions">
       <div>
         <span id="statusDot" class="status-dot status-offline"></span>
-        <span id="statusText" style="font-size:13px; color:#666;">Belum terhubung ke GitHub</span>
+        <span id="statusText" style="font-size:13px; color:#666;">Loading data...</span>
       </div>
       <span id="recordCount" class="record-count">0 data</span>
     </div>
   </div>
 
   <!-- Config card (sembunyi otomatis pas terhubung) -->
-  <div id="configCard" class="card config-card shifted">
-    <div class="config-toggle-area">
-      <button id="btnShowConfig" class="btn-xs hidden" onclick="toggleConfig()" title="Tampilkan konfigurasi">⚙️ Konfigurasi</button>
+  <div id="configCard" class="card config-card hidden">
+    <div class="collapse-btn-area">
+      <button id="btnShowConfig" class="btn-xs" onclick="toggleConfig()" title="Tampilkan konfigurasi">⚙️ Konfigurasi</button>
     </div>
-    <div class="card-title">⚙️ Konfigurasi GitHub</div>
+    <div class="card-title">⚙️ Edit Data (opsional)</div>
     <div style="font-size:12px; color:#9a3412; margin-bottom:10px;">
-      Buat <strong>Fine-grained PAT</strong> → GitHub Settings → Developer settings → Fine-grained tokens.
-      Scopes: <code>Contents: Read & Write</code>. Akses hanya ke 1 repo tertentu.
+      Data bisa dilihat tanpa login. Untuk <strong>tambah/edit/hapus</strong>, hubungkan ke GitHub sekali pakai Fine-grained PAT.
     </div>
     <div class="form-row">
       <div class="form-group">
@@ -119,11 +115,11 @@
       <button class="btn btn-outline btn-sm" onclick="clearConfig()">Hapus config</button>
     </div>
     <div id="configMsg" style="font-size:11px; margin-top:8px; min-height:18px;"></div>
-    <div class="hint">Token disimpan di <kbd>localStorage</kbd> browser. Hanya aman untuk penggunaan pribadi.</div>
+    <div class="hint">Token disimpan di localStorage browser. Hanya aman untuk penggunaan pribadi.</div>
   </div>
 
   <!-- Form CRUD -->
-  <div class="card">
+  <div class="card hidden" id="crudFormCard">
     <div class="card-title">✏️ <span id="formTitle">Tambah Data Sales</span></div>
     <input type="hidden" id="editId" value="">
 
@@ -158,6 +154,7 @@
       <button class="btn btn-success" id="btnSave" onclick="saveRecord()">💾 Simpan Data</button>
       <button class="btn" id="btnCancel" style="display:none;" onclick="cancelEdit()">Batal</button>
     </div>
+    <div class="hint" id="editHint">Edit hanya aktif kalau sudah terhubung ke GitHub.</div>
   </div>
 
   <!-- Data table -->
@@ -171,29 +168,33 @@
       <button id="clearSearchBtn" class="btn btn-outline btn-sm hidden" onclick="clearSearch()">✕ Reset</button>
     </div>
     <div id="dataBody">
-      <div class="empty">Belum ada data. Tambahkan dari form di atas.</div>
+      <div class="empty">Loading data...</div>
     </div>
   </div>
 
   <div style="text-align:center; padding:16px 0 8px; font-size:11px; color:#aaa;">
-    Dibuat dengan GitHub REST API · Data tersimpan di repo kamu sebagai CSV
+    Data dari <a href="https://github.com/khizanatullah/khizanatullah.github.io" target="_blank" style="color:#888;">GitHub</a> · Buka langsung tanpa login
   </div>
 </div>
 
 <script>
 'use strict';
 
-const CONFIG_KEY = 'sales-crud-config-v1';
-let config = loadConfig();
-let records = [];
-let isConnected = false;
+const CONFIG_KEY  = 'sales-crud-config-v1';
+const RAW_BRANCH  = 'main';
+const RAW_OWNER   = 'khizanatullah';
+const RAW_REPO    = 'khizanatullah.github.io';
+const RAW_DEFAULT = 'data-sales.csv';
+
+// Baca dari raw URL (publik, tanpa auth)
+const RAW_BASE = `https://raw.githubusercontent.com/${RAW_OWNER}/${RAW_REPO}/${RAW_BRANCH}/`;
+
+let config       = loadConfig() || {};
+let records      = [];
+let isConnected  = false;
+let currentSearchQuery = '';
 
 const $ = id => document.getElementById(id);
-const cfgOwner       = $('cfgOwner');
-const cfgRepo        = $('cfgRepo');
-const cfgToken       = $('cfgToken');
-const cfgFile        = $('cfgFile');
-const configMsg      = $('configMsg');
 const statusDot      = $('statusDot');
 const statusText     = $('statusText');
 const recordCount    = $('recordCount');
@@ -209,6 +210,15 @@ const fldAccount     = $('fldAccount');
 const fldAccountName = $('fldAccountName');
 const toastEl        = $('toast');
 const configCard     = $('configCard');
+const crudFormCard   = $('crudFormCard');
+const editHint       = $('editHint');
+const cfgOwner       = $('cfgOwner');
+const cfgRepo        = $('cfgRepo');
+const cfgToken       = $('cfgToken');
+const cfgFile        = $('cfgFile');
+const configMsg      = $('configMsg');
+const searchBox      = $('searchBox');
+const clearSearchBtn = $('clearSearchBtn');
 const btnShowConfig  = $('btnShowConfig');
 
 // ======================== CONFIG ========================
@@ -221,14 +231,12 @@ function saveConfig() {
     owner: cfgOwner.value.trim(),
     repo:  cfgRepo.value.trim(),
     token: cfgToken.value.trim(),
-    file:  (cfgFile.value || 'data-sales.csv').trim(),
+    file:  (cfgFile.value || RAW_DEFAULT).trim(),
   };
   if (!c.owner || !c.repo || !c.token) {
     configMsg.textContent = '⚠️ Owner, repo, dan token wajib diisi.';
     configMsg.style.color = '#9a3412';
-    toastEl.textContent = 'Isi owner, repo, dan token';
-    toastEl.className = 'toast toast-error show';
-    setTimeout(() => { toastEl.className = 'toast'; }, 2000);
+    toastShow('Isi owner, repo, dan token', 'toast-error');
     return;
   }
   localStorage.setItem(CONFIG_KEY, JSON.stringify(c));
@@ -236,45 +244,43 @@ function saveConfig() {
   cfgOwner.value = c.owner;
   cfgRepo.value  = c.repo;
   cfgFile.value  = c.file;
-  configMsg.textContent = '✅ Config tersimpan di browser.';
+  configMsg.textContent = '✅ Config tersimpan.';
   configMsg.style.color = '#15803d';
-  toastEl.textContent = 'Config tersimpan';
-  toastEl.className = 'toast toast-success show';
-  setTimeout(() => { toastEl.className = 'toast'; }, 2000);
+  toastShow('Config tersimpan', 'toast-success');
+  showEditFeatures();
 }
 
 function clearConfig() {
   localStorage.removeItem(CONFIG_KEY);
   config = {};
+  isConnected = false;
   cfgOwner.value = '';
   cfgRepo.value  = '';
   cfgToken.value = '';
-  cfgFile.value  = 'data-sales.csv';
-  configMsg.textContent = 'Config dihapus.';
-  configMsg.style.color = '#9a3412';
-  isConnected = false;
+  cfgFile.value  = RAW_DEFAULT;
   updateStatus();
   renderTable();
-  toastEl.textContent = 'Config dihapus';
-  toastEl.className = 'toast toast-success show';
-  setTimeout(() => { toastEl.className = 'toast'; }, 2000);
+  hideEditFeatures();
+  configMsg.textContent = 'Config dihapus.';
+  configMsg.style.color = '#9a3412';
+  toastShow('Config dihapus', 'toast-success');
 }
 
 function toggleConfig() {
   const visible = configCard.classList.toggle('hidden');
   btnShowConfig.textContent = visible ? '⚙️ Konfigurasi' : '✕ Sembunyi konfigurasi';
-  btnShowConfig.classList.toggle('hidden', !visible);
 }
 
-function updateConfigVisibility() {
-  if (isConnected) {
-    configCard.classList.add('hidden');
-    btnShowConfig.classList.remove('hidden');
-    btnShowConfig.textContent = '⚙️ Konfigurasi';
-  } else {
-    configCard.classList.remove('hidden');
-    btnShowConfig.classList.add('hidden');
-  }
+function showEditFeatures() {
+  crudFormCard.classList.remove('hidden');
+  editHint.textContent = 'Edit aktif — terhubung ke GitHub.';
+  editHint.style.color = '#15803d';
+}
+
+function hideEditFeatures() {
+  crudFormCard.classList.add('hidden');
+  editHint.textContent = 'Edit hanya aktif kalau sudah terhubung ke GitHub.';
+  editHint.style.color = '#999';
 }
 
 // ======================== TOAST ========================
@@ -287,18 +293,56 @@ function toastShow(msg, cls = 'toast-success') {
 }
 
 // ======================== STATUS ========================
-function updateStatus(connected = isConnected) {
-  statusDot.className = 'status-dot ' + (connected ? 'status-online' : 'status-offline');
-  statusText.textContent = connected
+function updateStatus() {
+  statusDot.className = 'status-dot ' + (isConnected ? 'status-online' : 'status-offline');
+  statusText.textContent = isConnected
     ? `Terkoneksi · ${escHtml(config.owner)}/${escHtml(config.repo)}`
-    : 'Belum terhubung ke GitHub';
-  recordCount.textContent = connected
-    ? `${records.length} data`
-    : '0 data';
-  updateConfigVisibility();
+    : `Read-only · ${RAW_OWNER}/${RAW_REPO}`;
+  recordCount.textContent = records.length + ' data';
+  if (isConnected && configCard.classList.contains('hidden')) {
+    btnShowConfig.classList.remove('hidden');
+  } else if (!isConnected) {
+    btnShowConfig.classList.add('hidden');
+  }
 }
 
-// ======================== GITHUB API ========================
+// ======================== READ DATA (RAW URL — TANPA TOKEN) ========================
+async function loadDataFromRaw() {
+  updateStatus();
+  dataBody.innerHTML = '<div class="empty">Loading data...</div>';
+  try {
+    const file = config.file || RAW_DEFAULT;
+    const url = RAW_BASE + encodeURIComponent(file);
+    const res = await fetch(url);
+    if (!res.ok) throw new Error(`HTTP ${res.status} — file CSV belum ada di GitHub`);
+    const text = await res.text();
+    records = parseCSV(text);
+    renderTable();
+    updateStatus();
+    if (isConnected) {
+      configMsg.textContent = `✅ ${records.length} data dimuat (GitHub)`;
+      configMsg.style.color = '#15803d';
+    } else {
+      statusText.textContent = `Baca hanya · ${records.length} data dari GitHub`;
+    }
+  } catch (e) {
+    records = [];
+    renderTable();
+    if (e.message.includes('HTTP 404')) {
+      statusText.textContent = 'File CSV belum ada — tambahkan data pertama.';
+      configMsg.textContent = '📄 File belum ada di GitHub.';
+      configMsg.style.color = '#9a3412';
+    } else {
+      statusText.textContent = 'Gagal load: ' + e.message;
+      configMsg.textContent = '⚠️ Error: ' + e.message;
+      configMsg.style.color = '#dc2626';
+      toastShow('Gagal load: ' + e.message, 'toast-error');
+    }
+    updateStatus();
+  }
+}
+
+// ======================== GITHUB API (EDIT) ========================
 async function githubFetch(path, options = {}) {
   const url = `https://api.github.com/repos/${config.owner}/${config.repo}/contents${path}`;
   const headers = {
@@ -321,42 +365,18 @@ async function connectGitHub() {
   try {
     await githubFetch('/');
     isConnected = true;
-    updateStatus(true);
-    configMsg.textContent = '✅ Terkoneksi!';
+    updateStatus();
+    configMsg.textContent = '✅ Terkoneksi ke GitHub!';
     configMsg.style.color = '#15803d';
-    toastShow('Terkoneksi ke GitHub ✓', 'toast-success');
-    await loadData();
+    toastShow('Terkoneksi ✓', 'toast-success');
+    showEditFeatures();
+    await loadDataFromRaw();
   } catch (e) {
     isConnected = false;
-    updateStatus(false);
+    updateStatus();
     configMsg.textContent = '❌ Gagal: ' + e.message;
     configMsg.style.color = '#dc2626';
     toastShow('Gagal connect: ' + e.message, 'toast-error');
-  }
-}
-
-async function loadData() {
-  if (!isConnected) return;
-  try {
-    const data = await githubFetch('/' + encodeURIComponent(config.file));
-    const decoded = decodeBase64(data.content);
-    records = parseCSV(decoded);
-    renderTable();
-    updateStatus(true);
-    configMsg.textContent = `✅ ${records.length} data dimuat`;
-    configMsg.style.color = '#15803d';
-  } catch (e) {
-    if (e.message.includes('Not Found')) {
-      records = [];
-      renderTable();
-      updateStatus(true);
-      configMsg.textContent = '📄 File CSV belum ada — akan dibuat saat simpan pertama.';
-      configMsg.style.color = '#1d4ed8';
-    } else {
-      configMsg.textContent = '⚠️ Error baca: ' + e.message;
-      configMsg.style.color = '#dc2626';
-      toastShow('Error load: ' + e.message, 'toast-error');
-    }
   }
 }
 
@@ -452,21 +472,18 @@ function escapeCSV(val) {
 }
 
 // ======================== RENDER TABLE ========================
-let currentSearchQuery = '';
-
 function handleSearchInput(value) {
   currentSearchQuery = value.trim().toLowerCase();
-  document.getElementById('clearSearchBtn').classList.toggle('hidden', currentSearchQuery === '');
+  clearSearchBtn.classList.toggle('hidden', currentSearchQuery === '');
   renderTable();
 }
 
 function clearSearch() {
-  const box = document.getElementById('searchBox');
-  box.value = '';
+  searchBox.value = '';
   currentSearchQuery = '';
-  document.getElementById('clearSearchBtn').classList.add('hidden');
+  clearSearchBtn.classList.add('hidden');
   renderTable();
-  box.focus();
+  searchBox.focus();
 }
 
 function renderTable() {
@@ -480,11 +497,11 @@ function renderTable() {
 
   if (displayRecords.length === 0) {
     const emptyMsg = currentSearchQuery
-      ? `<div class="empty">Tidak ada data yang cocok dengan "<strong>${escHtml(document.getElementById('searchBox').value)}</strong>".</div>`
-      : '<div class="empty">Belum ada data. Tambahkan dari form di atas.</div>';
+      ? `<div class="empty">Tidak ada data yang cocok dengan "<strong>${escHtml(searchBox.value)}</strong>".</div>`
+      : '<div class="empty">Belum ada data. Tambahkan dari form di atas (butuh koneksi GitHub).</div>';
     dataBody.innerHTML = emptyMsg;
     recordCount.textContent = '0 data';
-    updateStatus(true);
+    updateStatus();
     return;
   }
 
@@ -499,7 +516,6 @@ function renderTable() {
   html += '</tr></thead><tbody>';
   displayRecords.forEach((r, idx) => {
     const no = idx + 1;
-    // Kolom WA jadi link WhatsApp
     const waDisplay = r.wa ? escHtml(r.wa) : '<span style="color:#ccc;">—</span>';
     const waHref = r.wa ? buildWhatsAppUrl(r.wa) : '';
     const waCell = waHref
@@ -513,14 +529,18 @@ function renderTable() {
       + `<td>${escHtml(r.rekening) || '<span style="color:#ccc;">—</span>'}</td>`
       + `<td>${escHtml(r.atas_nama) || '<span style="color:#ccc;">—</span>'}</td>`
       + `<td>`
-      + `<button class="btn btn-outline btn-sm" onclick="editRecord(${r.id})" title="Edit" style="margin-right:4px;">✏️</button>`
-      + `<button class="btn btn-danger btn-sm" onclick="deleteRecord(${r.id})" title="Hapus">🗑️</button>`
+      + (isConnected
+        ? `<button class="btn btn-outline btn-sm" onclick="editRecord(${r.id})" title="Edit" style="margin-right:4px;">✏️</button>`
+        : '')
+      + (isConnected
+        ? `<button class="btn btn-danger btn-sm" onclick="deleteRecord(${r.id})" title="Hapus">🗑️</button>`
+        : '')
       + `</td></tr>`;
   });
   html += '</tbody></table>';
   dataBody.innerHTML = html;
   recordCount.textContent = displayRecords.length + ' data';
-  updateStatus(true);
+  updateStatus();
 }
 
 function escHtml(s) {
@@ -534,26 +554,21 @@ function escAttr(s) {
 
 // ======================== WHATSAPP ========================
 function buildWhatsAppUrl(phone) {
-  // Normalisasi nomor: hilangkan karakter selain digit, kalau mulai 08 → ganti 0 jadi 62
   let digits = phone.replace(/[^\d]/g, '');
-  // Kalau ada + di awal, strip + dan pakai apa adanya (international format sudah benar)
   if (phone.trim().startsWith('+')) {
     digits = phone.trim().slice(1).replace(/[^\d]/g, '');
   } else if (digits.startsWith('08') || digits.startsWith('0') && digits.length > 10) {
-    // Indonesia local format: 0812... → 62812...
     digits = '62' + digits.slice(1);
   } else if (digits.length === 10 && digits.startsWith('8')) {
-    // Format tanpa 0 awalan: 812... → 62812...
     digits = '62' + digits;
   }
   return `https://wa.me/${digits}`;
 }
 
 function openWhatsApp(event, phone) {
-  // Double-check di runtime: buka ulang URL biar yakin
   const url = buildWhatsAppUrl(phone);
   window.open(url, '_blank');
-  return false; // cegah default anchor behavior (udah di-handle di onclick)
+  return false;
 }
 
 // ======================== CRUD ACTIONS ========================
@@ -571,6 +586,7 @@ function clearForm() {
 }
 
 function editRecord(id) {
+  if (!isConnected) { toastShow('Hubungkan ke GitHub dulu', 'toast-error'); return; }
   const r = records.find(x => x.id === id);
   if (!r) return;
   editId.value = id;
@@ -583,13 +599,13 @@ function editRecord(id) {
   btnSave.textContent = '💾 Update Data';
   btnSave.className = 'btn';
   btnCancel.style.display = 'inline-flex';
-  document.querySelector('.card:nth-child(4)').scrollIntoView({ behavior: 'smooth', block: 'center' });
+  crudFormCard.scrollIntoView({ behavior: 'smooth', block: 'center' });
 }
 
 function cancelEdit() { clearForm(); }
 
 async function saveRecord() {
-  if (!isConnected) { toastShow('Hubungkan ke GitHub dulu', 'toast-error'); return; }
+  if (!isConnected) { toastShow('Hubungkan ke GitHub dulu untuk simpan/edit', 'toast-error'); return; }
 
   const data = {
     nama:        fldName.value.trim(),
@@ -617,6 +633,8 @@ async function saveRecord() {
     }
     clearForm();
     renderTable();
+    // Reload dari raw URL biar sinkron
+    await loadDataFromRaw();
   } catch (e) {
     toastShow('❌ Gagal: ' + e.message, 'toast-error');
     configMsg.textContent = '⚠️ Error simpan: ' + e.message;
@@ -625,7 +643,7 @@ async function saveRecord() {
 }
 
 async function deleteRecord(id) {
-  if (!isConnected) { toastShow('Hubungkan ke GitHub dulu', 'toast-error'); return; }
+  if (!isConnected) { toastShow('Hubungkan ke GitHub dulu untuk hapus', 'toast-error'); return; }
   if (!confirm('Hapus data sales ini? Tindakan tidak bisa dibatalkan.')) return;
   try {
     records = records.filter(r => r.id !== id);
@@ -634,6 +652,7 @@ async function deleteRecord(id) {
     toastShow('🗑️ Data berhasil dihapus', 'toast-success');
     renderTable();
     clearForm();
+    await loadDataFromRaw();
   } catch (e) { toastShow('❌ Gagal hapus: ' + e.message, 'toast-error'); }
 }
 
@@ -645,20 +664,25 @@ function handleKeydown(e) {
 
 // ======================== INIT ========================
 function init() {
+  document.addEventListener('keydown', handleKeydown);
+
+  // Load config dari localStorage kalau ada
   if (config.owner) cfgOwner.value = config.owner;
   if (config.repo)  cfgRepo.value  = config.repo;
   if (config.file)  cfgFile.value  = config.file;
 
-  document.addEventListener('keydown', handleKeydown);
+  // Load data dari raw URL (TANPA TOKEN) — ini yang buat file bisa dibuka langsung
+  loadDataFromRaw();
 
+  // Kalau ada config lengkap tapi belum connect, tunjukkin tombol connect
   if (config.owner && config.repo && config.token) {
-    configMsg.textContent = 'Config tersedia. Klik "Hubungkan" untuk connect.';
+    configMsg.textContent = 'Config tersedia. Klik "Hubungkan" untuk bisa edit.';
     configMsg.style.color = '#1d4ed8';
-    setTimeout(() => { if (!isConnected) connectGitHub(); }, 500);
+    // Nggak auto-connect — user klik manual
   } else {
-    configMsg.textContent = 'Isi config lalu klik Hubungkan.';
+    configMsg.textContent = 'Data bisa dilihat tanpa login. Klik ⚙️ untuk edit.';
     configMsg.style.color = '#9a3412';
-    updateConfigVisibility();
+    configCard.classList.remove('hidden');
   }
 }
 
