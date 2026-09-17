@@ -1,0 +1,112 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Sistem Kasir Mini</title>
+    <style>
+        body { font-family: sans-serif; padding: 10px; }
+        .input-group { margin-bottom: 10px; }
+        input { width: 100%; padding: 8px; margin-top: 5px; box-sizing: border-box; }
+        button { width: 100%; padding: 10px; background: #28a745; color: white; border: none; cursor: pointer; }
+        table { width: 100%; border-collapse: collapse; margin-top: 20px; }
+        th, td { border: 1px solid #ddd; padding: 8px; text-align: left; }
+        
+        /* Pengaturan Khusus untuk Printer Thermal 57mm */
+@media print {
+    @page {
+        margin: 0; /* Menghilangkan margin default dari browser */
+    }
+    body { 
+        width: 57mm; 
+        margin: 0; 
+        padding: 2px; /* Memberi sedikit ruang agar tidak menempel ke pinggir kertas */
+        font-size: 16px; 
+        font-weight: bold;
+    }
+    .no-print { display: none; }
+    
+    table { 
+        width: 100%; 
+        border-collapse: collapse; 
+        table-layout: fixed; /* Memaksa tabel mengikuti lebar body */
+    }
+    
+    th, td { 
+        padding: 2px; 
+        word-wrap: break-word; /* Agar teks panjang tidak keluar dari kertas */
+			border: 3px solid #000;
+    }
+}
+
+    </style>
+</head>
+<body>
+
+    <div class="no-print">
+        <h3>Input Barang</h3>
+        <div class="input-group">
+            <input type="text" id="namaBarang" placeholder="Nama Barang">
+            <input type="number" id="hargaBarang" placeholder="Harga">
+            <button onclick="tambahBarang()">Tambah ke Daftar</button>
+        </div>
+        <button onclick="window.print()" style="background: #007bff; margin-top: 10px;">Cetak Struk</button>
+    </div>
+
+    <h3>Daftar Harga</h3>
+    <table id="tabelBarang">
+        <thead>
+            <tr><th>Nama</th><th>Harga</th></tr>
+        </thead>
+        <tbody id="isiTabel"></tbody>
+    </table>
+
+    <script>
+    // 1. Tambahkan array untuk menampung data
+    let daftarBarang = [];
+
+    function formatRupiah(angka) {
+        return new Intl.NumberFormat('id-ID', {
+            style: 'currency',
+            currency: 'IDR',
+            minimumFractionDigits: 0
+        }).format(angka);
+    }
+
+    function tambahBarang() {
+        let nama = document.getElementById('namaBarang').value;
+        let harga = document.getElementById('hargaBarang').value;
+
+        if(nama && harga) {
+            // 2. Masukkan data ke dalam array
+            daftarBarang.push({ nama: nama, harga: parseInt(harga) });
+
+            // 3. Urutkan berdasarkan nama (A-Z)
+            daftarBarang.sort((a, b) => a.nama.localeCompare(b.nama));
+
+            // 4. Update tabel
+            renderTabel();
+            
+            // Reset input
+            document.getElementById('namaBarang').value = '';
+            document.getElementById('hargaBarang').value = '';
+        } else {
+            alert("Mohon isi nama dan harga!");
+        }
+    }
+
+    // 5. Fungsi untuk menggambar ulang tabel
+    function renderTabel() {
+        let table = document.getElementById('isiTabel');
+        table.innerHTML = ""; // Bersihkan tabel terlebih dahulu
+
+        daftarBarang.forEach(item => {
+            let row = table.insertRow();
+            row.insertCell(0).innerHTML = item.nama;
+            row.insertCell(1).innerHTML = formatRupiah(item.harga);
+        });
+    }
+</script>
+
+</body>
+</html>
