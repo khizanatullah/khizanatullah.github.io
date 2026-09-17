@@ -679,11 +679,16 @@ function init() {
   // Load data dari raw URL (TANPA TOKEN) — ini yang buat file bisa dibuka langsung
   loadDataFromRaw();
 
-  // Kalau ada config lengkap tapi belum connect, tunjukkin tombol connect
+  // Kalau ada config lengkap, auto-reconnect biar status tetep connected setelan reload
   if (config.owner && config.repo && config.token) {
-    configMsg.textContent = 'Config tersedia. Klik "Hubungkan" untuk bisa edit.';
+    configMsg.textContent = 'Config tersedia. Menghubungkan ulang...';
     configMsg.style.color = '#1d4ed8';
-    // Nggak auto-connect — user klik manual
+    // Auto-connect saat init — kalau token masih valid, isConnected jadi true
+    connectGitHub().catch(() => {
+      // Kalo gagal, kasih tahu user cek lagi token
+      configMsg.textContent = 'Config tersedia, tapi koneksi gagal. Cek token lalu klik Hubungkan.';
+      configMsg.style.color = '#9a3412';
+    });
   } else {
     configMsg.textContent = 'Data bisa dilihat tanpa login. Klik ⚙️ untuk edit.';
     configMsg.style.color = '#9a3412';
