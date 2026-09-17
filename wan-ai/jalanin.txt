@@ -1,0 +1,1 @@
+cd ~/WANAi && npm run dev
