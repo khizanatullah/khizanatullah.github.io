@@ -36,6 +36,8 @@
   .btn-sm { padding: 6px 12px; font-size: 12px; }
   .btn-xs { padding: 3px 8px; font-size: 11px; border-radius: 4px; cursor: pointer; border: 1px solid #ddd; background: #fff; color: #555; }
   .btn-xs:hover { background: #f5f5f5; }
+  .btn-config { background: #fff7ed; color: #9a3412; border-color: #fed7aa; }
+  .btn-config:hover { background: #ffedd5; }
   .btn-group { display: flex; gap: 8px; margin-top: 12px; flex-wrap: wrap; }
   table { width: 100%; border-collapse: collapse; font-size: 13px; }
   th { background: #f8fafc; padding: 8px 10px; text-align: left; font-weight: 600; color: #444; border-bottom: 1px solid #e2e8f0; }
@@ -76,7 +78,12 @@
         <span id="statusDot" class="status-dot status-offline"></span>
         <span id="statusText" style="font-size:13px; color:#666;">Loading data...</span>
       </div>
-      <span id="recordCount" class="record-count">0 data</span>
+      <div style="display:flex; gap:8px; align-items:center;">
+        <span id="recordCount" class="record-count">0 data</span>
+        <button id="btnStorageConfig" class="btn btn-xs btn-config" onclick="toggleConfig()" title="Konfigurasi penyimpanan">
+          ⚙️ Konfigurasi
+        </button>
+      </div>
     </div>
   </div>
 
