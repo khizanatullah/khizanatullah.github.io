@@ -93,6 +93,85 @@
     letter-spacing: 0.5px;
   }
 
+  /* Nav menu */
+  .header-nav {
+    display: flex;
+    justify-content: flex-end;
+    align-items: center;
+    margin-top: 12px;
+    gap: 8px;
+  }
+  .nav-menu {
+    display: flex;
+    gap: 8px;
+    flex-wrap: wrap;
+  }
+  .nav-btn {
+    display: inline-flex;
+    align-items: center;
+    gap: 6px;
+    background: rgba(255,255,255,0.2);
+    color: var(--white);
+    text-decoration: none;
+    padding: 7px 14px;
+    border-radius: var(--radius);
+    font-size: 13px;
+    font-weight: 600;
+    transition: background 0.2s;
+    border: 1px solid rgba(255,255,255,0.25);
+    white-space: nowrap;
+  }
+  .nav-btn:hover { background: rgba(255,255,255,0.35); }
+  .nav-btn .nav-icon { font-size: 16px; }
+
+  /* Mobile floating nav (tablet & below) */
+  .nav-fab {
+    display: none;
+    position: fixed;
+    bottom: 20px;
+    right: 20px;
+    z-index: 200;
+    gap: 8px;
+  }
+  .nav-fab .fab-btn {
+    width: 56px;
+    height: 56px;
+    border-radius: 50%;
+    background: var(--blue-500);
+    color: var(--white);
+    border: none;
+    font-size: 22px;
+    cursor: pointer;
+    box-shadow: var(--shadow-lg);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    text-decoration: none;
+    transition: transform 0.15s, background 0.2s;
+    position: relative;
+  }
+  .nav-fab .fab-btn:hover { background: var(--blue-600); transform: scale(1.05); }
+  .nav-fab .fab-label {
+    position: absolute;
+    right: 68px;
+    background: var(--gray-900);
+    color: var(--white);
+    padding: 4px 10px;
+    border-radius: 4px;
+    font-size: 12px;
+    font-weight: 600;
+    white-space: nowrap;
+    opacity: 0;
+    pointer-events: none;
+    transition: opacity 0.15s;
+  }
+  .nav-fab .fab-btn:hover .fab-label { opacity: 1; }
+
+  @media (max-width: 768px) {
+    .header-nav { display: none; }
+    .nav-fab { display: flex; }
+  }
+
   /* Layout */
   .container {
     max-width: 960px;
@@ -537,6 +616,19 @@
     </div>
   </div>
   <div class="header-badge"> ANDA BELANJA, ANDA BERAMAL!!</div>
+  <div class="header-nav">
+    <nav class="nav-menu">
+      <a href="/print/index.html" class="nav-btn">
+        <span class="nav-icon">🖨️</span> Print Daftar Harga
+      </a>
+      <a href="/sales/index.html" class="nav-btn">
+        <span class="nav-icon">👥</span> Daftar Sales
+      </a>
+      <a href="/order.html" class="nav-btn">
+        <span class="nav-icon">📦</span> Order
+      </a>
+    </nav>
+  </div>
 </header>
 
 <div class="container">
@@ -978,5 +1070,21 @@ function init() {
 // Start — langsung tampil tanpa fetch
 init();
 </script>
+
+<!-- Floating nav mobile (tablet & below) -->
+<nav class="nav-fab">
+  <a href="/print/index.html" class="fab-btn" title="Print Daftar Harga">
+    🖨️
+    <span class="fab-label">Print Daftar Harga</span>
+  </a>
+  <a href="/sales/index.html" class="fab-btn" title="Daftar Sales">
+    👥
+    <span class="fab-label">Daftar Sales</span>
+  </a>
+  <a href="/order.html" class="fab-btn" title="Order">
+    📦
+    <span class="fab-label">Order</span>
+  </a>
+</nav>
 </body>
 </html>
