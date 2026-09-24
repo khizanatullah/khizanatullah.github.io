@@ -221,7 +221,7 @@
           return;
         }
 
-        const headers = json.headers.map(h => h || '');
+        const headers = ["No","Nama","No.HP","Alamat","Keterangan","Timestamp"];
         let html = '<table><thead><tr>';
         headers.forEach(h => {
           if (h === 'Timestamp') return; // skip kolom timestamp di header
