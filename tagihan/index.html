@@ -276,7 +276,7 @@
       btn.textContent = 'Menyimpan ...';
 
       try {
-        const res = await fetch(SCRIPT_URL, {
+        await fetch(SCRIPT_URL, {
           method: 'POST',
           mode: 'no-cors',
           headers: { 'Content-Type': 'application/json' },
@@ -289,7 +289,9 @@
           })
         });
 
-        // no-cors mode: response hanya opaque, tapi script tetap jalan
+        // Tunggu 2 detik biar server sempat proses (no-cors mode)
+        await new Promise(resolve => setTimeout(resolve, 2000));
+        
         showToast('✅ Pelanggan berhasil ditambahkan!');
         document.getElementById('nama').value = '';
         document.getElementById('no_hp').value = '';
