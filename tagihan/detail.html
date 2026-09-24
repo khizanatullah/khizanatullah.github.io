@@ -5,231 +5,473 @@
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>Detail Tagihan — TB. KHIZANATULLAH</title>
   <style>
+    * { box-sizing: border-box; }
+
     body {
-      font-family: sans-serif;
+      font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
       background: #f5f7fa;
       margin: 0;
-      padding: 1rem;
+      padding: 16px;
+      color: #222;
     }
 
-    .container {
-      max-width: 600px;
-      margin: 0 auto;
+    .container { max-width: 700px; margin: 0 auto; }
+
+    h1 { color: #1a237e; font-size: 1.3rem; text-align: center; margin: 0 0 4px; }
+    .subtitle { text-align: center; font-size: 0.85rem; color: #777; margin-bottom: 16px; }
+
+    .back-link {
+      display: inline-flex; align-items: center; gap: 4px;
+      color: #3f51b5; text-decoration: none; font-size: 0.9rem; margin-bottom: 12px;
     }
+    .back-link:hover { text-decoration: underline; }
 
     .card {
-      background: white;
-      border-radius: 8px;
-      padding: 1rem;
-      margin-bottom: 1rem;
-      box-shadow: 0 2px 8px rgba(0,0,0,0.08);
+      background: #fff; border-radius: 12px; padding: 16px;
+      margin-bottom: 16px; box-shadow: 0 2px 8px rgba(0,0,0,0.08);
     }
 
-    .card h2 {
-      font-size: 1rem;
-      color: #37474f;
-      margin: 0 0 0.5rem;
+    .card h2 { font-size: 1rem; color: #37474f; margin: 0 0 12px; padding-bottom: 8px; border-bottom: 2px solid #e8ecf1; }
+
+    .info-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; }
+
+    .info-item label { display: block; font-size: 0.75rem; color: #999; text-transform: uppercase; letter-spacing: 0.05em; margin-bottom: 2px; }
+    .info-item span { font-size: 0.95rem; color: #333; }
+
+    .form-group { margin-bottom: 10px; }
+    .form-group label { display: block; font-size: 0.8rem; font-weight: 600; color: #555; margin-bottom: 3px; }
+    .form-group input, .form-group select {
+      width: 100%; padding: 10px 12px; border: 1px solid #ddd; border-radius: 8px;
+      font-size: 0.95rem; background: #fff;
+    }
+    .form-group input:focus, .form-group select:focus {
+      outline: none; border-color: #3f51b5; box-shadow: 0 0 0 3px rgba(63,81,181,0.1);
     }
 
-    table {
-      width: 100%;
-      border-collapse: collapse;
-      font-size: 0.9rem;
-    }
-
-    th {
-      background: #f5f5f5;
-      text-align: left;
-      padding: 0.5rem;
-      font-size: 0.8rem;
-    }
-
-    td {
-      padding: 0.5rem;
-      border-bottom: 1px solid #eee;
-    }
+    table { width: 100%; border-collapse: collapse; font-size: 0.9rem; }
+    th { background: #f5f5f5; padding: 10px 8px; text-align: left; font-weight: 600; color: #555; font-size: 0.75rem; text-transform: uppercase; border-bottom: 2px solid #e0e0e0; }
+    td { padding: 10px 8px; border-bottom: 1px solid #eee; vertical-align: middle; }
+    tr:last-child td { border-bottom: none; }
+    td.number { text-align: right; }
 
     .btn {
-      display: block;
-      width: 100%;
-      padding: 0.75rem;
-      border: none;
-      border-radius: 8px;
-      font-size: 0.95rem;
-      font-weight: 600;
-      cursor: pointer;
-      margin-bottom: 0.5rem;
+      display: inline-block; padding: 10px 16px; border: none; border-radius: 8px;
+      font-size: 0.9rem; font-weight: 600; cursor: pointer; transition: all 0.2s; text-align: center;
     }
+    .btn-primary { background: #3f51b5; color: #fff; }
+    .btn-primary:hover { background: #303f9f; }
+    .btn-danger { background: #d32f2f; color: #fff; }
+    .btn-danger:hover { background: #b71c1c; }
+    .btn-sm { padding: 6px 12px; font-size: 0.8rem; }
 
-    .btn-primary {
-      background: #3f51b5;
-      color: white;
-    }
+    .btn-row { display: flex; gap: 8px; margin-top: 10px; }
+    .btn-row .btn { flex: 1; }
 
-    .btn-danger {
-      background: #d32f2f;
-      color: white;
-    }
+    .empty { text-align: center; color: #999; padding: 24px; font-size: 0.9rem; }
 
-    .empty {
-      text-align: center;
-      padding: 2rem;
-      color: #999;
+    .toast {
+      position: fixed; bottom: 24px; left: 50%; transform: translateX(-50%);
+      background: #388e3c; color: #fff; padding: 12px 24px; border-radius: 8px;
+      font-size: 0.95rem; box-shadow: 0 4px 12px rgba(0,0,0,0.2);
+      opacity: 0; transition: opacity 0.3s; z-index: 999;
     }
+    .toast.show { opacity: 1; }
+    .toast.error { background: #d32f2f; }
+
+    .detail-panel {
+      background: #fafafa; border-radius: 8px; padding: 12px; margin-top: 8px;
+      display: none;
+    }
+    .detail-panel.show { display: block; }
+
+    .detail-item {
+      display: flex; justify-content: space-between; align-items: center;
+      padding: 6px 0; border-bottom: 1px solid #eee;
+    }
+    .detail-item:last-child { border-bottom: none; }
+    .detail-item .item-name { flex: 1; }
+    .detail-item .item-qty { width: 40px; text-align: center; color: #777; font-size: 0.85rem; }
+    .detail-item .item-price { width: 80px; text-align: right; color: #777; font-size: 0.85rem; }
+    .detail-item .item-subtotal { width: 90px; text-align: right; font-weight: 600; }
+
+    .total-row {
+      display: flex; justify-content: space-between; align-items: center;
+      padding: 12px 0; margin-top: 8px; border-top: 2px solid #ddd; font-size: 1.1rem;
+    }
+    .total-row .label { font-weight: 600; color: #555; }
+    .total-row .amount { font-weight: 700; color: #1a237e; }
   </style>
 </head>
 <body>
   <div class="container">
-    <a href="index.html" style="color: #3f51b5; text-decoration: none;">← Kembali</a>
+    <a href="index.html" class="back-link">← Kembali ke Daftar Pelanggan</a>
 
-    <div id="content"></div>
+    <h1>📄 Detail Tagihan</h1>
+    <div class="subtitle">TB. KHIZANATULLAH</div>
+
+    <div id="content"><div class="empty">Memuat ...</div></div>
   </div>
+
+  <div id="toast" class="toast"></div>
 
   <script>
     const SCRIPT_URL = 'https://script.google.com/macros/s/AKfycbxHSPTeUTR4Jx8zrFjdAIRf_gY5iH_vKLPooNmjal-rwTXxjINHlQZGPMwnrKTKfPl_jg/exec';
     const params = new URLSearchParams(window.location.search);
     const noPelanggan = params.get('no');
 
-    function formatuang(angka) {
+    function showToast(msg, isError = false) {
+      const t = document.getElementById('toast');
+      t.textContent = msg;
+      t.className = 'toast show' + (isError ? ' error' : '');
+      setTimeout(() => { t.className = 'toast'; }, 3000);
+    }
+
+    function formatRupiah(angka) {
       return 'Rp ' + Number(angka || 0).toLocaleString('id-ID');
+    }
+
+    function formatTanggal(dateStr) {
+      if (!dateStr) return '-';
+      const d = new Date(dateStr);
+      return isNaN(d) ? dateStr : d.toLocaleDateString('id-ID', { day: '2-digit', month: 'short', year: 'numeric' });
+    }
+
+    function getStatusBadge(status) {
+      const cls = status === 'Lunas' ? 'badge-lunas' : status === 'DP' ? 'badge-dp' : 'badge-belum';
+      return `<span class="badge ${cls}">${status}</span>`;
     }
 
     async function loadData() {
       const content = document.getElementById('content');
-
       if (!noPelanggan) {
         content.innerHTML = '<div class="empty">Nomor pelanggan tidak ditemukan.</div>';
         return;
       }
 
       try {
-        // 1. Ambil data pelanggan
-        const res = await fetch(`${SCRIPT_URL}?action=list_pelanggan`);
-        const json = await res.json();
-        const pelanggan = json.rows.find(r => String(r[0]) === noPelanggan);
-        const namaPembeli = pelanggan?.[1] || 'Unknown';
+        const [pelangganRes, tagihanRes] = await Promise.all([
+          fetch(`${SCRIPT_URL}?action=list_pelanggan`),
+          fetch(`${SCRIPT_URL}?action=list_tagihan&no=${encodeURIComponent(noPelanggan)}`)
+        ]);
 
-        // 2. Ambil daftar tagihan pelanggan
-        const res2 = await fetch(
-          `${SCRIPT_URL}?action=list_tagihan&no=${noPelanggan}`
-        );
-        const tagihanJson = await res2.json();
+        const pelangganJson = await pelangganRes.json();
+        const tagihanJson = await tagihanRes.json();
+        const pelanggan = pelangganJson.rows.find(r => String(r[0]) === noPelanggan);
+
+        if (!pelanggan) {
+          content.innerHTML = '<div class="empty">Pelanggan tidak ditemukan.</div>';
+          return;
+        }
+
+        const nama = pelanggan[1] || '-';
+        const noHp = pelanggan[2] || '';
+        const alamat = pelanggan[3] || '-';
+        const keterangan = pelanggan[4] || '-';
         const tagihans = tagihanJson.rows || [];
 
-        let html = '';
-
-        // Header info
-        html += `
+        let html = `
           <div class="card">
             <h2>Data Pembeli</h2>
-            <p><strong>Nama:</strong> ${namaPembeli}</p>
-          </div>
-        `;
+            <div class="info-grid">
+              <div class="info-item"><label>Nama</label><span>${nama}</span></div>
+              <div class="info-item"><label>No. HP</label><span>${noHp || '-'}</span></div>
+              <div class="info-item" style="grid-column: 1 / -1;"><label>Alamat</label><span>${alamat !== '-' ? alamat : '-'}</span></div>
+              <div class="info-item" style="grid-column: 1 / -1;"><label>Keterangan</label><span>${keterangan !== '-' ? keterangan : '-'}</span></div>
+            </div>
+          </div>`;
 
         // Daftar tagihan
         if (tagihans.length === 0) {
-          html += '<div class="card"><div class="empty">Belum ada tagihan.</div></div>';
+          html += '<div class="card"><h2>Tagihan</h2><div class="empty">Belum ada tagihan.</div></div>';
         } else {
-          html += `
-            <div class="card">
-              <h2>Tagihan (${tagihans.length})</h2>
-              <table>
-                <thead>
-                  <tr>
-                    <th>No. Tagihan</th>
-                    <th>Tanggal</th>
-                    <th>Status</th>
-                    <th>Total</th>
-                  </tr>
-                </thead>
-                <tbody>
-          `;
+          html += `<div class="card"><h2>Tagihan (${tagihans.length})</h2>
+            <table><thead><tr>
+              <th>No. Tagihan</th><th>Tanggal</th><th>Status</th><th>Total</th><th style="text-align:center; width:50px;">Detail</th>
+            </tr></thead><tbody>`;
 
           tagihans.forEach(row => {
-            const noTagihan = row[1];
-            const tanggal = new Date(row[3]).toLocaleDateString('id-ID');
-            const status = row[4];
-            const total = row[6];
+            const noTag = row[1] || '-';
+            const tgl = formatTanggal(row[3]);
+            const st = row[4] || '-';
+            const total = row[6] || 0;
+            const detailId = 'detail-' + noTag.replace(/[^a-zA-Z0-9]/g, '_');
 
-            html += `
-              <tr>
-                <td><strong>${noTagihan}</strong></td>
-                <td>${tanggal}</td>
-                <td>${status}</td>
-                <td class="number">${formatuang(total)}</td>
-              </tr>
-            `;
+            html += `<tr style="cursor:pointer;" onclick="toggleDetail('${detailId}')">
+              <td style="font-weight:600;">${noTag}</td>
+              <td>${tgl}</td>
+              <td>${getStatusBadge(st)}</td>
+              <td class="number">${formatRupiah(total)}</td>
+              <td class="number" style="text-align:center;"><span style="color:#3f51b5;">↗</span></td>
+            </tr>
+            <tr id="${detailId}" class="detail-panel">
+              <td colspan="5"><div style="padding:0 8px;"><div class="detail-item" style="font-weight:600;"><span>Daftar Barang:</span></div>
+              <div id="items-${detailId}"><div class="empty" style="padding:6px;">Memuat ...</div></div></div></td>
+            </tr>`;
           });
 
           html += '</tbody></table></div>';
         }
 
-        // Tombol tambah tagihan & kirim WA
+        // Form tambah tagihan + tombol WA
         html += `
           <div class="card">
-            <button class="btn btn-primary" onclick="document.getElementById('form-tambah').scrollIntoView({behavior:'smooth'}); return false;">
-              ➕ Tambah Tagihan
-            </button>
-            <button class="btn btn-danger" onclick="kirimWALast()">
-              📲 Kirim WA Tagihan Terakhir
-            </button>
+            <h2>➕ Tambah Tagihan</h2>
+            <form id="form-tagihan" onsubmit="return tambahTagihan(event)">
+              <div class="form-group">
+                <label>Nama Barang *</label>
+                <input type="text" id="nama_barang" placeholder="Contoh: Besi 8 Polos" required>
+              </div>
+              <div class="form-group" style="display:grid; grid-template-columns:1fr 1fr; gap:8px;">
+                <div>
+                  <label>Qty *</label>
+                  <input type="number" id="qty" min="1" value="1" required>
+                </div>
+                <div>
+                  <label>Harga Satuan (Rp) *</label>
+                  <input type="number" id="harga_satuan" min="0" placeholder="48000" required>
+                </div>
+              </div>
+              <div class="form-group">
+                <label>Diskon (%)</label>
+                <input type="number" id="diskon_persen" min="0" max="100" value="0">
+              </div>
+              <div class="form-group">
+                <label>Status</label>
+                <select id="status">
+                  <option value="Belum Lunas">Belum Lunas</option>
+                  <option value="DP">DP</option>
+                  <option value="Lunas">Lunas</option>
+                </select>
+              </div>
+              <div class="form-group">
+                <label>Keterangan</label>
+                <input type="text" id="keterangan" placeholder="Catatan (opsional)">
+              </div>
+              <div class="btn-row">
+                <button type="submit" class="btn btn-primary">💾 Simpan</button>
+                <button type="reset" class="btn btn-secondary" style="background:#757575;">Reset</button>
+              </div>
+            </form>
+          </div>
+
+          <div class="card">
+            <button class="btn btn-danger" onclick="kirimWA()">📲 Kirim WA — Tagihan Terakhir</button>
+            <p style="font-size:0.8rem; color:#999; margin-top:8px; text-align:center;">Kirim detail tagihan terakhir ke nomor HP pembeli</p>
           </div>
         `;
 
         content.innerHTML = html;
-
       } catch (err) {
-        console.error(err);
+        console.error('Gagal load:', err);
         content.innerHTML = '<div class="empty">Gagal memuat data.</div>';
       }
     }
 
-    function formatuang(angka) {
-      return 'Rp ' + Number(angka || 0).toLocaleString('id-ID');
+    function toggleDetail(id) {
+      const panel = document.getElementById(id);
+      if (!panel) return;
+      document.querySelectorAll('.detail-panel.show').forEach(p => p.classList.remove('show'));
+      if (!panel.classList.contains('show')) {
+        panel.classList.add('show');
+        const noTag = id.replace(/_/g, '');
+        loadDetailItems(noTag, 'items-' + id);
+      }
     }
 
-    async function kirimWALast() {
+    async function loadDetailItems(noTag, containerId) {
+      const container = document.getElementById(containerId);
+      if (!container) return;
       try {
-        const res = await fetch(
-          `${SCRIPT_URL}?action=list_tagihan&no=${noPelanggan}`
-        );
+        const res = await fetch(`${SCRIPT_URL}?action=get_detail&no_tagihan=${encodeURIComponent(noTag)}`);
         const data = await res.json();
-        const tagihans = data.rows || [];
-
-        if (tagihans.length === 0) {
-          alert('Belum ada tagihan.');
+        if (data.error || !data.details?.rows) {
+          container.innerHTML = '<div class="empty" style="padding:6px;">Tidak ada detail.</div>';
           return;
         }
 
-        // Ambil tagihan terakhir
-        const last = tagihans[tagihans.length - 1];
-        const noTagihan = last[1];
-        const total = last[6];
+        let html = '';
+        data.details.rows.forEach((item, i) => {
+          html += `<div class="detail-item">
+            <span class="item-name">${i + 1}. ${item[2] || '-'}</span>
+            <span class="item-qty">x${item[3] || 0}</span>
+            <span class="item-price">${formatRupiah(item[4] || 0)}</span>
+            <span class="item-subtotal">${formatRupiah(item[6] || 0)}</span>
+          </div>`;
+        });
 
-        // Ambil no HP pelanggan
-        const resP = await fetch(`${SCRIPT_URL}?action=list_pelanggan`);
-        const pelangganData = await resP.json();
+        const grandTotal = data.details.rows.reduce((s, r) => s + (r[6] || 0), 0);
+        html += `<div class="total-row"><span class="label">Total</span><span class="amount">${formatRupiah(grandTotal)}</span></div>`;
+        html += `<div style="text-align:right; margin-top:8px;">
+          <button class="btn btn-danger btn-sm" onclick="kirimWAItem('${noTag}')">📲 Kirim WA</button>
+        </div>`;
+        container.innerHTML = html;
+      } catch (err) {
+        container.innerHTML = '<div class="empty" style="padding:6px;">Gagal memuat.</div>';
+      }
+    }
+
+    async function tambahTagihan(e) {
+      e.preventDefault();
+      const namaBarang = document.getElementById('nama_barang').value.trim();
+      const qty = parseInt(document.getElementById('qty').value) || 0;
+      const hargaSatuan = parseInt(document.getElementById('harga_satuan').value) || 0;
+      const diskon = parseInt(document.getElementById('diskon_persen').value) || 0;
+      const status = document.getElementById('status').value;
+      const keterangan = document.getElementById('keterangan').value.trim();
+
+      if (!namaBarang) { showToast('Nama barang wajib diisi.', true); return false; }
+      if (qty < 1) { showToast('Qty minimal 1.', true); return false; }
+
+      const btn = e.target.querySelector('button[type="submit"]');
+      btn.disabled = true; btn.textContent = 'Menyimpan ...';
+
+      try {
+        const now = new Date();
+        const noTag = 'TG-' + now.toISOString().split('T')[0].replace(/-/g, '') + '-' + Date.now().toString().slice(-3);
+
+        // 1. Simpan header
+        await fetch(SCRIPT_URL, {
+          method: 'POST',
+          mode: 'no-cors',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({
+            action: 'add_tagihan_header',
+            no_tagihan: noTag,
+            no_pelanggan: noPelanggan,
+            status,
+            keterangan
+          })
+        });
+
+        // 2. Simpan detail
+        const subtotal = hargaSatuan * qty;
+        const diskonAmount = subtotal * (diskon / 100);
+        const rowTotal = subtotal - diskonAmount;
+
+        await fetch(SCRIPT_URL, {
+          method: 'POST',
+          mode: 'no-cors',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({
+            action: 'add_tagihan_detail',
+            no_tagihan: noTag,
+            nama_barang: namaBarang,
+            qty,
+            harga_satuan: hargaSatuan,
+            diskon_persen: diskon,
+            subtotal: rowTotal
+          })
+        });
+
+        showToast('✅ Tagihan berhasil disimpan!');
+        e.target.reset();
+        setTimeout(() => location.reload(), 800);
+      } catch (err) {
+        console.error('Gagal:', err);
+        showToast('Gagal menyimpan tagihan.', true);
+        btn.disabled = false; btn.textContent = '💾 Simpan';
+      }
+      return false;
+    }
+
+    async function kirimWA() {
+      try {
+        const [tagihanRes, pelangganRes] = await Promise.all([
+          fetch(`${SCRIPT_URL}?action=list_tagihan&no=${encodeURIComponent(noPelanggan)}`),
+          fetch(`${SCRIPT_URL}?action=list_pelanggan`)
+        ]);
+
+        const tagihanData = await tagihanRes.json();
+        const pelangganData = await pelangganRes.json();
+        const tagihans = tagihanData.rows || [];
         const pelanggan = pelangganData.rows.find(r => String(r[0]) === noPelanggan);
-        const noHP = pelanggan?.[2];
 
-        if (!noHP || !noHP.startsWith('62')) {
-          alert('Nomor HP tidak valid.');
-          return;
+        if (tagihans.length === 0) { showToast('Belum ada tagihan.', true); return; }
+        if (!pelanggan?.[2] || !pelanggan[2].startsWith('62')) {
+          showToast('Nomor HP tidak valid.', true); return;
         }
 
-        // Build message
+        const last = tagihans[tagihans.length - 1];
+        const noTag = last[1];
+        const total = last[6] || 0;
+
+        // Load detail untuk keruh
+        const detailRes = await fetch(`${SCRIPT_URL}?action=get_detail&no_tagihan=${encodeURIComponent(noTag)}`);
+        const detailData = await detailRes.json();
+        const items = detailData.details?.rows || [];
+
         let msg = `*📋 Tagihan TB. KHIZANATULLAH*\n\n`;
-        msg += `*No. Tagihan:* ${noTagihan}\n`;
-        msg += `*Nama Pembeli:* ${pelanggan?.[1]}\n`;
-        msg += `*Total:* ${formatuang(total)}\n\n`;
-        msg += `*Terima kasih telah berbelanja.*`;
+        msg += `*No. Tagihan:* ${noTag}\n`;
+        msg += `*Nama Pembeli:* ${pelanggan[1]}\n`;
+        msg += `*Tanggal:* ${formatTanggal(last[3])}\n`;
+        msg += `*Status:* ${last[4] || '-'}\n\n`;
+        msg += `*Daftar Barang:*\n`;
+
+        items.forEach((item, i) => {
+          const nm = item[2] || '-';
+          const q = item[3] || 0;
+          const h = item[4] || 0;
+          const d = item[5] || 0;
+          const sub = item[6] || 0;
+          msg += `${i + 1}. ${nm} x${q} @ ${formatRupiah(h)}`;
+          if (d > 0) msg += ` (diskon ${d}%)`;
+          msg += ` = ${formatRupiah(sub)}\n`;
+        });
+
+        msg += `\n*Total:* ${formatRupiah(total)}\n\n`;
+        if (pelanggan[4]) msg += `*Keterangan:*\n${pelanggan[4]}\n`;
+        msg += `\n*Terima kasih telah berbelanja di TB. KHIZANATULLAH*`;
 
         const encoded = encodeURIComponent(msg);
-        window.open(`https://wa.me/${noHP}?text=${encoded}`, '_blank');
-
+        window.open(`https://wa.me/${pelanggan[2]}?text=${encoded}`, '_blank');
+        showToast('✅ Link WA siap! Cek aplikasi WhatsApp.');
       } catch (err) {
-        console.error(err);
-        alert('Gagal kirim WA.');
+        console.error('Gagal kirim WA:', err);
+        showToast('Gagal menyusun pesan WA.', true);
+      }
+    }
+
+    async function kirimWAItem(noTag) {
+      try {
+        const [detailRes, tagihanRes, pelangganRes] = await Promise.all([
+          fetch(`${SCRIPT_URL}?action=get_detail&no_tagihan=${encodeURIComponent(noTag)}`),
+          fetch(`${SCRIPT_URL}?action=list_tagihan&no=${encodeURIComponent(noPelanggan)}`),
+          fetch(`${SCRIPT_URL}?action=list_pelanggan`)
+        ]);
+
+        const detailData = await detailRes.json();
+        const tagihanData = await tagihanRes.json();
+        const pelangganData = await pelangganRes.json();
+        const items = detailData.details?.rows || [];
+        const tagihans = tagihanData.rows || [];
+        const pelanggan = pelangganData.rows.find(r => String(r[0]) === noPelanggan);
+
+        if (!pelanggan?.[2] || !pelanggan[2].startsWith('62')) {
+          showToast('Nomor HP tidak valid.', true); return;
+        }
+
+        const header = tagihans.find(r => r[1] === noTag);
+        const total = header ? header[6] : items.reduce((s, r) => s + (r[6] || 0), 0);
+
+        let msg = `*📋 Tagihan TB. KHIZANATULLAH*\n\n`;
+        msg += `*No. Tagihan:* ${noTag}\n`;
+        msg += `*Nama Pembeli:* ${pelanggan[1]}\n`;
+        msg += `*Tanggal:* ${formatTanggal(header?.[3])}\n`;
+        msg += `*Status:* ${header?.[4] || '-'}\n\n`;
+        msg += `*Barang:*\n`;
+
+        items.forEach((item, i) => {
+          msg += `${i + 1}. ${item[2] || '-'} x${item[3] || 0} @ ${formatRupiah(item[4] || 0)} = ${formatRupiah(item[6] || 0)}\n`;
+        });
+
+        msg += `\n*Total:* ${formatRupiah(total)}\n\n*Terima kasih.*`;
+
+        const encoded = encodeURIComponent(msg);
+        window.open(`https://wa.me/${pelanggan[2]}?text=${encoded}`, '_blank');
+        showToast('✅ Link WA siap!');
+      } catch (err) {
+        console.error('Gagal:', err);
+        showToast('Gagal.', true);
       }
     }
 
