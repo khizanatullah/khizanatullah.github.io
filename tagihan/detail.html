@@ -62,7 +62,11 @@
     .btn-primary:hover { background: #303f9f; }
     .btn-danger { background: #d32f2f; color: #fff; }
     .btn-danger:hover { background: #b71c1c; }
+    .btn-success { background: #2e7d32; color: #fff; }
+    .btn-success:hover { background: #1b5e20; }
     .btn-sm { padding: 6px 12px; font-size: 0.8rem; }
+    .btn-secondary { background: #757575; color: #fff; }
+    .btn-secondary:hover { background: #616161; }
 
     .btn-row { display: flex; gap: 8px; margin-top: 10px; }
     .btn-row .btn { flex: 1; }
@@ -73,7 +77,7 @@
       position: fixed; bottom: 24px; left: 50%; transform: translateX(-50%);
       background: #388e3c; color: #fff; padding: 12px 24px; border-radius: 8px;
       font-size: 0.95rem; box-shadow: 0 4px 12px rgba(0,0,0,0.2);
-      opacity: 0; transition: opacity 0.3s; z-index: 999;
+      opacity: 0; transition: opacity 0.3s; z-index: 999; max-width: 90vw;
     }
     .toast.show { opacity: 1; }
     .toast.error { background: #d32f2f; }
@@ -100,6 +104,20 @@
     }
     .total-row .label { font-weight: 600; color: #555; }
     .total-row .amount { font-weight: 700; color: #1a237e; }
+
+    .badge {
+      display: inline-block; padding: 2px 10px; border-radius: 12px;
+      font-size: 0.75rem; font-weight: 600;
+    }
+    .badge-lunas { background: #e8f5e9; color: #2e7d32; }
+    .badge-dp { background: #fff8e1; color: #f57f17; }
+    .badge-belum { background: #fff3e0; color: #e65100; }
+
+    .pending-badge {
+      display: inline-block; background: #fff3e0; color: #e65100;
+      padding: 2px 8px; border-radius: 10px; font-size: 0.75rem; font-weight: 600;
+      margin-left: 8px;
+    }
   </style>
 </head>
 <body>
@@ -115,15 +133,63 @@
   <div id="toast" class="toast"></div>
 
   <script>
+    // ===== KONFIGURASI =====
     const SCRIPT_URL = 'https://script.google.com/macros/s/AKfycbxHSPTeUTR4Jx8zrFjdAIRf_gY5iH_vKLPooNmjal-rwTXxjINHlQZGPMwnrKTKfPl_jg/exec';
     const params = new URLSearchParams(window.location.search);
     const noPelanggan = params.get('no');
 
+    // ===== LOCALSTORAGE PENDING ITEMS =====
+
+    function getPendingKey() {
+      return 'pending_items_' + noPelanggan;
+    }
+
+    function getPendingItems() {
+      try {
+        return JSON.parse(localStorage.getItem(getPendingKey()) || '[]');
+      } catch (e) {
+        console.error('Gagal baca localStorage:', e);
+        return [];
+      }
+    }
+
+    function addPendingItem(item) {
+      const items = getPendingItems();
+      items.push({
+        ...item,
+        timestamp: Date.now()
+      });
+      try {
+        localStorage.setItem(getPendingKey(), JSON.stringify(items));
+      } catch (e) {
+        console.error('Gagal simpan ke localStorage:', e);
+      }
+    }
+
+    function removePendingItem(index) {
+      const items = getPendingItems();
+      if (index >= 0 && index < items.length) {
+        items.splice(index, 1);
+        localStorage.setItem(getPendingKey(), JSON.stringify(items));
+      }
+    }
+
+    function clearPendingItems() {
+      localStorage.removeItem(getPendingKey());
+    }
+
+    function countPendingItems() {
+      return getPendingItems().length;
+    }
+
+    // ===== UTILITASI =====
+
     function showToast(msg, isError = false) {
       const t = document.getElementById('toast');
+      if (!t) return;
       t.textContent = msg;
       t.className = 'toast show' + (isError ? ' error' : '');
-      setTimeout(() => { t.className = 'toast'; }, 3000);
+      setTimeout(() => { t.className = 'toast'; }, 4000);
     }
 
     function formatRupiah(angka) {
@@ -133,22 +199,39 @@
     function formatTanggal(dateStr) {
       if (!dateStr) return '-';
       const d = new Date(dateStr);
-      return isNaN(d) ? dateStr : d.toLocaleDateString('id-ID', { day: '2-digit', month: 'short', year: 'numeric' });
+      return isNaN(d) ? dateStr : d.toLocaleDateString('id-ID', {
+        day: '2-digit',
+        month: 'short',
+        year: 'numeric'
+      });
     }
 
     function getStatusBadge(status) {
-      const cls = status === 'Lunas' ? 'badge-lunas' : status === 'DP' ? 'badge-dp' : 'badge-belum';
+      const cls = status === 'Lunas' ? 'badge-lunas' :
+                  status === 'DP' ? 'badge-dp' : 'badge-belum';
       return `<span class="badge ${cls}">${status}</span>`;
     }
 
+    function generateNoTag() {
+      const now = new Date();
+      const dateStr = now.toISOString().split('T')[0].replace(/-/g, '');
+      const random = String(Math.floor(Math.random() * 900) + 100);
+      return `TG-${dateStr}-${random}`;
+    }
+
+    // ===== LOAD DATA UTAMA =====
+
     async function loadData() {
       const content = document.getElementById('content');
+      if (!content) return;
+
       if (!noPelanggan) {
         content.innerHTML = '<div class="empty">Nomor pelanggan tidak ditemukan.</div>';
         return;
       }
 
       try {
+        // Load pelanggan & tagihan secara parallel
         const [pelangganRes, tagihanRes] = await Promise.all([
           fetch(`${SCRIPT_URL}?action=list_pelanggan`),
           fetch(`${SCRIPT_URL}?action=list_tagihan&no=${encodeURIComponent(noPelanggan)}`)
@@ -168,6 +251,7 @@
         const alamat = pelanggan[3] || '-';
         const keterangan = pelanggan[4] || '-';
         const tagihans = tagihanJson.rows || [];
+        const pendingCount = countPendingItems();
 
         let html = `
           <div class="card">
@@ -204,19 +288,21 @@
               <td class="number" style="text-align:center;"><span style="color:#3f51b5;">↗</span></td>
             </tr>
             <tr id="${detailId}" class="detail-panel">
-              <td colspan="5"><div style="padding:0 8px;"><div class="detail-item" style="font-weight:600;"><span>Daftar Barang:</span></div>
-              <div id="items-${detailId}"><div class="empty" style="padding:6px;">Memuat ...</div></div></div></td>
+              <td colspan="5"><div style="padding:0 8px;">
+                <div class="detail-item" style="font-weight:600;"><span>Daftar Barang:</span></div>
+                <div id="items-${detailId}"><div class="empty" style="padding:6px;">Memuat ...</div></div>
+              </div></td>
             </tr>`;
           });
 
           html += '</tbody></table></div>';
         }
 
-        // Form tambah tagihan + tombol WA
+        // Form tambah tagihan + tombol aksi
         html += `
           <div class="card">
-            <h2>➕ Tambah Tagihan</h2>
-            <form id="form-tagihan" onsubmit="return tambahTagihan(event)">
+            <h2>➕ Tambah Barang</h2>
+            <form id="form-tagihan">
               <div class="form-group">
                 <label>Nama Barang *</label>
                 <input type="text" id="nama_barang" placeholder="Contoh: Besi 8 Polos" required>
@@ -248,29 +334,351 @@
                 <input type="text" id="keterangan" placeholder="Catatan (opsional)">
               </div>
               <div class="btn-row">
-                <button type="submit" class="btn btn-primary">💾 Simpan</button>
-                <button type="reset" class="btn btn-secondary" style="background:#757575;">Reset</button>
+                <button type="submit" class="btn btn-primary">💾 Simpan ke LocalStorage</button>
+                <button type="reset" class="btn btn-secondary">Reset</button>
               </div>
             </form>
+            <div style="margin-top: 12px; padding-top: 12px; border-top: 1px solid #e0e0e0; font-size: 0.8rem; color: #777;">
+              <em>Barang disimpan sementara di browser. Klik "Kirim ke Sheet" untuk menyimpan ke Google Sheets.</em>
+            </div>
           </div>
 
           <div class="card">
-            <button class="btn btn-danger" onclick="kirimWA()">📲 Kirim WA — Tagihan Terakhir</button>
+            <h2>📦 Barang Pending <span class="pending-badge" id="pending-badge">${pendingCount}</span></h2>
+            <div id="pending-list">
+              ${pendingCount === 0 ? '<div class="empty">Belum ada barang pending.</div>' : ''}
+            </div>
+            <div class="btn-row" style="margin-top: 12px;">
+              <button class="btn btn-success" id="btn-kirim-sheet" ${pendingCount === 0 ? 'disabled' : ''}>
+                📤 Kirim ke Sheet
+              </button>
+              <button class="btn btn-danger" id="btn-hapus-pending" ${pendingCount === 0 ? 'disabled' : ''}>
+                🗑️ Hapus Semua
+              </button>
+            </div>
+          </div>
+
+          <div class="card">
+            <button class="btn btn-danger" id="btn-kirim-wa">📲 Kirim WA — Tagihan Terakhir</button>
             <p style="font-size:0.8rem; color:#999; margin-top:8px; text-align:center;">Kirim detail tagihan terakhir ke nomor HP pembeli</p>
           </div>
         `;
 
         content.innerHTML = html;
+
+        // Setup event listeners
+        setupEventListeners();
+
+        // Load pending items ke UI
+        renderPendingItems();
+
       } catch (err) {
         console.error('Gagal load:', err);
         content.innerHTML = '<div class="empty">Gagal memuat data.</div>';
       }
     }
 
+    // ===== EVENT LISTENERS =====
+
+    function setupEventListeners() {
+      // Form submit → simpan ke localStorage
+      const form = document.getElementById('form-tagihan');
+      if (form) {
+        form.addEventListener('submit', function(e) {
+          e.preventDefault();
+          tambahTagihanLocal(e);
+        });
+      }
+
+      // Kirim ke sheet
+      const btnKirim = document.getElementById('btn-kirim-sheet');
+      if (btnKirim) {
+        btnKirim.addEventListener('click', kirimKeSheet);
+      }
+
+      // Hapus pending
+      const btnHapus = document.getElementById('btn-hapus-pending');
+      if (btnHapus) {
+        btnHapus.addEventListener('click', function() {
+          if (confirm('Hapus semua barang pending?')) {
+            clearPendingItems();
+            renderPendingItems();
+            updatePendingBadge();
+            showToast('✅ Barang pending dihapus.');
+          }
+        });
+      }
+
+      // Kirim WA
+      const btnWA = document.getElementById('btn-kirim-wa');
+      if (btnWA) {
+        btnWA.addEventListener('click', kirimWA);
+      }
+    }
+
+    // ===== TAMBAH BARANG (LOCALSTORAGE) =====
+
+    function tambahTagihanLocal(e) {
+      const form = e.target;
+      const namaBarang = document.getElementById('nama_barang')?.value.trim();
+      const qty = parseInt(document.getElementById('qty')?.value) || 0;
+      const hargaSatuan = parseInt(document.getElementById('harga_satuan')?.value) || 0;
+      const diskon = parseInt(document.getElementById('diskon_persen')?.value) || 0;
+      const status = document.getElementById('status')?.value || 'Belum Lunas';
+      const keterangan = document.getElementById('keterangan')?.value.trim();
+
+      // Validasi
+      if (!namaBarang) {
+        showToast('Nama barang wajib diisi.', true);
+        return;
+      }
+      if (qty < 1) {
+        showToast('Qty minimal 1.', true);
+        return;
+      }
+      if (hargaSatuan <= 0) {
+        showToast('Harga satuan harus lebih dari 0.', true);
+        return;
+      }
+
+      // Hitung subtotal
+      const subtotal = hargaSatuan * qty;
+      const diskonAmount = subtotal * (diskon / 100);
+      const rowTotal = subtotal - diskonAmount;
+
+      // Simpan ke localStorage
+      addPendingItem({
+        nama_barang: namaBarang,
+        qty: qty,
+        harga_satuan: hargaSatuan,
+        diskon_persen: diskon,
+        subtotal: rowTotal,
+        status: status,
+        keterangan: keterangan
+      });
+
+      // Reset form
+      form.reset();
+      document.getElementById('qty').value = 1;
+      document.getElementById('diskon_persen').value = 0;
+      document.getElementById('status').value = 'Belum Lunas';
+
+      // Update UI
+      renderPendingItems();
+      updatePendingBadge();
+
+      showToast(`✅ "${namaBarang}" disimpan sementara. (${formatRupiah(rowTotal)})`);
+    }
+
+    // ===== RENDER PENDING ITEMS =====
+
+    function renderPendingItems() {
+      const container = document.getElementById('pending-list');
+      if (!container) return;
+
+      const items = getPendingItems();
+
+      if (items.length === 0) {
+        container.innerHTML = '<div class="empty">Belum ada barang pending.</div>';
+        return;
+      }
+
+      let html = '<table style="margin-top:8px;"><thead><tr>' +
+        '<th>#</th><th>Nama Barang</th><th>Qty</th><th>Harga</th><th>Diskon</th><th>Subtotal</th><th></th>' +
+        '</tr></thead><tbody>';
+
+      items.forEach((item, index) => {
+        html += `<tr>
+          <td style="text-align:center;">${index + 1}</td>
+          <td>${item.nama_barang}</td>
+          <td style="text-align:center;">x${item.qty}</td>
+          <td class="number">${formatRupiah(item.harga_satuan)}</td>
+          <td style="text-align:center;">${item.diskon_persen}%</td>
+          <td class="number" style="font-weight:600;">${formatRupiah(item.subtotal)}</td>
+          <td style="text-align:center;">
+            <button class="btn btn-danger btn-sm" style="padding:2px 6px; font-size:0.7rem;"
+                    onclick="removePendingItem(${index}); renderPendingItems(); updatePendingBadge();">
+              ✕
+            </button>
+          </td>
+        </tr>`;
+      });
+
+      html += '</tbody></table>';
+
+      const total = items.reduce((sum, item) => sum + item.subtotal, 0);
+      html += `<div class="total-row">
+        <span class="label">Total ${items.length} barang</span>
+        <span class="amount">${formatRupiah(total)}</span>
+      </div>`;
+
+      container.innerHTML = html;
+    }
+
+    function updatePendingBadge() {
+      const badge = document.getElementById('pending-badge');
+      if (badge) {
+        badge.textContent = countPendingItems();
+      }
+    }
+
+    // ===== KIRIM KE SHEET =====
+
+    async function kirimKeSheet() {
+      const items = getPendingItems();
+      if (items.length === 0) {
+        showToast('Tidak ada barang pending.', true);
+        return;
+      }
+
+      const btn = document.getElementById('btn-kirim-sheet');
+      if (btn) {
+        btn.disabled = true;
+        btn.textContent = 'Mengirim ...';
+      }
+
+      try {
+        // 1. Buat header tagihan
+        const now = new Date();
+        const noTag = generateNoTag();
+        const status = items[0]?.status || 'Belum Lunas';
+        const keterangan = items[0]?.keterangan || '';
+
+        const headerRes = await fetch(SCRIPT_URL, {
+          method: 'POST',
+          mode: 'no-cors',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({
+            action: 'add_tagihan_header',
+            no_tagihan: noTag,
+            no_pelanggan: noPelanggan,
+            status: status,
+            keterangan: keterangan
+          })
+        });
+
+        // Tunggu 1 detik biar server proses
+        await new Promise(resolve => setTimeout(resolve, 1000));
+
+        // 2. Simpan setiap detail
+        for (let i = 0; i < items.length; i++) {
+          const item = items[i];
+
+          await fetch(SCRIPT_URL, {
+            method: 'POST',
+            mode: 'no-cors',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({
+              action: 'add_tagihan_detail',
+              no_tagihan: noTag,
+              nama_barang: item.nama_barang,
+              qty: item.qty,
+              harga_satuan: item.harga_satuan,
+              diskon_persen: item.diskon_persen,
+              subtotal: item.subtotal
+            })
+          });
+
+          // Delay antar item biar server sempat proses
+          if (i < items.length - 1) {
+            await new Promise(resolve => setTimeout(resolve, 500));
+          }
+        }
+
+        // Tunggu sebentar sebelum hapus localStorage
+        await new Promise(resolve => setTimeout(resolve, 1000));
+
+        // Hapus pending items setelah berhasil
+        clearPendingItems();
+        renderPendingItems();
+        updatePendingBadge();
+
+        showToast(`✅ ${items.length} barang berhasil disimpan ke Google Sheets!`);
+
+        // Reload halaman untuk update data
+        setTimeout(() => location.reload(), 1500);
+
+      } catch (err) {
+        console.error('Gagal kirim ke sheet:', err);
+        showToast('Gagal mengirim ke sheet: ' + err.message, true);
+        if (btn) {
+          btn.disabled = false;
+          btn.textContent = '📤 Kirim ke Sheet';
+        }
+      }
+    }
+
+    // ===== KIRIM WA =====
+
+    async function kirimWA() {
+      try {
+        const [tagihanRes, pelangganRes] = await Promise.all([
+          fetch(`${SCRIPT_URL}?action=list_tagihan&no=${encodeURIComponent(noPelanggan)}`),
+          fetch(`${SCRIPT_URL}?action=list_pelanggan`)
+        ]);
+
+        const tagihanData = await tagihanRes.json();
+        const pelangganData = await pelangganRes.json();
+        const tagihans = tagihanData.rows || [];
+        const pelanggan = pelangganData.rows.find(r => String(r[0]) === noPelanggan);
+
+        if (tagihans.length === 0) {
+          showToast('Belum ada tagihan.', true);
+          return;
+        }
+
+        if (!pelanggan?.[2] || !pelanggan[2].toString().startsWith('62')) {
+          showToast('Nomor HP tidak valid.', true);
+          return;
+        }
+
+        const last = tagihans[tagihans.length - 1];
+        const noTag = last[1];
+        const total = last[6] || 0;
+
+        const detailRes = await fetch(
+          `${SCRIPT_URL}?action=get_detail&no_tagihan=${encodeURIComponent(noTag)}`
+        );
+        const detailData = await detailRes.json();
+        const items = detailData.details?.rows || [];
+
+        let msg = `*📋 Tagihan TB. KHIZANATULLAH*\n\n`;
+        msg += `*No. Tagihan:* ${noTag}\n`;
+        msg += `*Nama Pembeli:* ${pelanggan[1]}\n`;
+        msg += `*Tanggal:* ${formatTanggal(last[3])}\n`;
+        msg += `*Status:* ${last[4] || '-'}\n\n`;
+        msg += `*Daftar Barang:*\n`;
+
+        items.forEach((item, i) => {
+          msg += `${i + 1}. ${item[2] || '-'} x${item[3] || 0} @ ${formatRupiah(item[4] || 0)}`;
+          if (item[5] > 0) msg += ` (diskon ${item[5]}%)`;
+          msg += ` = ${formatRupiah(item[6] || 0)}\n`;
+        });
+
+        msg += `\n*Total:* ${formatRupiah(total)}\n\n`;
+        if (pelanggan[4]) msg += `*Keterangan:*\n${pelanggan[4]}\n`;
+        msg += `\n*Terima kasih telah berbelanja di TB. KHIZANATULLAH*`;
+
+        const encoded = encodeURIComponent(msg);
+        window.open(`https://wa.me/${pelanggan[2]}?text=${encoded}`, '_blank');
+        showToast('✅ Link WA siap! Cek aplikasi WhatsApp.');
+
+      } catch (err) {
+        console.error('Gagal kirim WA:', err);
+        showToast('Gagal menyusun pesan WA.', true);
+      }
+    }
+
+    // ===== TOGGLE DETAIL PANEL =====
+
     function toggleDetail(id) {
       const panel = document.getElementById(id);
       if (!panel) return;
-      document.querySelectorAll('.detail-panel.show').forEach(p => p.classList.remove('show'));
+
+      document.querySelectorAll('.detail-panel.show').forEach(p => {
+        if (p.id !== id) p.classList.remove('show');
+      });
+
       if (!panel.classList.contains('show')) {
         panel.classList.add('show');
         const noTag = id.replace(/_/g, '');
@@ -281,9 +689,13 @@
     async function loadDetailItems(noTag, containerId) {
       const container = document.getElementById(containerId);
       if (!container) return;
+
       try {
-        const res = await fetch(`${SCRIPT_URL}?action=get_detail&no_tagihan=${encodeURIComponent(noTag)}`);
+        const res = await fetch(
+          `${SCRIPT_URL}?action=get_detail&no_tagihan=${encodeURIComponent(noTag)}`
+        );
         const data = await res.json();
+
         if (data.error || !data.details?.rows) {
           container.innerHTML = '<div class="empty" style="padding:6px;">Tidak ada detail.</div>';
           return;
@@ -300,134 +712,18 @@
         });
 
         const grandTotal = data.details.rows.reduce((s, r) => s + (r[6] || 0), 0);
-        html += `<div class="total-row"><span class="label">Total</span><span class="amount">${formatRupiah(grandTotal)}</span></div>`;
+        html += `<div class="total-row">
+          <span class="label">Total</span>
+          <span class="amount">${formatRupiah(grandTotal)}</span>
+        </div>`;
         html += `<div style="text-align:right; margin-top:8px;">
           <button class="btn btn-danger btn-sm" onclick="kirimWAItem('${noTag}')">📲 Kirim WA</button>
         </div>`;
+
         container.innerHTML = html;
+
       } catch (err) {
         container.innerHTML = '<div class="empty" style="padding:6px;">Gagal memuat.</div>';
-      }
-    }
-
-    async function tambahTagihan(e) {
-      e.preventDefault();
-      const namaBarang = document.getElementById('nama_barang').value.trim();
-      const qty = parseInt(document.getElementById('qty').value) || 0;
-      const hargaSatuan = parseInt(document.getElementById('harga_satuan').value) || 0;
-      const diskon = parseInt(document.getElementById('diskon_persen').value) || 0;
-      const status = document.getElementById('status').value;
-      const keterangan = document.getElementById('keterangan').value.trim();
-
-      if (!namaBarang) { showToast('Nama barang wajib diisi.', true); return false; }
-      if (qty < 1) { showToast('Qty minimal 1.', true); return false; }
-
-      const btn = e.target.querySelector('button[type="submit"]');
-      btn.disabled = true; btn.textContent = 'Menyimpan ...';
-
-      try {
-        const now = new Date();
-        const noTag = 'TG-' + now.toISOString().split('T')[0].replace(/-/g, '') + '-' + Date.now().toString().slice(-3);
-
-        // 1. Simpan header
-        await fetch(SCRIPT_URL, {
-          method: 'POST',
-          mode: 'no-cors',
-          headers: { 'Content-Type': 'application/json' },
-          body: JSON.stringify({
-            action: 'add_tagihan_header',
-            no_tagihan: noTag,
-            no_pelanggan: noPelanggan,
-            status,
-            keterangan
-          })
-        });
-
-        // 2. Simpan detail
-        const subtotal = hargaSatuan * qty;
-        const diskonAmount = subtotal * (diskon / 100);
-        const rowTotal = subtotal - diskonAmount;
-
-        await fetch(SCRIPT_URL, {
-          method: 'POST',
-          mode: 'no-cors',
-          headers: { 'Content-Type': 'application/json' },
-          body: JSON.stringify({
-            action: 'add_tagihan_detail',
-            no_tagihan: noTag,
-            nama_barang: namaBarang,
-            qty,
-            harga_satuan: hargaSatuan,
-            diskon_persen: diskon,
-            subtotal: rowTotal
-          })
-        });
-
-        showToast('✅ Tagihan berhasil disimpan!');
-        e.target.reset();
-        setTimeout(() => location.reload(), 800);
-      } catch (err) {
-        console.error('Gagal:', err);
-        showToast('Gagal menyimpan tagihan.', true);
-        btn.disabled = false; btn.textContent = '💾 Simpan';
-      }
-      return false;
-    }
-
-    async function kirimWA() {
-      try {
-        const [tagihanRes, pelangganRes] = await Promise.all([
-          fetch(`${SCRIPT_URL}?action=list_tagihan&no=${encodeURIComponent(noPelanggan)}`),
-          fetch(`${SCRIPT_URL}?action=list_pelanggan`)
-        ]);
-
-        const tagihanData = await tagihanRes.json();
-        const pelangganData = await pelangganRes.json();
-        const tagihans = tagihanData.rows || [];
-        const pelanggan = pelangganData.rows.find(r => String(r[0]) === noPelanggan);
-
-        if (tagihans.length === 0) { showToast('Belum ada tagihan.', true); return; }
-        if (!pelanggan?.[2] || !pelanggan[2].startsWith('62')) {
-          showToast('Nomor HP tidak valid.', true); return;
-        }
-
-        const last = tagihans[tagihans.length - 1];
-        const noTag = last[1];
-        const total = last[6] || 0;
-
-        // Load detail untuk keruh
-        const detailRes = await fetch(`${SCRIPT_URL}?action=get_detail&no_tagihan=${encodeURIComponent(noTag)}`);
-        const detailData = await detailRes.json();
-        const items = detailData.details?.rows || [];
-
-        let msg = `*📋 Tagihan TB. KHIZANATULLAH*\n\n`;
-        msg += `*No. Tagihan:* ${noTag}\n`;
-        msg += `*Nama Pembeli:* ${pelanggan[1]}\n`;
-        msg += `*Tanggal:* ${formatTanggal(last[3])}\n`;
-        msg += `*Status:* ${last[4] || '-'}\n\n`;
-        msg += `*Daftar Barang:*\n`;
-
-        items.forEach((item, i) => {
-          const nm = item[2] || '-';
-          const q = item[3] || 0;
-          const h = item[4] || 0;
-          const d = item[5] || 0;
-          const sub = item[6] || 0;
-          msg += `${i + 1}. ${nm} x${q} @ ${formatRupiah(h)}`;
-          if (d > 0) msg += ` (diskon ${d}%)`;
-          msg += ` = ${formatRupiah(sub)}\n`;
-        });
-
-        msg += `\n*Total:* ${formatRupiah(total)}\n\n`;
-        if (pelanggan[4]) msg += `*Keterangan:*\n${pelanggan[4]}\n`;
-        msg += `\n*Terima kasih telah berbelanja di TB. KHIZANATULLAH*`;
-
-        const encoded = encodeURIComponent(msg);
-        window.open(`https://wa.me/${pelanggan[2]}?text=${encoded}`, '_blank');
-        showToast('✅ Link WA siap! Cek aplikasi WhatsApp.');
-      } catch (err) {
-        console.error('Gagal kirim WA:', err);
-        showToast('Gagal menyusun pesan WA.', true);
       }
     }
 
@@ -446,8 +742,9 @@
         const tagihans = tagihanData.rows || [];
         const pelanggan = pelangganData.rows.find(r => String(r[0]) === noPelanggan);
 
-        if (!pelanggan?.[2] || !pelanggan[2].startsWith('62')) {
-          showToast('Nomor HP tidak valid.', true); return;
+        if (!pelanggan?.[2] || !String(pelanggan[2]).startsWith('62')) {
+          showToast('Nomor HP tidak valid.', true);
+          return;
         }
 
         const header = tagihans.find(r => r[1] === noTag);
@@ -469,11 +766,14 @@
         const encoded = encodeURIComponent(msg);
         window.open(`https://wa.me/${pelanggan[2]}?text=${encoded}`, '_blank');
         showToast('✅ Link WA siap!');
+
       } catch (err) {
         console.error('Gagal:', err);
         showToast('Gagal.', true);
       }
     }
+
+    // ===== INIT =====
 
     document.addEventListener('DOMContentLoaded', loadData);
   </script>
