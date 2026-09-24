@@ -703,21 +703,29 @@
       const absent = list.filter(function (r) { return r.status === 'Tidak Masuk'; }).length;
 
       text += '📌 ' + nama + '\n';
-      text += '  Masuk Full: ' + full + ' hari\n';
-      if (half > 0) text += '  Setengah Hari: ' + half + ' hari\n';
-      if (absent > 0) text += '  Tidak Masuk: ' + absent + ' hari\n';
 
       // Hitung total hari masuk efektif (full + 0.5 * half)
       const totalEffective = full + half * 0.5;
       const formattedTotal = Number.isInteger(totalEffective)
         ? totalEffective.toString()
-        : totalEffective.toFixed(1);
+        : totalEffective.toLocaleString('id-ID', {useGrouping: false});
 
-      if (half > 0) {
-        text += '  Total efektif: ' + full + ' hari full + ' + half + ' setengah hari = ' + formattedTotal + ' hari\n';
-      } else {
-        text += '  Total efektif: ' + full + ' hari\n';
+      text += '  Masuk: ' + formattedTotal + ' hari\n';
+
+      // Keterangan: kumpulkan alasan/izin dari catatan yang ada keterangan
+      const catatanKeterangan = list
+        .filter(function (r) { return r.keterangan && r.keterangan.trim() !== ''; })
+        .sort(function (a, b) { return a.tanggal.localeCompare(b.tanggal); });
+
+      if (catatanKeterangan.length > 0) {
+        text += '  Keterangan:\n';
+        for (let c = 0; c < catatanKeterangan.length; c++) {
+          const k = catatanKeterangan[c];
+          text += '    ' + k.tanggal + ' → ' + k.keterangan + '\n';
+        }
       }
+
+      text += '\n';
     }
 
     text += '📊 Jumlah hari kerja: Senin - Sabtu (6 hari)\n';
