@@ -600,32 +600,74 @@
   }
 
   // ─── Kirim WA ────────────────────────────────────────────────────────────
-  function buildWaText() {
-    const today = getTodayStr();
-    let text = '📋 *Laporan Absensi TB. KHIZANATULLAH*\n';
-    text += 'Tanggal: *' + today + '*\n\n';
+  function getWeekRange() {
+    // Dapatkan rentang Senin - Sabtu untuk minggu berjalan.
+    // Jika hari ini Minggu, gunakan minggu lalu (Senin-Sabtu yang baru lewat).
+    const now = new Date();
+    const day = now.getDay(); // 0=Sun, 1=Mon, ..., 6=Sat
+    // Offset ke Senin:
+    // - Jika Senin-Sabtu: offset = day - 1 (0..5)
+    // - Jika Minggu: offset = -6 (arah mundur ke Senin sebelumnya)
+    const offsetToMonday = day === 0 ? -6 : day - 1;
+    const monday = new Date(now);
+    monday.setDate(now.getDate() + offsetToMonday);
+    monday.setHours(0, 0, 0, 0);
 
-    const todayRecords = records.filter(function (r) { return r.tanggal === today; });
-    if (todayRecords.length === 0) {
-      text += 'Belum ada catatan hari ini.\n';
+    const saturday = new Date(monday);
+    saturday.setDate(monday.getDate() + 5);
+    saturday.setHours(23, 59, 59, 999);
+
+    return {
+      start: monday,
+      end: saturday,
+      startStr: formatDate(monday),
+      endStr: formatDate(saturday)
+    };
+  }
+
+  function formatDate(d) {
+    const y = d.getFullYear();
+    const m = String(d.getMonth() + 1).padStart(2, '0');
+    const day = String(d.getDate()).padStart(2, '0');
+    return y + '-' + m + '-' + day;
+  }
+
+  function buildWaText() {
+    const week = getWeekRange();
+    let text = '📋 *Laporan Absensi TB. KHIZANATULLAH*\n';
+    text += 'Mingguan: *' + week.startStr + ' s/d ' + week.endStr + '*\n\n';
+
+    const weekRecords = records.filter(function (r) {
+      return r.tanggal >= week.startStr && r.tanggal <= week.endStr;
+    });
+
+    if (weekRecords.length === 0) {
+      text += 'Belum ada catatan absensi mingguan.\n';
     } else {
-      for (let i = 0; i < todayRecords.length; i++) {
-        const r = todayRecords[i];
-        text += '• ' + r.nama + ' → *' + r.status + '*\n';
-        if (r.keterangan) text += '  Keterangan: ' + r.keterangan + '\n';
+      // Kelompokkan per karyawan
+      const byNama = {};
+      for (let i = 0; i < weekRecords.length; i++) {
+        const r = weekRecords[i];
+        if (!byNama[r.nama]) byNama[r.nama] = [];
+        byNama[r.nama].push(r);
+      }
+
+      const daftarNama = Object.keys(byNama).sort();
+      for (let n = 0; n < daftarNama.length; n++) {
+        const nama = daftarNama[n];
+        text += '📌 ' + nama + '\n';
+        const list = byNama[nama].sort(function (a, b) { return a.tanggal.localeCompare(b.tanggal); });
+        for (let k = 0; k < list.length; k++) {
+          const r = list[k];
+          text += '  ' + r.tanggal + ' → *' + r.status + '*';
+          if (r.keterangan) text += ' (' + r.keterangan + ')';
+          text += '\n';
+        }
+        text += '\n';
       }
     }
 
-    text += '\n📊 Ringkasan:\n';
-    let full = 0, half = 0, absent = 0;
-    todayRecords.forEach(function (r) {
-      if (r.status === 'Masuk Full') full++;
-      else if (r.status === 'Setengah Hari') half++;
-      else if (r.status === 'Tidak Masuk') absent++;
-    });
-    text += 'Masuk Full: ' + full + '\n';
-    text += 'Setengah Hari: ' + half + '\n';
-    text += 'Tidak Masuk: ' + absent + '\n';
+    text += '📊 Jumlah hari kerja: Senin - Sabtu\n';
 
     return text;
   }
