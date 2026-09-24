@@ -181,7 +181,7 @@
         <label for="keterangan">Keterangan (opsional)</label>
         <input type="text" id="keterangan" placeholder="Catatan ..." autocomplete="off">
       </div>
-      <button class="btn" onclick="tambahPelanggan()">Simpan Pelanggan</button>
+      <button id="simpan-pelanggan-btn" class="btn" onclick="tambahPelanggan()">Simpan Pelanggan</button>
     </div>
 
     <!-- Tabel daftar pelanggan -->
@@ -271,7 +271,8 @@
       if (!noHp) { showToast('Nomor HP wajib diisi.', true); return; }
       if (!noHp.startsWith('62')) { showToast('Nomor HP harus diawali 62 (tanpa 0).', true); return; }
 
-      const btn = document.querySelector('.card:first-child .btn');
+      const btn = document.querySelector('#simpan-pelanggan-btn');
+      if (!btn) { showToast('Tombol tidak ditemukan.', true); return; }
       btn.disabled = true;
       btn.textContent = 'Menyimpan ...';
 
