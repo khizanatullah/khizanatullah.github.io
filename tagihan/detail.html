@@ -121,7 +121,7 @@
 
     .debug-panel {
       background: #1e1e1e; color: #0f0; border-radius: 8px; padding: 12px;
-      font-family: monospace; font-size: 0.75rem; margin-top: 16px; max-height: 200px;
+      font-family: monospace; font-size: 0.7rem; margin-top: 16px; max-height: 200px;
       overflow-y: auto; white-space: pre-wrap; word-break: break-all;
     }
   </style>
@@ -271,7 +271,6 @@
         const alamat = pelanggan[3] || '-';
         const keterangan = pelanggan[4] || '-';
         const tagihans = tagihanJson.rows || [];
-        const pendingCount = countPendingItems();
 
         let html = `
           <div class="card">
@@ -290,7 +289,7 @@
         } else {
           html += `<div class="card"><h2>Tagihan (${tagihans.length})</h2>
             <table><thead><tr>
-              <th>No. Tagihan</th><th>Tanggal</th><th>Status</th><th>Total</th><th style="text-align:center; width:50px;">Detail</th>
+              <th>No. Tagihan</th><th>Tanggal</th><th>Status</th><th>Total</th><th>Sisa Bayar</th><th style="text-align:center; width:50px;">Detail</th>
             </tr></thead><tbody>`;
 
           tagihans.forEach(row => {
@@ -298,17 +297,21 @@
             const tgl = formatTanggal(row[3]);
             const st = row[4] || '-';
             const total = row[6] || 0;
-            const detailId = 'detail-' + noTag.replace(/[^a-zA-Z0-9]/g, '_');
+            const noTagClean = noTag.replace(/[^a-zA-Z0-9]/g, '');
+            const detailId = 'detail-' + noTagClean;
 
             html += `<tr style="cursor:pointer;" onclick="toggleDetail('${detailId}')">
               <td style="font-weight:600;">${noTag}</td>
               <td>${tgl}</td>
               <td>${getStatusBadge(st)}</td>
               <td class="number">${formatRupiah(total)}</td>
+              <td class="number" style="color:#e65100; font-weight:600;">
+                ${formatRupiah(total === 0 ? 0 : '?')}
+              </td>
               <td class="number" style="text-align:center;"><span style="color:#3f51b5;">↗</span></td>
             </tr>
             <tr id="${detailId}" class="detail-panel">
-              <td colspan="5"><div style="padding:0 8px;">
+              <td colspan="6"><div style="padding:0 8px;">
                 <div class="detail-item" style="font-weight:600;"><span>Daftar Barang:</span></div>
                 <div id="items-${detailId}"><div class="empty" style="padding:6px;">Memuat ...</div></div>
               </div></td>
@@ -364,15 +367,15 @@
           </div>
 
           <div class="card">
-            <h2>📦 Barang Pending <span class="pending-badge" id="pending-badge">${pendingCount}</span></h2>
+            <h2>📦 Barang Pending <span class="pending-badge" id="pending-badge">${countPendingItems()}</span></h2>
             <div id="pending-list">
-              ${pendingCount === 0 ? '<div class="empty">Belum ada barang pending.</div>' : ''}
+              ${countPendingItems() === 0 ? '<div class="empty">Belum ada barang pending.</div>' : ''}
             </div>
             <div class="btn-row" style="margin-top: 12px;">
-              <button class="btn btn-success" id="btn-kirim-sheet" ${pendingCount === 0 ? 'disabled' : ''}>
+              <button class="btn btn-success" id="btn-kirim-sheet" ${countPendingItems() === 0 ? 'disabled' : ''}>
                 📤 Kirim ke Sheet
               </button>
-              <button class="btn btn-danger" id="btn-hapus-pending" ${pendingCount === 0 ? 'disabled' : ''}>
+              <button class="btn btn-danger" id="btn-hapus-pending" ${countPendingItems() === 0 ? 'disabled' : ''}>
                 🗑️ Hapus Semua
               </button>
             </div>
