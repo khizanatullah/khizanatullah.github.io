@@ -3,126 +3,715 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>Absen Karyawan</title>
-  <link rel="stylesheet" href="style.css">
+  <title>Absensi Karyawan — TB. KHIZANATULLAH</title>
+  <style>
+    * { box-sizing: border-box; margin: 0; padding: 0; }
+    body {
+      font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+      background: #f8fafc;
+      color: #1e293b;
+      padding: 16px;
+      min-height: 100vh;
+    }
+    .container { max-width: 800px; margin: 0 auto; }
+    h1 { font-size: 20px; margin-bottom: 4px; }
+    .subtitle { color: #64748b; font-size: 13px; margin-bottom: 16px; }
+    .card {
+      background: #fff;
+      border-radius: 10px;
+      padding: 16px;
+      box-shadow: 0 1px 3px rgba(0,0,0,0.06);
+      margin-bottom: 16px;
+    }
+    .card-title {
+      font-size: 14px;
+      font-weight: 600;
+      margin-bottom: 12px;
+      color: #334155;
+    }
+    .form-row {
+      display: flex;
+      gap: 10px;
+      flex-wrap: wrap;
+      margin-bottom: 10px;
+    }
+    .form-group { flex: 1; min-width: 140px; }
+    .form-group label {
+      display: block;
+      font-size: 12px;
+      font-weight: 500;
+      color: #475569;
+      margin-bottom: 4px;
+    }
+    .form-group select,
+    .form-group input {
+      width: 100%;
+      padding: 9px 10px;
+      border: 1px solid #cbd5e1;
+      border-radius: 6px;
+      font-size: 14px;
+      background: #fff;
+      transition: border-color 0.15s;
+    }
+    .form-group select:focus,
+    .form-group input:focus {
+      outline: none;
+      border-color: #2563eb;
+      box-shadow: 0 0 0 2px rgba(37,99,235,0.15);
+    }
+    .btn {
+      display: inline-flex;
+      align-items: center;
+      gap: 6px;
+      padding: 9px 16px;
+      border: none;
+      border-radius: 8px;
+      font-size: 14px;
+      font-weight: 500;
+      cursor: pointer;
+      transition: background 0.15s, transform 0.1s;
+    }
+    .btn:active { transform: scale(0.98); }
+    .btn-primary { background: #2563eb; color: #fff; }
+    .btn-primary:hover { background: #1d4ed8; }
+    .btn-outline { background: #fff; color: #2563eb; border: 1px solid #2563eb; }
+    .btn-outline:hover { background: #eff6ff; }
+    .btn-success { background: #16a34a; color: #fff; }
+    .btn-success:hover { background: #15803d; }
+    .btn-danger { background: #ef4444; color: #fff; }
+    .btn-danger:hover { background: #dc2626; }
+    .btn-group { display: flex; gap: 8px; flex-wrap: wrap; margin-top: 12px; }
+    table {
+      width: 100%;
+      border-collapse: collapse;
+      font-size: 13px;
+    }
+    th {
+      background: #f1f5f9;
+      padding: 8px 10px;
+      text-align: left;
+      font-weight: 600;
+      color: #475569;
+      border-bottom: 1px solid #e2e8f0;
+    }
+    td {
+      padding: 8px 10px;
+      border-bottom: 1px solid #f1f5f9;
+      vertical-align: top;
+    }
+    tr:hover td { background: #f8fafc; }
+    .badge {
+      display: inline-block;
+      padding: 2px 8px;
+      border-radius: 10px;
+      font-size: 11px;
+      font-weight: 500;
+    }
+    .badge-full { background: #dcfce7; color: #166534; }
+    .badge-half { background: #fef3c7; color: #92400e; }
+    .badge-absent { background: #fee2e2; color: #991b1b; }
+    .empty {
+      text-align: center;
+      padding: 20px;
+      color: #94a3b8;
+      font-size: 14px;
+    }
+    .toast {
+      position: fixed;
+      bottom: 20px;
+      left: 50%;
+      transform: translateX(-50%);
+      padding: 10px 16px;
+      border-radius: 8px;
+      font-size: 13px;
+      font-weight: 500;
+      z-index: 999;
+      opacity: 0;
+      transition: opacity 0.3s;
+      pointer-events: none;
+    }
+    .toast.show { opacity: 1; }
+    .toast-success { background: #16a34a; color: #fff; }
+    .toast-error { background: #ef4444; color: #fff; }
+    .record-count {
+      font-size: 12px;
+      color: #64748b;
+      margin-top: 4px;
+    }
+    .header-actions {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      margin-bottom: 12px;
+    }
+    .stat-grid {
+      display: grid;
+      grid-template-columns: repeat(3, 1fr);
+      gap: 8px;
+    }
+    .stat-card {
+      background: #f1f5f9;
+      border-radius: 8px;
+      padding: 12px;
+      text-align: center;
+    }
+    .stat-value { font-size: 20px; font-weight: 700; color: #1e293b; }
+    .stat-label { font-size: 11px; color: #64748b; }
+    .hidden { display: none !important; }
+    .preview-box {
+      margin-top: 12px;
+      text-align: center;
+    }
+    .preview-box img {
+      max-width: 100%;
+      border-radius: 8px;
+      border: 1px solid #e2e8f0;
+    }
+  </style>
 </head>
 <body>
+<div class="container">
+  <h1>📋 Absensi Karyawan</h1>
+  <p class="subtitle">TB. KHIZANATULLAH — Cek & catat kehadiran karyawan</p>
 
-  <div class="container auth-container">
-    <div class="auth-card">
-      <!-- Login Form -->
-      <div id="login-panel">
-        <div class="auth-header">
-          <h1>👋 Selamat Datang</h1>
-          <p>Login untuk mengabsen</p>
-        </div>
-        <form id="login-form">
-          <div class="form-group">
-            <label for="login-email">Email</label>
-            <input type="email" id="login-email" placeholder="email@contoh.com" required>
-          </div>
-          <div class="form-group">
-            <label for="login-pass">Password</label>
-            <input type="password" id="login-pass" placeholder="••••••••" required>
-          </div>
-          <button type="submit" class="btn btn-primary btn-block">Login</button>
-        </form>
-        <div id="login-msg" class="msg"></div>
-        <p class="auth-switch">
-          Belum punya akun?
-          <a href="#" id="show-register">Daftar di sini</a>
-        </p>
+  <div id="toast" class="toast"></div>
+
+  <!-- Statistik kartu -->
+  <div class="card" id="stats-card">
+    <div class="card-title">📊 Ringkasan Hari Ini</div>
+    <div class="stat-grid">
+      <div class="stat-card">
+        <div class="stat-value" id="stat-full">0</div>
+        <div class="stat-label">Masuk Full</div>
       </div>
-
-      <!-- Register Form (hidden by default) -->
-      <div id="register-panel" class="hidden">
-        <div class="auth-header">
-          <h1>📝 Daftar Akun</h1>
-          <p>Buat akun karyawan baru</p>
-        </div>
-        <form id="register-form">
-          <div class="form-group">
-            <label for="reg-name">Nama Lengkap</label>
-            <input type="text" id="reg-name" placeholder="Budi Santoso" required>
-          </div>
-          <div class="form-group">
-            <label for="reg-email">Email</label>
-            <input type="email" id="reg-email" placeholder="email@contoh.com" required>
-          </div>
-          <div class="form-group">
-            <label for="reg-pass">Password</label>
-            <input type="password" id="reg-pass" placeholder="minimal 6 karakter" minlength="6" required>
-          </div>
-          <button type="submit" class="btn btn-primary btn-block">Daftar</button>
-        </form>
-        <div id="register-msg" class="msg"></div>
-        <p class="auth-switch">
-          Sudah punya akun?
-          <a href="#" id="show-login">Login di sini</a>
-        </p>
+      <div class="stat-card">
+        <div class="stat-value" id="stat-half">0</div>
+        <div class="stat-label">Setengah Hari</div>
+      </div>
+      <div class="stat-card">
+        <div class="stat-value" id="stat-absent">0</div>
+        <div class="stat-label">Tidak Masuk</div>
       </div>
     </div>
   </div>
 
-  <script src="app.js"></script>
-  <script>
-    // === Login Handler ===
-    document.getElementById('login-form').addEventListener('submit', function(e) {
-      e.preventDefault();
-      var email = document.getElementById('login-email').value.trim();
-      var password = document.getElementById('login-pass').value;
-      var msgEl = document.getElementById('login-msg');
-      var result = AbsenApp.login(email, password);
-      if (result.error) {
-        msgEl.className = 'msg error';
-        msgEl.textContent = result.error;
-      } else {
-        AbsenApp.setCurrentUser(result.user.email);
-        if (result.user.role === 'admin') {
-          window.location.href = 'admin.html';
-        } else {
-          window.location.href = 'dashboard.html';
+  <!-- Form input -->
+  <div class="card">
+    <div class="card-title">➕ Catat Kehadiran</div>
+    <form id="absen-form" autocomplete="off">
+      <div class="form-row">
+        <div class="form-group">
+          <label for="nama">Karyawan</label>
+          <select id="nama" required>
+            <option value="">— Pilih —</option>
+            <option value="Mbak Inni">Mbak Inni</option>
+            <option value="Pak Moko">Pak Moko</option>
+            <option value="Wawan">Wawan</option>
+          </select>
+        </div>
+        <div class="form-group">
+          <label for="tanggal">Tanggal</label>
+          <input type="date" id="tanggal" required>
+        </div>
+      </div>
+      <div class="form-row">
+        <div class="form-group">
+          <label for="status">Status</label>
+          <select id="status" required>
+            <option value="">— Pilih —</option>
+            <option value="Masuk Full">Masuk Full</option>
+            <option value="Setengah Hari">Setengah Hari</option>
+            <option value="Tidak Masuk">Tidak Masuk</option>
+          </select>
+        </div>
+        <div class="form-group">
+          <label for="keterangan">Keterangan (opsional)</label>
+          <input type="text" id="keterangan" placeholder="Alasan, catatan...">
+        </div>
+      </div>
+      <div class="btn-group">
+        <button type="submit" class="btn btn-primary">💾 Simpan</button>
+        <button type="button" class="btn btn-outline" id="btn-reset-form">Reset</button>
+      </div>
+    </form>
+  </div>
+
+  <!-- Tabel data -->
+  <div class="card">
+    <div class="header-actions">
+      <div class="card-title" style="margin-bottom:0;">📅 Data Absensi</div>
+      <span class="record-count" id="record-count">0 catatan</span>
+    </div>
+    <div class="btn-group" style="margin-bottom:12px;">
+      <button class="btn btn-outline btn-sm" id="btn-import-csv">📥 Import CSV</button>
+      <button class="btn btn-outline btn-sm" id="btn-export-csv">📤 Export CSV</button>
+      <button class="btn btn-outline btn-sm" id="btn-export-jpg">🖼️ Export JPG</button>
+      <button class="btn btn-outline btn-sm" id="btn-send-wa">📲 Kirim WA</button>
+      <button class="btn btn-danger btn-sm" id="btn-clear-all">🗑️ Hapus Semua</button>
+    </div>
+    <input type="file" id="file-input" accept=".csv" class="hidden">
+    <table id="data-table">
+      <thead>
+        <tr>
+          <th style="width:30px;">No</th>
+          <th>Karyawan</th>
+          <th>Tanggal</th>
+          <th>Status</th>
+          <th>Keterangan</th>
+          <th style="width:50px;"></th>
+        </tr>
+      </thead>
+      <tbody id="table-body"></tbody>
+    </table>
+    <div class="empty" id="empty-state">Belum ada catatan. Isi form di atas untuk mulai mencatat.</div>
+  </div>
+
+  <!-- Preview JPG (hidden, muncul setelah generate) -->
+  <div class="card preview-box hidden" id="jpg-preview-box">
+    <div class="card-title">🖼️ Preview JPG</div>
+    <img id="jpg-preview" alt="Preview laporan">
+    <br><br>
+    <div class="btn-group" style="justify-content:center;">
+      <button class="btn btn-success btn-sm" id="btn-download-jpg">⬇️ Download JPG</button>
+      <button class="btn btn-outline btn-sm" id="btn-send-wa-jpg">📲 Kirim JPG via WA</button>
+    </div>
+  </div>
+</div>
+
+<!-- html2canvas untuk export JPG -->
+<script src="https://cdnjs.cloudflare.com/ajax/libs/html2canvas/1.4.1/html2canvas.min.js"></script>
+<script>
+(function () {
+  'use strict';
+
+  // ─── Konfig ──────────────────────────────────────────────────────────────
+  const STORAGE_KEY = 'khiz_absensi_data';
+  const CSV_FILENAME = 'absensi-khizanatullah.csv';
+  const WA_NUMBER = '085728389595'; // ganti sesuai nomor tujuan
+
+  // ─── State ────────────────────────────────────────────────────────────────
+  let records = [];
+
+  // ─── DOM refs ─────────────────────────────────────────────────────────────
+  const form = document.getElementById('absen-form');
+  const namaEl = document.getElementById('nama');
+  const tanggalEl = document.getElementById('tanggal');
+  const statusEl = document.getElementById('status');
+  const keteranganEl = document.getElementById('keterangan');
+  const tbody = document.getElementById('table-body');
+  const emptyState = document.getElementById('empty-state');
+  const recordCount = document.getElementById('record-count');
+  const statsFull = document.getElementById('stat-full');
+  const statsHalf = document.getElementById('stat-half');
+  const statsAbsent = document.getElementById('stat-absent');
+  const btnReset = document.getElementById('btn-reset-form');
+  const btnExportCsv = document.getElementById('btn-export-csv');
+  const btnImportCsv = document.getElementById('btn-import-csv');
+  const fileInput = document.getElementById('file-input');
+  const btnExportJpg = document.getElementById('btn-export-jpg');
+  const btnSendWa = document.getElementById('btn-send-wa');
+  const btnClearAll = document.getElementById('btn-clear-all');
+  const jpgPreviewBox = document.getElementById('jpg-preview-box');
+  const jpgPreview = document.getElementById('jpg-preview');
+  const btnDownloadJpg = document.getElementById('btn-download-jpg');
+  const btnSendWaJpg = document.getElementById('btn-send-wa-jpg');
+  const toastEl = document.getElementById('toast');
+
+  // ─── Init ─────────────────────────────────────────────────────────────────
+  function setTodayDate() {
+    const d = new Date();
+    const y = d.getFullYear();
+    const m = String(d.getMonth() + 1).padStart(2, '0');
+    const day = String(d.getDate()).padStart(2, '0');
+    tanggalEl.value = `${y}-${m}-${day}`;
+  }
+  setTodayDate();
+
+  function loadFromStorage() {
+    try {
+      const raw = localStorage.getItem(STORAGE_KEY);
+      if (raw) {
+        records = JSON.parse(raw);
+        if (!Array.isArray(records)) records = [];
+      }
+    } catch (e) {
+      records = [];
+    }
+    renderAll();
+  }
+
+  function saveToStorage() {
+    localStorage.setItem(STORAGE_KEY, JSON.stringify(records));
+  }
+
+  // ─── Toast ────────────────────────────────────────────────────────────────
+  let toastTimer = null;
+  function showToast(msg, type) {
+    toastEl.textContent = msg;
+    toastEl.className = 'toast show ' + (type === 'error' ? 'toast-error' : 'toast-success');
+    clearTimeout(toastTimer);
+    toastTimer = setTimeout(function () {
+      toastEl.className = 'toast';
+    }, 2500);
+  }
+
+  // ─── Render ───────────────────────────────────────────────────────────────
+  function renderAll() {
+    renderTable();
+    renderStats();
+    updateRecordCount();
+  }
+
+  function renderStats() {
+    const today = getTodayStr();
+    let full = 0, half = 0, absent = 0;
+    for (let i = 0; i < records.length; i++) {
+      if (records[i].tanggal === today) {
+        if (records[i].status === 'Masuk Full') full++;
+        else if (records[i].status === 'Setengah Hari') half++;
+        else if (records[i].status === 'Tidak Masuk') absent++;
+      }
+    }
+    statsFull.textContent = full;
+    statsHalf.textContent = half;
+    statsAbsent.textContent = absent;
+  }
+
+  function updateRecordCount() {
+    recordCount.textContent = records.length + ' catatan';
+  }
+
+  function renderTable() {
+    tbody.innerHTML = '';
+    if (records.length === 0) {
+      emptyState.classList.remove('hidden');
+      return;
+    }
+    emptyState.classList.add('hidden');
+
+    const sorted = records.slice().sort(function (a, b) {
+      return b.tanggal.localeCompare(a.tanggal) || b.waktu.localeCompare(a.waktu);
+    });
+
+    for (let i = 0; i < sorted.length; i++) {
+      const r = sorted[i];
+      const row = document.createElement('tr');
+      const badgeClass =
+        r.status === 'Masuk Full' ? 'badge-full' :
+        r.status === 'Setengah Hari' ? 'badge-half' : 'badge-absent';
+
+      row.innerHTML =
+        '<td>' + (i + 1) + '</td>' +
+        '<td><strong>' + escapeHtml(r.nama) + '</strong></td>' +
+        '<td>' + r.tanggal + '<br><small style="color:#94a3b8;">' + r.waktu + '</small></td>' +
+        '<td><span class="badge ' + badgeClass + '">' + escapeHtml(r.status) + '</span></td>' +
+        '<td>' + escapeHtml(r.keterangan || '-') + '</td>' +
+        '<td><button class="btn btn-danger btn-xs" data-del="' + i + '">✕</button></td>';
+
+      tbody.appendChild(row);
+    }
+
+    tbody.querySelectorAll('[data-del]').forEach(function (btn) {
+      btn.addEventListener('click', function () {
+        const idx = parseInt(btn.getAttribute('data-del'), 10);
+        const realIdx = findRecordIndex(sorted[idx]);
+        if (realIdx >= 0) {
+          records.splice(realIdx, 1);
+          saveToStorage();
+          renderAll();
+          showToast('Catatan dihapus', 'success');
+        }
+      });
+    });
+  }
+
+  function findRecordIndex(sortedRecord) {
+    for (let i = 0; i < records.length; i++) {
+      if (records[i].id === sortedRecord.id) return i;
+    }
+    return -1;
+  }
+
+  function escapeHtml(str) {
+    const div = document.createElement('div');
+    div.textContent = str;
+    return div.innerHTML;
+  }
+
+  function getTodayStr() {
+    const d = new Date();
+    const y = d.getFullYear();
+    const m = String(d.getMonth() + 1).padStart(2, '0');
+    const day = String(d.getDate()).padStart(2, '0');
+    return y + '-' + m + '-' + day;
+  }
+
+  function getTimeStr() {
+    const d = new Date();
+    const h = String(d.getHours()).padStart(2, '0');
+    const m = String(d.getMinutes()).padStart(2, '0');
+    return h + ':' + m;
+  }
+
+  // ─── CSV ──────────────────────────────────────────────────────────────────
+  function recordsToCsv() {
+    const header = 'No,Karyawan,Tanggal,Waktu,Status,Keterangan';
+    const rows = records.map(function (r, i) {
+      return [
+        i + 1,
+        '"' + r.nama + '"',
+        r.tanggal,
+        r.waktu,
+        '"' + r.status + '"',
+        '"' + (r.keterangan || '') + '"'
+      ].join(',');
+    });
+    return header + '\n' + rows.join('\n');
+  }
+
+  function downloadCsv() {
+    const csv = recordsToCsv();
+    const blob = new Blob([csv], { type: 'text/csv;charset=utf-8;' });
+    const url = URL.createObjectURL(blob);
+    const a = document.createElement('a');
+    a.href = url;
+    a.download = CSV_FILENAME;
+    document.body.appendChild(a);
+    a.click();
+    document.body.removeChild(a);
+    URL.revokeObjectURL(url);
+    showToast('CSV berhasil diunduh', 'success');
+  }
+
+  function importCsvFile(file) {
+    const reader = new FileReader();
+    reader.onload = function (e) {
+      const text = e.target.result;
+      const newRecords = parseCsv(text);
+      if (newRecords.length === 0) {
+        showToast('File CSV tidak valid atau kosong', 'error');
+        return;
+      }
+      let added = 0;
+      for (let i = 0; i < newRecords.length; i++) {
+        const dup = records.some(function (r) {
+          return r.nama === newRecords[i].nama &&
+                 r.tanggal === newRecords[i].tanggal &&
+                 r.waktu === newRecords[i].waktu &&
+                 r.status === newRecords[i].status;
+        });
+        if (!dup) {
+          newRecords[i].id = makeId();
+          records.push(newRecords[i]);
+          added++;
         }
       }
-    });
-    // === Register Handler ===
-    document.getElementById('register-form').addEventListener('submit', function(e) {
-      e.preventDefault();
-      var name = document.getElementById('reg-name').value.trim();
-      var email = document.getElementById('reg-email').value.trim();
-      var password = document.getElementById('reg-pass').value;
-      var msgEl = document.getElementById('register-msg');
-      var result = AbsenApp.register(name, email, password);
-      if (result.error) {
-        msgEl.className = 'msg error';
-        msgEl.textContent = result.error;
+      if (added > 0) {
+        saveToStorage();
+        renderAll();
+        showToast('Berhasil import ' + added + ' catatan baru', 'success');
       } else {
-        msgEl.className = 'msg success';
-        msgEl.textContent = '✅ Pendaftaran berhasil! Login otomatis...';
-        AbsenApp.setCurrentUser(result.user.email);
-        setTimeout(function() {
-          if (result.user.role === 'admin') {
-            window.location.href = 'admin.html';
-          } else {
-            window.location.href = 'dashboard.html';
-          }
-        }, 1200);
+        showToast('Tidak ada catatan baru (mungkin duplikat)', 'error');
       }
-    });
-  </script>
-  <script>
-    // Handle panel toggle
-    document.getElementById('show-register').addEventListener('click', e => {
-      e.preventDefault();
-      document.getElementById('login-panel').classList.add('hidden');
-      document.getElementById('register-panel').classList.remove('hidden');
-    });
-    document.getElementById('show-login').addEventListener('click', e => {
-      e.preventDefault();
-      document.getElementById('register-panel').classList.add('hidden');
-      document.getElementById('login-panel').classList.remove('hidden');
-    });
-  </script>
+    };
+    reader.readAsText(file);
+  }
 
+  function parseCsv(text) {
+    const lines = text.split(/\r?\n/).filter(function (l) { return l.trim() !== ''; });
+    if (lines.length < 2) return [];
+    const result = [];
+    for (let i = 1; i < lines.length; i++) {
+      const cols = parseCsvLine(lines[i]);
+      if (cols.length >= 6) {
+        result.push({
+          id: makeId(),
+          nama: cleanCsvField(cols[1]),
+          tanggal: cols[2],
+          waktu: cols[3],
+          status: cleanCsvField(cols[4]),
+          keterangan: cleanCsvField(cols[5])
+        });
+      }
+    }
+    return result;
+  }
+
+  function parseCsvLine(line) {
+    const fields = [];
+    let current = '';
+    let inQuotes = false;
+    for (let i = 0; i < line.length; i++) {
+      const ch = line[i];
+      if (ch === '"') {
+        inQuotes = !inQuotes;
+      } else if (ch === ',' && !inQuotes) {
+        fields.push(current.trim());
+        current = '';
+      } else {
+        current += ch;
+      }
+    }
+    fields.push(current.trim());
+    return fields;
+  }
+
+  function cleanCsvField(field) {
+    return field.replace(/^"|"$/g, '').replace(/""/g, '"');
+  }
+
+  function makeId() {
+    return Date.now().toString(36) + Math.random().toString(36).slice(2, 6);
+  }
+
+  // ─── JPG Export ──────────────────────────────────────────────────────────
+  function generateJpg() {
+    const card = document.querySelector('.container');
+    html2canvas(card, {
+      scale: 2,
+      backgroundColor: '#f8fafc',
+      useCORS: true,
+      logging: false
+    }).then(function (canvas) {
+      const imgData = canvas.toDataURL('image/jpeg', 0.92);
+      jpgPreview.src = imgData;
+      jpgPreviewBox.classList.remove('hidden');
+      localStorage.setItem('khiz_absensi_last_jpg', imgData);
+      showToast('Gambar JPG berhasil dibuat', 'success');
+    }).catch(function (err) {
+      console.error(err);
+      showToast('Gagal membuat JPG: ' + err.message, 'error');
+    });
+  }
+
+  function downloadJpg() {
+    const dataUrl = jpgPreview.src;
+    if (!dataUrl || dataUrl === '') {
+      showToast('Belum ada JPG yang di-generate', 'error');
+      return;
+    }
+    const a = document.createElement('a');
+    a.href = dataUrl;
+    a.download = 'absensi-khizanatullah-' + getTodayStr() + '.jpg';
+    document.body.appendChild(a);
+    a.click();
+    document.body.removeChild(a);
+    showToast('JPG berhasil diunduh', 'success');
+  }
+
+  // ─── Kirim WA ────────────────────────────────────────────────────────────
+  function buildWaText() {
+    const today = getTodayStr();
+    let text = '📋 *Laporan Absensi TB. KHIZANATULLAH*\n';
+    text += 'Tanggal: *' + today + '*\n\n';
+
+    const todayRecords = records.filter(function (r) { return r.tanggal === today; });
+    if (todayRecords.length === 0) {
+      text += 'Belum ada catatan hari ini.\n';
+    } else {
+      for (let i = 0; i < todayRecords.length; i++) {
+        const r = todayRecords[i];
+        text += '• ' + r.nama + ' → *' + r.status + '*\n';
+        if (r.keterangan) text += '  Keterangan: ' + r.keterangan + '\n';
+      }
+    }
+
+    text += '\n📊 Ringkasan:\n';
+    let full = 0, half = 0, absent = 0;
+    todayRecords.forEach(function (r) {
+      if (r.status === 'Masuk Full') full++;
+      else if (r.status === 'Setengah Hari') half++;
+      else if (r.status === 'Tidak Masuk') absent++;
+    });
+    text += 'Masuk Full: ' + full + '\n';
+    text += 'Setengah Hari: ' + half + '\n';
+    text += 'Tidak Masuk: ' + absent + '\n';
+
+    return text;
+  }
+
+  function openWaText() {
+    const text = buildWaText();
+    const encoded = encodeURIComponent(text);
+    window.open('https://wa.me/' + WA_NUMBER + '?text=' + encoded, '_blank');
+  }
+
+  function openWaWithImage() {
+    showToast('Silakan buka WhatsApp, pilih chat tujuan, lalu attach JPG yang sudah diunduh.', 'error');
+    showToast('Atau kirim file absensi-khizanatullah-[tanggal].jpg dari folder unduhan.', 'success');
+  }
+
+  // ─── Event handlers ───────────────────────────────────────────────────────
+  form.addEventListener('submit', function (e) {
+    e.preventDefault();
+    const nama = namaEl.value.trim();
+    const tanggal = tanggalEl.value;
+    const status = statusEl.value;
+    const keterangan = keteranganEl.value.trim();
+
+    if (!nama || !tanggal || !status) {
+      showToast('Mohon lengkapi data (nama, tanggal, status)', 'error');
+      return;
+    }
+
+    records.push({
+      id: makeId(),
+      nama: nama,
+      tanggal: tanggal,
+      waktu: getTimeStr(),
+      status: status,
+      keterangan: keterangan
+    });
+
+    saveToStorage();
+    renderAll();
+
+    namaEl.value = '';
+    statusEl.value = '';
+    keteranganEl.value = '';
+    setTodayDate();
+    namaEl.focus();
+
+    showToast('Catatan berhasil disimpan', 'success');
+  });
+
+  btnReset.addEventListener('click', function () {
+    namaEl.value = '';
+    statusEl.value = '';
+    keteranganEl.value = '';
+    setTodayDate();
+    namaEl.focus();
+  });
+
+  btnExportCsv.addEventListener('click', downloadCsv);
+  btnImportCsv.addEventListener('click', function () { fileInput.click(); });
+  fileInput.addEventListener('change', function (e) {
+    if (fileInput.files && fileInput.files[0]) {
+      importCsvFile(fileInput.files[0]);
+    }
+    fileInput.value = '';
+  });
+  btnExportJpg.addEventListener('click', generateJpg);
+  btnDownloadJpg.addEventListener('click', downloadJpg);
+  btnSendWa.addEventListener('click', openWaText);
+  btnSendWaJpg.addEventListener('click', openWaWithImage);
+
+  btnClearAll.addEventListener('click', function () {
+    if (records.length === 0) {
+      showToast('Tidak ada data untuk dihapus', 'error');
+      return;
+    }
+    if (confirm('Yakin ingin menghapus ALL catatan absensi? Tindakan ini tidak dapat dibatalkan.')) {
+      records = [];
+      saveToStorage();
+      renderAll();
+      jpgPreviewBox.classList.add('hidden');
+      showToast('Semua catatan dihapus', 'success');
+    }
+  });
+
+  loadFromStorage();
+})();
+</script>
 </body>
 </html>
