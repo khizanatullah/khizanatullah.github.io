@@ -602,15 +602,22 @@
   // ─── Kirim WA ────────────────────────────────────────────────────────────
   function getWeekRange() {
     // Dapatkan rentang Senin - Sabtu untuk minggu berjalan.
-    // Jika hari ini Minggu, gunakan minggu lalu (Senin-Sabtu yang baru lewat).
+    // - Senin-Sabtu: ambil Senin-Sabtu minggu ini (Senin = hari ini - (day-1))
+    // - Minggu: anggap Minggu adalah penutup minggu; ambil Senin-Sabtu yang sudah lewat
+    //   (Senin = hari ini - 6 hari, Sabtu = hari ini - 1 hari)
     const now = new Date();
     const day = now.getDay(); // 0=Sun, 1=Mon, ..., 6=Sat
-    // Offset ke Senin:
-    // - Jika Senin-Sabtu: offset = day - 1 (0..5)
-    // - Jika Minggu: offset = -6 (arah mundur ke Senin sebelumnya)
-    const offsetToMonday = day === 0 ? -6 : day - 1;
-    const monday = new Date(now);
-    monday.setDate(now.getDate() + offsetToMonday);
+
+    let monday;
+    if (day === 0) {
+      // Minggu: Senin-Sabtu yang sudah lewat (Senin = 6 hari yang lalu)
+      monday = new Date(now);
+      monday.setDate(now.getDate() - 6);
+    } else {
+      // Senin-Sabtu: Senin = hari ini - (day-1) hari
+      monday = new Date(now);
+      monday.setDate(now.getDate() - (day - 1));
+    }
     monday.setHours(0, 0, 0, 0);
 
     const saturday = new Date(monday);
@@ -630,6 +637,38 @@
     const m = String(d.getMonth() + 1).padStart(2, '0');
     const day = String(d.getDate()).padStart(2, '0');
     return y + '-' + m + '-' + day;
+  }
+
+  // ─── Auto-clear data setiap Minggu jam 06.00 ────────────────────────────
+  function shouldAutoClear() {
+    const now = new Date();
+    const day = now.getDay(); // 0 = Minggu
+    if (day !== 0) return false; // Hanya Minggu
+
+    const hour = now.getHours();
+    if (hour < 6) return false; // Belum jam 06.00
+
+    const lastCleared = localStorage.getItem('khiz_last_cleared_sunday');
+    if (lastCleared) {
+      const last = new Date(lastCleared);
+      // Jika sudah dihapus minggu ini (hari & tanggal sama), skip
+      if (last.getDay() === 0 &&
+          last.getFullYear() === now.getFullYear() &&
+          last.getMonth() === now.getMonth() &&
+          last.getDate() === now.getDate()) {
+        return false;
+      }
+    }
+    return true;
+  }
+
+  function autoClearIfDue() {
+    if (!shouldAutoClear()) return;
+    records = [];
+    localStorage.removeItem(STORAGE_KEY);
+    localStorage.setItem('khiz_last_cleared_sunday', new Date().toISOString());
+    renderAll();
+    showToast('Data absensi otomatis dihapus (Minggu jam 06.00)', 'success');
   }
 
   function buildWaText() {
@@ -770,6 +809,7 @@
   });
 
   loadFromStorage();
+  autoClearIfDue();
 })();
 </script>
 </body>
