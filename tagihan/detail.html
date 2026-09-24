@@ -525,25 +525,40 @@
     // ===== KIRIM KE SHEET =====
 
     async function kirimKeSheet() {
+      console.log('[kirimKeSheet] === Mulai kirim ===');
+      console.log('[kirimKeSheet] SCRIPT_URL:', SCRIPT_URL);
+      console.log('[kirimKeSheet] noPelanggan:', noPelanggan);
+
       const items = getPendingItems();
+      console.log('[kirimKeSheet] Pending items count:', items.length);
+      console.log('[kirimKeSheet] Items:', JSON.stringify(items));
+
       if (items.length === 0) {
         showToast('Tidak ada barang pending.', true);
+        console.log('[kirimKeSheet] TIDAK ADA pending items — abort.');
         return;
       }
+
+      console.log('[kirimKeSheet] Memproses', items.length, 'barang...');
 
       const btn = document.getElementById('btn-kirim-sheet');
       if (btn) {
         btn.disabled = true;
         btn.textContent = 'Mengirim ...';
+        console.log('[kirimKeSheet] Tombol disabled.');
       }
 
       try {
         // 1. Buat header tagihan
+        console.log('[kirimKeSheet] Step 1: Membuat header tagihan...');
         const now = new Date();
         const noTag = generateNoTag();
+        console.log('[kirimKeSheet] Generated noTag:', noTag);
+
         const status = items[0]?.status || 'Belum Lunas';
         const keterangan = items[0]?.keterangan || '';
 
+        console.log('[kirimKeSheet] Mengirim POST add_tagihan_header...');
         const headerRes = await fetch(SCRIPT_URL, {
           method: 'POST',
           mode: 'no-cors',
@@ -556,15 +571,19 @@
             keterangan: keterangan
           })
         });
+        console.log('[kirimKeSheet] headerRes ok (no-cors).');
 
         // Tunggu 1 detik biar server proses
         await new Promise(resolve => setTimeout(resolve, 1000));
+        console.log('[kirimKeSheet] Tunggu 1 detik selesai.');
 
         // 2. Simpan setiap detail
+        console.log('[kirimKeSheet] Step 2: Mengirim detail items...');
         for (let i = 0; i < items.length; i++) {
           const item = items[i];
+          console.log(`[kirimKeSheet] Mengirim item ${i + 1}/${items.length}:`, item.nama_barang);
 
-          await fetch(SCRIPT_URL, {
+          const detailRes = await fetch(SCRIPT_URL, {
             method: 'POST',
             mode: 'no-cors',
             headers: { 'Content-Type': 'application/json' },
@@ -578,6 +597,7 @@
               subtotal: item.subtotal
             })
           });
+          console.log(`[kirimKeSheet] Item ${i + 1} terkirim.`);
 
           // Delay antar item biar server sempat proses
           if (i < items.length - 1) {
@@ -585,25 +605,34 @@
           }
         }
 
+        console.log('[kirimKeSheet] Semua detail terkirim.');
+
         // Tunggu sebentar sebelum hapus localStorage
         await new Promise(resolve => setTimeout(resolve, 1000));
+        console.log('[kirimKeSheet] Tunggu selesai, hapus localStorage...');
 
         // Hapus pending items setelah berhasil
         clearPendingItems();
         renderPendingItems();
         updatePendingBadge();
+        console.log('[kirimKeSheet] LocalStorage cleared.');
 
         showToast(`✅ ${items.length} barang berhasil disimpan ke Google Sheets!`);
+        console.log('[kirimKeSheet] Toast shown. Reload dalam 1.5 detik...');
 
         // Reload halaman untuk update data
-        setTimeout(() => location.reload(), 1500);
+        setTimeout(() => {
+          console.log('[kirimKeSheet] Reload page...');
+          location.reload();
+        }, 1500);
 
       } catch (err) {
-        console.error('Gagal kirim ke sheet:', err);
+        console.error('[kirimKeSheet] ERROR:', err);
         showToast('Gagal mengirim ke sheet: ' + err.message, true);
         if (btn) {
           btn.disabled = false;
           btn.textContent = '📤 Kirim ke Sheet';
+          console.log('[kirimKeSheet] Tombol dikembalikan.');
         }
       }
     }
