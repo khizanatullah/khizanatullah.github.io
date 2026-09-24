@@ -1,0 +1,239 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Detail Tagihan — TB. KHIZANATULLAH</title>
+  <style>
+    body {
+      font-family: sans-serif;
+      background: #f5f7fa;
+      margin: 0;
+      padding: 1rem;
+    }
+
+    .container {
+      max-width: 600px;
+      margin: 0 auto;
+    }
+
+    .card {
+      background: white;
+      border-radius: 8px;
+      padding: 1rem;
+      margin-bottom: 1rem;
+      box-shadow: 0 2px 8px rgba(0,0,0,0.08);
+    }
+
+    .card h2 {
+      font-size: 1rem;
+      color: #37474f;
+      margin: 0 0 0.5rem;
+    }
+
+    table {
+      width: 100%;
+      border-collapse: collapse;
+      font-size: 0.9rem;
+    }
+
+    th {
+      background: #f5f5f5;
+      text-align: left;
+      padding: 0.5rem;
+      font-size: 0.8rem;
+    }
+
+    td {
+      padding: 0.5rem;
+      border-bottom: 1px solid #eee;
+    }
+
+    .btn {
+      display: block;
+      width: 100%;
+      padding: 0.75rem;
+      border: none;
+      border-radius: 8px;
+      font-size: 0.95rem;
+      font-weight: 600;
+      cursor: pointer;
+      margin-bottom: 0.5rem;
+    }
+
+    .btn-primary {
+      background: #3f51b5;
+      color: white;
+    }
+
+    .btn-danger {
+      background: #d32f2f;
+      color: white;
+    }
+
+    .empty {
+      text-align: center;
+      padding: 2rem;
+      color: #999;
+    }
+  </style>
+</head>
+<body>
+  <div class="container">
+    <a href="index.html" style="color: #3f51b5; text-decoration: none;">← Kembali</a>
+
+    <div id="content"></div>
+  </div>
+
+  <script>
+    const SCRIPT_URL = 'https://script.google.com/macros/s/AKfycbxHSPTeUTR4Jx8zrFjdAIRf_gY5iH_vKLPooNmjal-rwTXxjINHlQZGPMwnrKTKfPl_jg/exec';
+    const params = new URLSearchParams(window.location.search);
+    const noPelanggan = params.get('no');
+
+    function formatuang(angka) {
+      return 'Rp ' + Number(angka || 0).toLocaleString('id-ID');
+    }
+
+    async function loadData() {
+      const content = document.getElementById('content');
+
+      if (!noPelanggan) {
+        content.innerHTML = '<div class="empty">Nomor pelanggan tidak ditemukan.</div>';
+        return;
+      }
+
+      try {
+        // 1. Ambil data pelanggan
+        const res = await fetch(`${SCRIPT_URL}?action=list_pelanggan`);
+        const json = await res.json();
+        const pelanggan = json.rows.find(r => String(r[0]) === noPelanggan);
+        const namaPembeli = pelanggan?.[1] || 'Unknown';
+
+        // 2. Ambil daftar tagihan pelanggan
+        const res2 = await fetch(
+          `${SCRIPT_URL}?action=list_tagihan&no=${noPelanggan}`
+        );
+        const tagihanJson = await res2.json();
+        const tagihans = tagihanJson.rows || [];
+
+        let html = '';
+
+        // Header info
+        html += `
+          <div class="card">
+            <h2>Data Pembeli</h2>
+            <p><strong>Nama:</strong> ${namaPembeli}</p>
+          </div>
+        `;
+
+        // Daftar tagihan
+        if (tagihans.length === 0) {
+          html += '<div class="card"><div class="empty">Belum ada tagihan.</div></div>';
+        } else {
+          html += `
+            <div class="card">
+              <h2>Tagihan (${tagihans.length})</h2>
+              <table>
+                <thead>
+                  <tr>
+                    <th>No. Tagihan</th>
+                    <th>Tanggal</th>
+                    <th>Status</th>
+                    <th>Total</th>
+                  </tr>
+                </thead>
+                <tbody>
+          `;
+
+          tagihans.forEach(row => {
+            const noTagihan = row[1];
+            const tanggal = new Date(row[3]).toLocaleDateString('id-ID');
+            const status = row[4];
+            const total = row[6];
+
+            html += `
+              <tr>
+                <td><strong>${noTagihan}</strong></td>
+                <td>${tanggal}</td>
+                <td>${status}</td>
+                <td class="number">${formatuang(total)}</td>
+              </tr>
+            `;
+          });
+
+          html += '</tbody></table></div>';
+        }
+
+        // Tombol tambah tagihan & kirim WA
+        html += `
+          <div class="card">
+            <button class="btn btn-primary" onclick="document.getElementById('form-tambah').scrollIntoView({behavior:'smooth'}); return false;">
+              ➕ Tambah Tagihan
+            </button>
+            <button class="btn btn-danger" onclick="kirimWALast()">
+              📲 Kirim WA Tagihan Terakhir
+            </button>
+          </div>
+        `;
+
+        content.innerHTML = html;
+
+      } catch (err) {
+        console.error(err);
+        content.innerHTML = '<div class="empty">Gagal memuat data.</div>';
+      }
+    }
+
+    function formatuang(angka) {
+      return 'Rp ' + Number(angka || 0).toLocaleString('id-ID');
+    }
+
+    async function kirimWALast() {
+      try {
+        const res = await fetch(
+          `${SCRIPT_URL}?action=list_tagihan&no=${noPelanggan}`
+        );
+        const data = await res.json();
+        const tagihans = data.rows || [];
+
+        if (tagihans.length === 0) {
+          alert('Belum ada tagihan.');
+          return;
+        }
+
+        // Ambil tagihan terakhir
+        const last = tagihans[tagihans.length - 1];
+        const noTagihan = last[1];
+        const total = last[6];
+
+        // Ambil no HP pelanggan
+        const resP = await fetch(`${SCRIPT_URL}?action=list_pelanggan`);
+        const pelangganData = await resP.json();
+        const pelanggan = pelangganData.rows.find(r => String(r[0]) === noPelanggan);
+        const noHP = pelanggan?.[2];
+
+        if (!noHP || !noHP.startsWith('62')) {
+          alert('Nomor HP tidak valid.');
+          return;
+        }
+
+        // Build message
+        let msg = `*📋 Tagihan TB. KHIZANATULLAH*\n\n`;
+        msg += `*No. Tagihan:* ${noTagihan}\n`;
+        msg += `*Nama Pembeli:* ${pelanggan?.[1]}\n`;
+        msg += `*Total:* ${formatuang(total)}\n\n`;
+        msg += `*Terima kasih telah berbelanja.*`;
+
+        const encoded = encodeURIComponent(msg);
+        window.open(`https://wa.me/${noHP}?text=${encoded}`, '_blank');
+
+      } catch (err) {
+        console.error(err);
+        alert('Gagal kirim WA.');
+      }
+    }
+
+    document.addEventListener('DOMContentLoaded', loadData);
+  </script>
+</body>
+</html>
