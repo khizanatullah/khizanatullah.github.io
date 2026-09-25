@@ -807,7 +807,7 @@
         }
         const items = cache.details?.[noTag] || [];
 
-        let msg = '*\uD83D\uDCAB Tagihan TB. KHIZANATULLAH\n\n';
+        let msg = '*📦 Tagihan TB. KHIZANATULLAH\n\n';
         msg += '*No. Tagihan:* ' + noTag + '\n';
         msg += '*Nama Pembeli:* ' + pelanggan[1] + '\n';
         msg += '*Tanggal:* ' + (last[2] ? formatTanggal(last[2]) : '-') + '\n';
@@ -947,7 +947,7 @@
       // Render ulang dari cache
       renderAllFromCache();
 
-      showToast(`✅ Pembayaran ${formatRupiah(jumlah)} ditambahkan (menunggu sinkron ke sheet).`);
+      showToast('✅ Pembayaran ' + formatRupiah(jumlah) + ' ditambahkan (menunggu sinkron ke sheet).');
 
       debugLog('Pembayaran pending ditambahkan, akan di-sync dalam 60 detik atau tekan tombol Sinkron Manual.');
     }
@@ -980,7 +980,7 @@
 
         const total = header ? (header[5] || 0) : items.reduce((s, r) => s + (Number(r[5]) || 0), 0);
 
-        let msg = '*\uD83D\uDCAB Tagihan TB. KHIZANATULLAH\n\n';
+        let msg = '*📦 Tagihan TB. KHIZANATULLAH\n\n';
         msg += '*No. Tagihan:* ' + noTag + '\n';
         msg += '*Nama Pembeli:* ' + pelanggan[1] + '\n';
         msg += '*Tanggal:* ' + (header ? formatTanggal(header[2]) : '-') + '\n';
@@ -1010,6 +1010,6 @@
     // ===== INIT =====
 
     document.addEventListener('DOMContentLoaded', loadData);
-  </script>
+</script>
 </body>
 </html>
