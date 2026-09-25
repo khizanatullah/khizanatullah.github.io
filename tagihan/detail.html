@@ -152,7 +152,15 @@
     function loadCache() {
       try {
         const raw = localStorage.getItem(CACHE_KEY);
-        if (raw) cache = JSON.parse(raw);
+        if (raw) {
+          try {
+            cache = JSON.parse(raw);
+          } catch (e) {
+            console.warn('[loadCache] Corrupt cache, reset:', e);
+            localStorage.removeItem(CACHE_KEY);
+            cache = { pelanggan: null, tagihans: [], details: {}, pembayaran: {}, lastSync: 0 };
+          }
+        }
       } catch (e) { /* ignore */ }
       if (!cache) cache = { pelanggan: null, tagihans: [], details: {}, pembayaran: {}, lastSync: 0 };
     }
