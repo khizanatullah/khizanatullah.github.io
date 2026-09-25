@@ -141,7 +141,7 @@
 
   <script>
     // ===== KONFIGURASI =====
-    const SCRIPT_URL = 'https://script.google.com/macros/s/AKfycbyuweFLSDSV-NYWimKdmHkja_w4PDDGwD9XF-VS4AwUSKr9OFUwefTDGo_FOjaj1cKLGw/exec';
+    const SCRIPT_URL = 'https://script.google.com/macros/s/AKfycbxZ5b5lAFh7m_HMa8TC0AsQmkKpMhW1ENxZeaca23Y3DE_PJsv5JUI1Ls_dzFbvCzqOuQ/exec';
     const params = new URLSearchParams(window.location.search);
     const noPelanggan = params.get('no');
 
@@ -756,16 +756,16 @@
         let html = '';
         data.details.rows.forEach((item, i) => {
           html += `<div class="detail-item">
-            <span class="item-name">${i + 1}. ${item[2] || '-'}</span>
-            <span class="item-qty">x${item[3] || 0}</span>
-            <span class="item-price">${formatRupiah(item[4] || 0)}</span>
-            <span class="item-subtotal">${formatRupiah(item[6] || 0)}</span>
+            <span class="item-name">${i + 1}. ${item[1] || '-'}</span>
+            <span class="item-qty">x${item[2] || 0}</span>
+            <span class="item-price">${formatRupiah(item[3] || 0)}</span>
+            <span class="item-subtotal">${formatRupiah(item[5] || 0)}</span>
           </div>`;
         });
 
-        const grandTotal = data.details.rows.reduce((s, r) => s + (r[6] || 0), 0);
+        const grandTotal = data.details.rows.reduce((s, r) => s + (r[5] || 0), 0);
         const pembayaran = data.pembayaran?.rows || [];
-        const totalPembayaran = pembayaran.reduce((s, r) => s + (parseFloat(r[3]) || 0), 0);
+        const totalPembayaran = pembayaran.reduce((s, r) => s + (parseFloat(r[2]) || 0), 0);
         const sisaBayar = grandTotal - totalPembayaran;
         const status = sisaBayar <= 0 ? 'Lunas' : (totalPembayaran > 0 ? 'DP' : 'Belum Lunas');
 
@@ -779,8 +779,8 @@
             <div style="font-weight:600; font-size:0.85rem; margin-bottom:6px;">📥 Riwayat Pembayaran:</div>`;
           pembayaran.forEach((bayar, i) => {
             html += `<div style="display:flex; justify-content:space-between; align-items:center; padding:4px 0; border-bottom:1px solid #eee; font-size:0.85rem;">
-              <span>${i + 1}. ${formatTanggal(bayar[2])}</span>
-              <span style="text-align:right;">${formatRupiah(bayar[3])}</span>
+              <span>${i + 1}. ${formatTanggal(bayar[1])}</span>
+              <span style="text-align:right;">${formatRupiah(bayar[2])}</span>
             </div>`;
           });
           html += `<div class="total-row" style="border-top:none; margin-top:4px; padding-top:8px;">
