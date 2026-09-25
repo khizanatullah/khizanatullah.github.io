@@ -362,7 +362,7 @@
         // 1. Simpan header
         await fetch(SCRIPT_URL, {
           method: 'POST',
-          mode: 'no-cors',
+          // mode: 'cors',
           headers: { 'Content-Type': 'application/json' },
           body: JSON.stringify({
             action: 'add_tagihan_header',
@@ -384,7 +384,7 @@
 
         await fetch(SCRIPT_URL, {
           method: 'POST',
-          mode: 'no-cors',
+          // mode: 'cors',
           headers: { 'Content-Type': 'application/json' },
           body: JSON.stringify({
             action: 'add_tagihan_detail',
@@ -426,8 +426,8 @@
         }
 
         const last = tagihans[tagihans.length - 1];
-        const noTag = last[1];
-        const total = last[6] || 0;
+        const noTag = last[0];
+        const total = last[5] || last[6] || 0;
 
         // Load detail untuk keruh
         const detailRes = await fetch(`${SCRIPT_URL}?action=get_detail&no_tagihan=${encodeURIComponent(noTag)}`);
@@ -485,17 +485,17 @@
         }
 
         const header = tagihans.find(r => r[0] === noTag);
-        const total = header ? header[6] : items.reduce((s, r) => s + (r[6] || 0), 0);
+        const total = header ? header[5] || header[6] || 0 : items.reduce((s, r) => s + (r[5] || 0), 0);
 
         let msg = `*📋 Tagihan TB. KHIZANATULLAH*\n\n`;
         msg += `*No. Tagihan:* ${noTag}\n`;
         msg += `*Nama Pembeli:* ${pelanggan[1]}\n`;
-        msg += `*Tanggal:* ${formatTanggal(header?.[3])}\n`;
-        msg += `*Status:* ${header?.[4] || '-'}\n\n`;
+        msg += `*Tanggal:* ${formatTanggal(header?.[2])}\n`;
+        msg += `*Status:* ${header?.[3] || '-'}\n\n`;
         msg += `*Barang:*\n`;
 
         items.forEach((item, i) => {
-          msg += `${i + 1}. ${item[2] || '-'} x${item[3] || 0} @ ${formatRupiah(item[4] || 0)} = ${formatRupiah(item[6] || 0)}\n`;
+          msg += `${i + 1}. ${item[1] || '-'} x${item[2] || 0} @ ${formatRupiah(item[3] || 0)} = ${formatRupiah(item[5] || 0)}\n`;
         });
 
         msg += `\n*Total:* ${formatRupiah(total)}\n\n*Terima kasih.*`;
@@ -507,23 +507,6 @@
         console.error('Gagal:', err);
         showToast('Gagal.', true);
       }
-    }
-
-    document.addEventListener('DOMContentLoaded', () => {
-      loadData().then(() => {
-        // Populate select tagihan setelah data load
-        populateTagihanSelect();
-        loadPembayaranList();
-      });
-    });
-
-    function populateTagihanSelect() {
-      const select = document.getElementById('pembayaran-no_tagihan');
-      if (!select || !window._tagihans) return;
-      select.innerHTML = '<option value="">— Pilih Tagihan —</option>';
-      window._tagihans.forEach(row => {
-        select.innerHTML += `<option value="${row[0]}">${row[0]} — Rp ${formatRupiah(row[5])}</option>`;
-      });
     }
 
     async function tambahPembayaran(e) {
@@ -541,7 +524,7 @@
       try {
         await fetch(SCRIPT_URL, {
           method: 'POST',
-          mode: 'no-cors',
+          // mode: 'cors',
           headers: { 'Content-Type': 'application/json' },
           body: JSON.stringify({
             action: 'add_pembayaran',
@@ -553,7 +536,7 @@
         await new Promise(r => setTimeout(r, 1500));
         showToast('✅ Pembayaran berhasil disimpan!');
         e.target.reset();
-        await loadPembayaranList();
+        loadPembayaranList();
         populateTagihanSelect();
       } catch (err) {
         console.error('Gagal:', err);
@@ -589,6 +572,25 @@
         container.innerHTML = '<div class="empty" style="padding:6px;">Gagal memuat.</div>';
       }
     }
+
+    function populateTagihanSelect() {
+      const select = document.getElementById('pembayaran-no_tagihan');
+      if (!select) return;
+      const rows = window._tagihans || [];
+      select.innerHTML = '<option value="">— Pilih Tagihan —</option>';
+      rows.forEach(row => {
+        const noTag = row[0] || '-';
+        const total = formatRupiah(row[5] || 0);
+        select.innerHTML += `<option value="${noTag}">${noTag} — ${total}</option>`;
+      });
+    }
+      loadData().then(() => {
+        // Populate select tagihan setelah data load
+        populateTagihanSelect();
+        loadPembayaranList();
+      });
+    });
+
   </script>
 </body>
 </html>
