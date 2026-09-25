@@ -115,7 +115,7 @@
   <div id="toast" class="toast"></div>
 
   <script>
-    const SCRIPT_URL = 'https://script.google.com/macros/s/AKfycbwSPEwTeAceWUdouag6ORG4czgNUP6X2mKZHWdvMgh5OiLZyGGxopfGp3ZSpQOU9fpkSA/exec';
+    const SCRIPT_URL = 'https://script.google.com/macros/s/AKfycbxHSPTeUTR4Jx8zrFjdAIRf_gY5iH_vKLPooNmjal-rwTXxjINHlQZGPMwnrKTKfPl_jg/exec';
     const params = new URLSearchParams(window.location.search);
     const noPelanggan = params.get('no');
 
@@ -149,13 +149,9 @@
       }
 
       try {
-        const [pelangganRes, tagihanRes] = await Promise.all([
-          fetch(`${SCRIPT_URL}?action=list_pelanggan`),
-          fetch(`${SCRIPT_URL}?action=list_tagihan&no=${encodeURIComponent(noPelanggan)}`)
-        ]);
-
-        const pelangganJson = await pelangganRes.json();
-        const tagihanJson = await tagihanRes.json();
+        const pelangganRes = await fetch(SCRIPT_URL + '?action=list_pelanggan');
+        if (!pelangganRes.ok) throw new Error('list_pelanggan gagal: ' + pelangganRes.status);
+        const pelangganJson = JSON.parse(await pelangganRes.text());
         const pelanggan = pelangganJson.rows.find(r => String(r[0]) === noPelanggan);
 
         if (!pelanggan) {
@@ -163,11 +159,15 @@
           return;
         }
 
+        const tagihanRes = await fetch(SCRIPT_URL + '?action=list_tagihan&no=' + encodeURIComponent(noPelanggan));
+        if (!tagihanRes.ok) throw new Error('list_tagihan gagal: ' + tagihanRes.status);
+        const tagihanJson = JSON.parse(await tagihanRes.text());
+        const tagihans = tagihanJson.rows || [];
+
         const nama = pelanggan[1] || '-';
         const noHp = pelanggan[2] || '';
         const alamat = pelanggan[3] || '-';
         const keterangan = pelanggan[4] || '-';
-        const tagihans = tagihanJson.rows || [];
 
         let html = `
           <div class="card">
@@ -190,10 +190,10 @@
             </tr></thead><tbody>`;
 
           tagihans.forEach(row => {
-            const noTag = row[1] || '-';
-            const tgl = formatTanggal(row[3]);
-            const st = row[4] || '-';
-            const total = row[6] || 0;
+            const noTag = row[0] || '-';
+            const tgl = formatTanggal(row[2]);
+            const st = row[3] || '-';
+            const total = row[5] || 0;
             const detailId = 'detail-' + noTag.replace(/[^a-zA-Z0-9]/g, '_');
 
             html += `<tr style="cursor:pointer;" onclick="toggleDetail('${detailId}')">
@@ -263,7 +263,7 @@
         content.innerHTML = html;
       } catch (err) {
         console.error('Gagal load:', err);
-        content.innerHTML = '<div class="empty">Gagal memuat data.</div>';
+        content.innerHTML = '<div class="empty">Gagal memuat data: ' + err.message + '</div>';
       }
     }
 
