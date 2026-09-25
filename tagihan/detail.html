@@ -293,10 +293,10 @@
             </tr></thead><tbody>`;
 
           tagihans.forEach(row => {
-            const noTag = row[1] || '-';
-            const tgl = formatTanggal(row[3]);
-            const st = row[4] || '-';
-            const total = row[6] || 0;
+            const noTag = row[0] || '-';
+            const tgl = formatTanggal(row[2]);
+            const st = row[3] || '-';
+            const total = row[5] || 0;
             const noTagClean = noTag.replace(/[^a-zA-Z0-9]/g, '');
             const detailId = 'detail-' + noTagClean;
 
