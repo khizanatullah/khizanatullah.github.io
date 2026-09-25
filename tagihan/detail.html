@@ -145,6 +145,65 @@
     const params = new URLSearchParams(window.location.search);
     const noPelanggan = params.get('no');
 
+    // ===== SISTEM CACHE LOCALSTORAGE =====
+    const CACHE_KEY = 'tagihan_cache_v1';
+    let cache = null;
+
+    function loadCache() {
+      try {
+        const raw = localStorage.getItem(CACHE_KEY);
+        if (raw) cache = JSON.parse(raw);
+      } catch (e) { /* ignore */ }
+      if (!cache) cache = { pelanggan: null, tagihans: [], details: {}, pembayaran: {}, lastSync: 0 };
+    }
+
+    function saveCache() {
+      try { localStorage.setItem(CACHE_KEY, JSON.stringify(cache)); } catch (e) { /* ignore */ }
+    }
+
+    async function fetchAndCacheAll() {
+      debugLog('=== fetchAndCacheAll ===');
+      try {
+        const [pelangganRes, tagihanRes, pembayaranRes] = await Promise.all([
+          fetch(`${SCRIPT_URL}?action=list_pelanggan`),
+          fetch(`${SCRIPT_URL}?action=list_tagihan&no=${encodeURIComponent(noPelanggan)}`),
+          fetch(`${SCRIPT_URL}?action=list_pembayaran&no=${encodeURIComponent(noPelanggan)}`)
+        ]);
+
+        const pelangganJson = await pelangganRes.json();
+        const tagihanJson = await tagihanRes.json();
+        const pembayaranJson = await pembayaranRes.json();
+
+        cache.pelanggan = pelangganJson.rows.find(r => String(r[0]) === noPelanggan) || null;
+        cache.tagihans = tagihanJson.rows || [];
+        cache.pembayaran = pembayaranJson.rows || [];
+        cache.lastSync = Date.now();
+        saveCache();
+        debugLog('Cache updated. tagihans:', cache.tagihans.length, 'pembayaran:', cache.pembayaran.length);
+        return cache;
+      } catch (err) {
+        debugLog('fetchAndCacheAll ERROR:', err);
+        throw err;
+      }
+    }
+
+    // Auto-sync setiap 60 detik
+    let autoSyncInterval = null;
+    function startAutoSync() {
+      stopAutoSync();
+      autoSyncInterval = setInterval(() => {
+        debugLog('Auto-sync triggermenu...');
+        fetchAndCacheAll().then(() => {
+          // Reload data tampilan dari cache
+          renderAllFromCache();
+        }).catch(e => debugLog('Auto-sync gagal:', e));
+      }, 60000);
+    }
+
+    function stopAutoSync() {
+      if (autoSyncInterval) { clearInterval(autoSyncInterval); autoSyncInterval = null; }
+    }
+
     // ===== DEBUG (tampil di layar) =====
     function debugLog(...args) {
       const el = document.getElementById('debug');
@@ -213,7 +272,9 @@
     }
 
     function formatRupiah(angka) {
-      return 'Rp ' + Number(angka || 0).toLocaleString('id-ID');
+      const num = Number(angka);
+      if (isNaN(num)) return '-';
+      return 'Rp ' + num.toLocaleString('id-ID');
     }
 
     function formatTanggal(dateStr) {
@@ -239,7 +300,7 @@
       return `TG-${dateStr}-${random}`;
     }
 
-    // ===== LOAD DATA UTAMA =====
+    // ===== LOAD DATA UTAMA (DARI CACHE) =====
 
     async function loadData() {
       const content = document.getElementById('content');
@@ -251,15 +312,14 @@
       }
 
       try {
-        // Load pelanggan & tagihan secara parallel
-        const [pelangganRes, tagihanRes] = await Promise.all([
-          fetch(`${SCRIPT_URL}?action=list_pelanggan`),
-          fetch(`${SCRIPT_URL}?action=list_tagihan&no=${encodeURIComponent(noPelanggan)}`)
-        ]);
+        // Load cache dari localStorage, fetch dari sheet kalau belum ada
+        loadCache();
+        if (!cache.pelanggan) {
+          await fetchAndCacheAll();
+        }
 
-        const pelangganJson = await pelangganRes.json();
-        const tagihanJson = await tagihanRes.json();
-        const pelanggan = pelangganJson.rows.find(r => String(r[0]) === noPelanggan);
+        const pelanggan = cache.pelanggan;
+        const tagihans = cache.tagihans;
 
         if (!pelanggan) {
           content.innerHTML = '<div class="empty">Pelanggan tidak ditemukan.</div>';
@@ -270,7 +330,6 @@
         const noHp = pelanggan[2] || '';
         const alamat = pelanggan[3] || '-';
         const keterangan = pelanggan[4] || '-';
-        const tagihans = tagihanJson.rows || [];
 
         let html = `
           <div class="card">
@@ -283,7 +342,7 @@
             </div>
           </div>`;
 
-        // Daftar tagihan
+        // Daftar tagihan dari CACHE
         if (tagihans.length === 0) {
           html += '<div class="card"><h2>Tagihan</h2><div class="empty">Belum ada tagihan.</div></div>';
         } else {
@@ -300,13 +359,20 @@
             const noTagClean = noTag.replace(/[^a-zA-Z0-9]/g, '');
             const detailId = 'detail-' + noTagClean;
 
+            // Hitung sisa dari pembayaran di cache
+            const pembayaran = cache.pembayaran || [];
+            const noTagPemb = noTag;
+            const pembayaranForTag = pembayaran.filter(p => p[0] === noTagPemb);  // p[0] = no_tagihan
+            const totalPembayaran = pembayaranForTag.reduce((s, p) => s + (parseFloat(p[2]) || 0), 0);
+            const sisa = total - totalPembayaran;
+
             html += `<tr style="cursor:pointer;" onclick="toggleDetail('${detailId}')">
               <td style="font-weight:600;">${noTag}</td>
               <td>${tgl}</td>
               <td>${getStatusBadge(st)}</td>
               <td class="number">${formatRupiah(total)}</td>
               <td class="number" style="color:#e65100; font-weight:600;">
-                ${formatRupiah(total === 0 ? 0 : '?')}
+                ${formatRupiah(sisa)}
               </td>
               <td class="number" style="text-align:center;"><span style="color:#3f51b5;">↗</span></td>
             </tr>
@@ -320,6 +386,17 @@
 
           html += '</tbody></table></div>';
         }
+
+        // Status sync
+        html += `
+          <div class="card sync-status-card">
+            <div style="display:flex; justify-content:space-between; align-items:center;">
+              <span class="sync-label">🔄 Auto-sync: <span id="sync-status-text">Aktif (60 detik)</span></span>
+              <button class="btn btn-secondary btn-sm" id="btn-sync-manual" style="font-size:0.8rem;">🔄 Sinkron Sekarang</button>
+            </div>
+          </div>
+          <div id="last-sync-time" style="font-size:0.75rem; color:#999; text-align:right; padding:0 8px;"></div>
+        `;
 
         // Form tambah tagihan + tombol aksi
         html += `
@@ -401,6 +478,14 @@
       }
     }
 
+    // ===== RENDER DARI CACHE =====
+
+    function renderAllFromCache() {
+      debugLog('renderAllFromCache...');
+      // Panggil ulang loadData tapi pakai cache yang sudah ada
+      loadData();
+    }
+
     // ===== EVENT LISTENERS =====
 
     function setupEventListeners() {
@@ -432,11 +517,35 @@
         });
       }
 
+      // Tombol Sinkron Manual
+      const btnSync = document.getElementById('btn-sync-manual');
+      if (btnSync) {
+        btnSync.addEventListener('click', async function() {
+          const btn = this;
+          btn.disabled = true;
+          btn.textContent = '🔄 Menyinkron ...';
+          try {
+            await fetchAndCacheAll();
+            renderAllFromCache();
+            showToast('✅ Sinkron manual berhasil!');
+          } catch (e) {
+            debugLog('Sinkron manual gagal:', e);
+            showToast('❌ Gagal sinkron: ' + e.message, true);
+          } finally {
+            btn.disabled = false;
+            btn.textContent = '🔄 Sinkron Manual';
+          }
+        });
+      }
+
       // Kirim WA
       const btnWA = document.getElementById('btn-kirim-wa');
       if (btnWA) {
         btnWA.addEventListener('click', kirimWA);
       }
+
+      // Mulai auto-sync
+      startAutoSync();
     }
 
     // ===== TAMBAH BARANG (LOCALSTORAGE) =====
@@ -641,38 +750,34 @@
         debugLog('LocalStorage cleared.');
 
         showToast(`✅ ${items.length} barang berhasil disimpan ke Google Sheets!`);
-        debugLog('Toast shown. Reload dalam 1.5 detik...');
 
-        // Reload halaman untuk update data
-        setTimeout(() => {
-          debugLog('Reload page...');
-          location.reload();
-        }, 1500);
+        // Fetch ulang semua data & update cache, jangan reload
+        debugLog('Fetch ulang semua data...');
+        try {
+          await fetchAndCacheAll();
+          renderAllFromCache();
+          showToast('✅ Data diperbarui dari sheet.');
+        } catch (e) {
+          debugLog('Fetch ulang gagal:', e);
+        }
 
-      } catch (err) {
-        debugLog('ERROR:', err);
-        showToast('Gagal mengirim ke sheet: ' + err.message, true);
+        // Reset tombol
         if (btn) {
           btn.disabled = false;
           btn.textContent = '📤 Kirim ke Sheet';
-          debugLog('Tombol dikembalikan.');
         }
-      }
-    }
 
-    // ===== KIRIM WA =====
+    // ===== KIRIM WA (PAKAI CACHE) =====
 
     async function kirimWA() {
       try {
-        const [tagihanRes, pelangganRes] = await Promise.all([
-          fetch(`${SCRIPT_URL}?action=list_tagihan&no=${encodeURIComponent(noPelanggan)}`),
-          fetch(`${SCRIPT_URL}?action=list_pelanggan`)
-        ]);
-
-        const tagihanData = await tagihanRes.json();
-        const pelangganData = await pelangganRes.json();
-        const tagihans = tagihanData.rows || [];
-        const pelanggan = pelangganData.rows.find(r => String(r[0]) === noPelanggan);
+        // Load cache
+        loadCache();
+        if (!cache.pelanggan || cache.tagihans.length === 0) {
+          await fetchAndCacheAll();
+        }
+        const pelanggan = cache.pelanggan;
+        const tagihans = cache.tagihans;
 
         if (tagihans.length === 0) {
           showToast('Belum ada tagihan.', true);
@@ -686,33 +791,35 @@
 
         const last = tagihans[tagihans.length - 1];
         const noTag = last[1];
-        const total = last[6] || 0;
+        const total = last[5] || 0;
 
-        const detailRes = await fetch(
-          `${SCRIPT_URL}?action=get_detail&no_tagihan=${encodeURIComponent(noTag)}`
-        );
-        const detailData = await detailRes.json();
-        const items = detailData.details?.rows || [];
+        // Load detail dari cache
+        if (!cache.details || !cache.details[noTag]) {
+          await fetchAndCacheAll();
+        }
+        const items = cache.details?.[noTag] || [];
 
-        let msg = `*📋 Tagihan TB. KHIZANATULLAH*\n\n`;
-        msg += `*No. Tagihan:* ${noTag}\n`;
-        msg += `*Nama Pembeli:* ${pelanggan[1]}\n`;
-        msg += `*Tanggal:* ${formatTanggal(last[3])}\n`;
-        msg += `*Status:* ${last[4] || '-'}\n\n`;
-        msg += `*Daftar Barang:*\n`;
+        let msg = '*\uD83D\uDCAB Tagihan TB. KHIZANATULLAH\n\n';
+        msg += '*No. Tagihan:* ' + noTag + '\n';
+        msg += '*Nama Pembeli:* ' + pelanggan[1] + '\n';
+        msg += '*Tanggal:* ' + (last[2] ? formatTanggal(last[2]) : '-') + '\n';
+        msg += '*Status:* ' + (last[3] || '-') + '\n\n';
+        msg += '*Daftar Barang:*\n';
 
         items.forEach((item, i) => {
-          msg += `${i + 1}. ${item[2] || '-'} x${item[3] || 0} @ ${formatRupiah(item[4] || 0)}`;
-          if (item[5] > 0) msg += ` (diskon ${item[5]}%)`;
-          msg += ` = ${formatRupiah(item[6] || 0)}\n`;
+          const nama = item[1] || '-';
+          const qty = item[2] || 0;
+          const harga = item[3] || 0;
+          const subtotal = item[5] || 0;
+          msg += (i + 1) + '. ' + nama + ' x' + qty + ' @ ' + formatRupiah(harga) + ' = ' + formatRupiah(subtotal) + '\n';
         });
 
-        msg += `\n*Total:* ${formatRupiah(total)}\n\n`;
-        if (pelanggan[4]) msg += `*Keterangan:*\n${pelanggan[4]}\n`;
-        msg += `\n*Terima kasih telah berbelanja di TB. KHIZANATULLAH*`;
+        msg += '\n*Total:* ' + formatRupiah(total) + '\n\n';
+        if (pelanggan[4]) msg += '*Keterangan:*\n' + pelanggan[4] + '\n';
+        msg += '\n*Terima kasih telah berbelanja di TB. KHIZANATULLAH*';
 
         const encoded = encodeURIComponent(msg);
-        window.open(`https://wa.me/${pelanggan[2]}?text=${encoded}`, '_blank');
+        window.open('https://wa.me/' + pelanggan[2] + '?text=' + encoded, '_blank');
         showToast('✅ Link WA siap! Cek aplikasi WhatsApp.');
 
       } catch (err) {
@@ -742,74 +849,73 @@
       const container = document.getElementById(containerId);
       if (!container) return;
 
-      try {
-        const res = await fetch(
-          `${SCRIPT_URL}?action=get_detail&no_tagihan=${encodeURIComponent(noTag)}`
-        );
-        const data = await res.json();
+      debugLog('loadDetailItems:', noTag);
 
-        if (data.error || !data.details?.rows) {
-          container.innerHTML = '<div class="empty" style="padding:6px;">Tidak ada detail.</div>';
-          return;
-        }
+      // Pastikan cache ada
+      if (!cache.details || !cache.details[noTag]) {
+        debugLog('Detail belum di-cache, fetch dulu...');
+        await fetchAndCacheAll();
+      }
 
-        let html = '';
-        data.details.rows.forEach((item, i) => {
-          html += `<div class="detail-item">
-            <span class="item-name">${i + 1}. ${item[1] || '-'}</span>
-            <span class="item-qty">x${item[2] || 0}</span>
-            <span class="item-price">${formatRupiah(item[3] || 0)}</span>
-            <span class="item-subtotal">${formatRupiah(item[5] || 0)}</span>
+      const items = cache.details?.[noTag] || [];
+      const pembayaran = cache.pembayaran || [];
+      const pembayaranFiltered = pembayaran.filter(p => p[0] === noTag);
+      const totalPembayaran = pembayaranFiltered.reduce((s, p) => s + (parseFloat(p[2]) || 0), 0);
+      const grandTotal = items.reduce((s, r) => s + (Number(r[5]) || 0), 0);
+      const sisaBayar = grandTotal - totalPembayaran;
+
+      if (items.length === 0 && !cache.details[noTag]) {
+        container.innerHTML = '<div class="empty" style="padding:6px;">Tidak ada detail.</div>';
+        return;
+      }
+
+      let html = '';
+      items.forEach((item, i) => {
+        html += `<div class="detail-item">
+          <span class="item-name">${i + 1}. ${item[1] || '-'}</span>
+          <span class="item-qty">x${item[2] || 0}</span>
+          <span class="item-price">${formatRupiah(item[3] || 0)}</span>
+          <span class="item-subtotal">${formatRupiah(item[5] || 0)}</span>
+        </div>`;
+      });
+
+      html += `<div class="total-row">
+        <span class="label">Total Tagihan</span>
+        <span class="amount">${formatRupiah(grandTotal)}</span>
+      </div>`;
+
+      if (pembayaranFiltered.length > 0) {
+        html += `<div style="margin-top:10px; padding-top:10px; border-top:1px solid #e0e0e0;">
+          <div style="font-weight:600; font-size:0.85rem; margin-bottom:6px;">📥 Riwayat Pembayaran:</div>`;
+        pembayaranFiltered.forEach((bayar, i) => {
+          html += `<div style="display:flex; justify-content:space-between; align-items:center; padding:4px 0; border-bottom:1px solid #eee; font-size:0.85rem;">
+            <span>${i + 1}. ${formatTanggal(bayar[1])}</span>
+            <span style="text-align:right;">${formatRupiah(bayar[2])}</span>
           </div>`;
         });
-
-        const grandTotal = data.details.rows.reduce((s, r) => s + (r[5] || 0), 0);
-        const pembayaran = data.pembayaran?.rows || [];
-        const totalPembayaran = pembayaran.reduce((s, r) => s + (parseFloat(r[2]) || 0), 0);
-        const sisaBayar = grandTotal - totalPembayaran;
-        const status = sisaBayar <= 0 ? 'Lunas' : (totalPembayaran > 0 ? 'DP' : 'Belum Lunas');
-
-        html += `<div class="total-row">
-          <span class="label">Total Tagihan</span>
-          <span class="amount">${formatRupiah(grandTotal)}</span>
+        html += `<div class="total-row" style="border-top:none; margin-top:4px; padding-top:8px;">
+          <span class="label">Sudah Bayar</span>
+          <span class="amount">${formatRupiah(totalPembayaran)}</span>
+        </div>
+        <div class="total-row" style="border-top:none; padding-top:4px; background:#fff3e0; border-radius:4px;">
+          <span class="label" style="color:#e65100;">Sisa Bayar</span>
+          <span class="amount" style="color:#e65100;">${formatRupiah(sisaBayar)}</span>
         </div>`;
-
-        if (pembayaran.length > 0) {
-          html += `<div style="margin-top:10px; padding-top:10px; border-top:1px solid #e0e0e0;">
-            <div style="font-weight:600; font-size:0.85rem; margin-bottom:6px;">📥 Riwayat Pembayaran:</div>`;
-          pembayaran.forEach((bayar, i) => {
-            html += `<div style="display:flex; justify-content:space-between; align-items:center; padding:4px 0; border-bottom:1px solid #eee; font-size:0.85rem;">
-              <span>${i + 1}. ${formatTanggal(bayar[1])}</span>
-              <span style="text-align:right;">${formatRupiah(bayar[2])}</span>
-            </div>`;
-          });
-          html += `<div class="total-row" style="border-top:none; margin-top:4px; padding-top:8px;">
-            <span class="label">Sudah Bayar</span>
-            <span class="amount">${formatRupiah(totalPembayaran)}</span>
-          </div>
-          <div class="total-row" style="border-top:none; padding-top:4px; background:#fff3e0; border-radius:4px;">
-            <span class="label" style="color:#e65100;">Sisa Bayar</span>
-            <span class="amount" style="color:#e65100;">${formatRupiah(sisaBayar)}</span>
-          </div>`;
-        } else {
-          html += `<div class="total-row" style="border-top:none; margin-top:4px; padding-top:4px;">
-            <span class="label" style="font-size:0.85rem; color:#999;">Belum ada pembayaran</span>
-          </div>`;
-        }
-
-        html += `<div style="text-align:right; margin-top:12px; gap:8px; display:flex; justify-content:flex-end;">
-          <button class="btn btn-success btn-sm" onclick="tambahPembayaran('${noTag}')">➕ Tambah Pembayaran</button>
-          <button class="btn btn-danger btn-sm" onclick="kirimWAItem('${noTag}')" style="margin-left:4px;">📲 Kirim WA</button>
+      } else {
+        html += `<div class="total-row" style="border-top:none; margin-top:4px; padding-top:4px;">
+          <span class="label" style="font-size:0.85rem; color:#999;">Belum ada pembayaran</span>
         </div>`;
-
-        container.innerHTML = html;
-
-      } catch (err) {
-        container.innerHTML = '<div class="empty" style="padding:6px;">Gagal memuat.</div>';
       }
+
+      html += `<div style="text-align:right; margin-top:12px; gap:8px; display:flex; justify-content:flex-end;">
+        <button class="btn btn-success btn-sm" onclick="tambahPembayaran('${noTag}')">➕ Tambah Pembayaran</button>
+        <button class="btn btn-danger btn-sm" onclick="kirimWAItem('${noTag}')" style="margin-left:4px;">📲 Kirim WA</button>
+      </div>`;
+
+      container.innerHTML = html;
     }
 
-    // ===== TAMBAH PEMBAYARAN =====
+    // ===== TAMBAH PEMBAYARAN (LOCAL FIRST) =====
 
     function tambahPembayaran(noTag) {
       const jumlah = prompt('Jumlah pembayaran (Rp):');
@@ -820,64 +926,71 @@
 
       const keterangan = prompt('Keterangan (opsional):') || '';
 
-      fetch(SCRIPT_URL, {
-        method: 'POST',
-        mode: 'no-cors',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({
-          action: 'add_pembayaran',
-          no_tagihan: noTag,
-          jumlah_bayar: parseInt(jumlah),
-          keterangan: keterangan
-        })
-      }).then(() => {
-        showToast(`✅ Pembayaran ${formatRupiah(jumlah)} berhasil ditambahkan.`);
-        // Reload halaman untuk update data
-        setTimeout(() => location.reload(), 1000);
-      }).catch(err => {
-        console.error('Gagal tambah pembayaran:', err);
-        showToast('Gagal menambah pembayaran.', true);
-      });
+      // Simpan ke cache dulu (tidak langsung ke sheet)
+      if (!cache.pembayaran) cache.pembayaran = [];
+      cache.pembayaran.push([
+        noTag,                    // [0] No_Tagihan
+        new Date().toISOString(), // [1] Tanggal
+        parseInt(jumlah),         // [2] Jumlah_Bayar
+        keterangan                // [3] Keterangan
+      ]);
+      saveCache();
+
+      // Render ulang dari cache
+      renderAllFromCache();
+
+      showToast(`✅ Pembayaran ${formatRupiah(jumlah)} ditambahkan (menunggu sinkron ke sheet).`);
+
+      debugLog('Pembayaran pending ditambahkan, akan di-sync dalam 60 detik atau tekan tombol Sinkron Manual.');
     }
 
     async function kirimWAItem(noTag) {
       try {
-        const [detailRes, tagihanRes, pelangganRes] = await Promise.all([
-          fetch(`${SCRIPT_URL}?action=get_detail&no_tagihan=${encodeURIComponent(noTag)}`),
-          fetch(`${SCRIPT_URL}?action=list_tagihan&no=${encodeURIComponent(noPelanggan)}`),
-          fetch(`${SCRIPT_URL}?action=list_pelanggan`)
-        ]);
+        // Load cache
+        loadCache();
+        if (!cache.pelanggan || cache.tagihans.length === 0) {
+          await fetchAndCacheAll();
+        }
+        const pelanggan = cache.pelanggan;
+        const tagihans = cache.tagihans;
 
-        const detailData = await detailRes.json();
-        const tagihanData = await tagihanRes.json();
-        const pelangganData = await pelangganRes.json();
-        const items = detailData.details?.rows || [];
-        const tagihans = tagihanData.rows || [];
-        const pelanggan = pelangganData.rows.find(r => String(r[0]) === noPelanggan);
+        if (!pelanggan) {
+          showToast('Data pelanggan tidak ditemukan.', true);
+          return;
+        }
 
         if (!pelanggan?.[2] || !String(pelanggan[2]).startsWith('62')) {
           showToast('Nomor HP tidak valid.', true);
           return;
         }
 
+        if (!cache.details || !cache.details[noTag]) {
+          await fetchAndCacheAll();
+        }
+        const items = cache.details?.[noTag] || [];
         const header = tagihans.find(r => r[1] === noTag);
-        const total = header ? header[6] : items.reduce((s, r) => s + (r[6] || 0), 0);
 
-        let msg = `*📋 Tagihan TB. KHIZANATULLAH*\n\n`;
-        msg += `*No. Tagihan:* ${noTag}\n`;
-        msg += `*Nama Pembeli:* ${pelanggan[1]}\n`;
-        msg += `*Tanggal:* ${formatTanggal(header?.[3])}\n`;
-        msg += `*Status:* ${header?.[4] || '-'}\n\n`;
-        msg += `*Barang:*\n`;
+        const total = header ? (header[5] || 0) : items.reduce((s, r) => s + (Number(r[5]) || 0), 0);
+
+        let msg = '*\uD83D\uDCAB Tagihan TB. KHIZANATULLAH\n\n';
+        msg += '*No. Tagihan:* ' + noTag + '\n';
+        msg += '*Nama Pembeli:* ' + pelanggan[1] + '\n';
+        msg += '*Tanggal:* ' + (header ? formatTanggal(header[2]) : '-') + '\n';
+        msg += '*Status:* ' + (header ? header[3] : '-') + '\n\n';
+        msg += '*Barang:*\n';
 
         items.forEach((item, i) => {
-          msg += `${i + 1}. ${item[2] || '-'} x${item[3] || 0} @ ${formatRupiah(item[4] || 0)} = ${formatRupiah(item[6] || 0)}\n`;
+          const nama = item[1] || '-';
+          const qty = item[2] || 0;
+          const harga = item[3] || 0;
+          const subtotal = item[5] || 0;
+          msg += (i + 1) + '. ' + nama + ' x' + qty + ' @ ' + formatRupiah(harga) + ' = ' + formatRupiah(subtotal) + '\n';
         });
 
-        msg += `\n*Total:* ${formatRupiah(total)}\n\n*Terima kasih.*`;
+        msg += '\n*Total:* ' + formatRupiah(total) + '\n\n*Terima kasih.*';
 
         const encoded = encodeURIComponent(msg);
-        window.open(`https://wa.me/${pelanggan[2]}?text=${encoded}`, '_blank');
+        window.open('https://wa.me/' + pelanggan[2] + '?text=' + encoded, '_blank');
         showToast('✅ Link WA siap!');
 
       } catch (err) {
