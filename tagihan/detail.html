@@ -115,7 +115,7 @@
   <div id="toast" class="toast"></div>
 
   <script>
-    const SCRIPT_URL = 'https://script.google.com/macros/s/AKfycbxHSPTeUTR4Jx8zrFjdAIRf_gY5iH_vKLPooNmjal-rwTXxjINHlQZGPMwnrKTKfPl_jg/exec';
+    const SCRIPT_URL = 'https://script.google.com/macros/s/AKfycbwSPEwTeAceWUdouag6ORG4czgNUP6X2mKZHWdvMgh5OiLZyGGxopfGp3ZSpQOU9fpkSA/exec';
     const params = new URLSearchParams(window.location.search);
     const noPelanggan = params.get('no');
 
@@ -255,12 +255,42 @@
           </div>
 
           <div class="card">
+            <h2>💰 Tambah Pembayaran</h2>
+            <form id="form-pembayaran" onsubmit="return tambahPembayaran(event)">
+              <div class="form-group">
+                <label>No. Tagihan</label>
+                <select id="pembayaran-no_tagihan" style="width:100%;">
+                  <option value="">— Pilih Tagihan —</option>
+                </select>
+              </div>
+              <div class="form-group">
+                <label>Jumlah Bayar (Rp) *</label>
+                <input type="number" id="pembayaran-jumlah" min="0" placeholder="Contoh: 500000" required>
+              </div>
+              <div class="form-group">
+                <label>Keterangan</label>
+                <input type="text" id="pembayaran-keterangan" placeholder="Contoh: Bayar DP, Cicilan 1">
+              </div>
+              <div class="btn-row">
+                <button type="submit" class="btn btn-success">💾 Simpan Pembayaran</button>
+                <button type="reset" class="btn btn-secondary" style="background:#757575;">Reset</button>
+              </div>
+            </form>
+          </div>
+
+          <div class="card">
+            <h2>📋 Riwayat Pembayaran</h2>
+            <div id="pembayaran-list"><div class="empty" style="padding:6px;">Memuat ...</div></div>
+          </div>
+
+          <div class="card">
             <button class="btn btn-danger" onclick="kirimWA()">📲 Kirim WA — Tagihan Terakhir</button>
             <p style="font-size:0.8rem; color:#999; margin-top:8px; text-align:center;">Kirim detail tagihan terakhir ke nomor HP pembeli</p>
           </div>
         `;
 
         content.innerHTML = html;
+        window._tagihans = tagihans;
       } catch (err) {
         console.error('Gagal load:', err);
         content.innerHTML = '<div class="empty">Gagal memuat data: ' + err.message + '</div>';
@@ -292,14 +322,14 @@
         let html = '';
         data.details.rows.forEach((item, i) => {
           html += `<div class="detail-item">
-            <span class="item-name">${i + 1}. ${item[2] || '-'}</span>
-            <span class="item-qty">x${item[3] || 0}</span>
-            <span class="item-price">${formatRupiah(item[4] || 0)}</span>
-            <span class="item-subtotal">${formatRupiah(item[6] || 0)}</span>
+            <span class="item-name">${i + 1}. ${item[1] || '-'}</span>
+            <span class="item-qty">x${item[2] || 0}</span>
+            <span class="item-price">${formatRupiah(item[3] || 0)}</span>
+            <span class="item-subtotal">${formatRupiah(item[5] || 0)}</span>
           </div>`;
         });
 
-        const grandTotal = data.details.rows.reduce((s, r) => s + (r[6] || 0), 0);
+        const grandTotal = data.details.rows.reduce((s, r) => s + (r[5] || 0), 0);
         html += `<div class="total-row"><span class="label">Total</span><span class="amount">${formatRupiah(grandTotal)}</span></div>`;
         html += `<div style="text-align:right; margin-top:8px;">
           <button class="btn btn-danger btn-sm" onclick="kirimWAItem('${noTag}')">📲 Kirim WA</button>
@@ -339,9 +369,13 @@
             no_tagihan: noTag,
             no_pelanggan: noPelanggan,
             status,
+            total: rowTotal,
             keterangan
           })
         });
+
+        // Tunggu sebentar agar AppsScript sempat proses (no-cors tak ada response)
+        await new Promise(r => setTimeout(r, 2000));
 
         // 2. Simpan detail
         const subtotal = hargaSatuan * qty;
@@ -450,7 +484,7 @@
           showToast('Nomor HP tidak valid.', true); return;
         }
 
-        const header = tagihans.find(r => r[1] === noTag);
+        const header = tagihans.find(r => r[0] === noTag);
         const total = header ? header[6] : items.reduce((s, r) => s + (r[6] || 0), 0);
 
         let msg = `*📋 Tagihan TB. KHIZANATULLAH*\n\n`;
@@ -475,7 +509,86 @@
       }
     }
 
-    document.addEventListener('DOMContentLoaded', loadData);
+    document.addEventListener('DOMContentLoaded', () => {
+      loadData().then(() => {
+        // Populate select tagihan setelah data load
+        populateTagihanSelect();
+        loadPembayaranList();
+      });
+    });
+
+    function populateTagihanSelect() {
+      const select = document.getElementById('pembayaran-no_tagihan');
+      if (!select || !window._tagihans) return;
+      select.innerHTML = '<option value="">— Pilih Tagihan —</option>';
+      window._tagihans.forEach(row => {
+        select.innerHTML += `<option value="${row[0]}">${row[0]} — Rp ${formatRupiah(row[5])}</option>`;
+      });
+    }
+
+    async function tambahPembayaran(e) {
+      e.preventDefault();
+      const noTag = document.getElementById('pembayaran-no_tagihan').value;
+      const jumlah = parseInt(document.getElementById('pembayaran-jumlah').value) || 0;
+      const keterangan = document.getElementById('pembayaran-keterangan').value.trim();
+
+      if (!noTag) { showToast('Pilih tagihan terlebih dahulu.', true); return false; }
+      if (jumlah <= 0) { showToast('Jumlah bayar harus > 0.', true); return false; }
+
+      const btn = e.target.querySelector('button[type="submit"]');
+      btn.disabled = true; btn.textContent = 'Menyimpan ...';
+
+      try {
+        await fetch(SCRIPT_URL, {
+          method: 'POST',
+          mode: 'no-cors',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({
+            action: 'add_pembayaran',
+            no_tagihan: noTag,
+            jumlah_bayar: jumlah,
+            keterangan
+          })
+        });
+        await new Promise(r => setTimeout(r, 1500));
+        showToast('✅ Pembayaran berhasil disimpan!');
+        e.target.reset();
+        await loadPembayaranList();
+        populateTagihanSelect();
+      } catch (err) {
+        console.error('Gagal:', err);
+        showToast('Gagal menyimpan pembayaran.', true);
+        btn.disabled = false; btn.textContent = '💾 Simpan Pembayaran';
+      }
+      return false;
+    }
+
+    async function loadPembayaranList() {
+      const container = document.getElementById('pembayaran-list');
+      if (!container || !noPelanggan) return;
+      try {
+        const res = await fetch(SCRIPT_URL + '?action=list_pembayaran&no=' + encodeURIComponent(noPelanggan));
+        const data = JSON.parse(await res.text());
+        const rows = data.rows || [];
+        if (rows.length === 0) {
+          container.innerHTML = '<div class="empty" style="padding:6px;">Belum ada pembayaran.</div>';
+          return;
+        }
+        let html = '<table><thead><tr><th>No. Tagihan</th><th>Tanggal</th><th>Jumlah Bayar</th><th>Keterangan</th></tr></thead><tbody>';
+        rows.forEach(r => {
+          html += `<tr>
+            <td>${r[0] || '-'}</td>
+            <td>${formatTanggal(r[1])}</td>
+            <td class="number">${formatRupiah(r[2])}</td>
+            <td>${r[3] || '-'}</td>
+          </tr>`;
+        });
+        html += '</tbody></table>';
+        container.innerHTML = html;
+      } catch (err) {
+        container.innerHTML = '<div class="empty" style="padding:6px;">Gagal memuat.</div>';
+      }
+    }
   </script>
 </body>
 </html>
