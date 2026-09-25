@@ -764,12 +764,42 @@
         });
 
         const grandTotal = data.details.rows.reduce((s, r) => s + (r[6] || 0), 0);
+        const pembayaran = data.pembayaran?.rows || [];
+        const totalPembayaran = pembayaran.reduce((s, r) => s + (parseFloat(r[3]) || 0), 0);
+        const sisaBayar = grandTotal - totalPembayaran;
+        const status = sisaBayar <= 0 ? 'Lunas' : (totalPembayaran > 0 ? 'DP' : 'Belum Lunas');
+
         html += `<div class="total-row">
-          <span class="label">Total</span>
+          <span class="label">Total Tagihan</span>
           <span class="amount">${formatRupiah(grandTotal)}</span>
         </div>`;
-        html += `<div style="text-align:right; margin-top:8px;">
-          <button class="btn btn-danger btn-sm" onclick="kirimWAItem('${noTag}')">📲 Kirim WA</button>
+
+        if (pembayaran.length > 0) {
+          html += `<div style="margin-top:10px; padding-top:10px; border-top:1px solid #e0e0e0;">
+            <div style="font-weight:600; font-size:0.85rem; margin-bottom:6px;">📥 Riwayat Pembayaran:</div>`;
+          pembayaran.forEach((bayar, i) => {
+            html += `<div style="display:flex; justify-content:space-between; align-items:center; padding:4px 0; border-bottom:1px solid #eee; font-size:0.85rem;">
+              <span>${i + 1}. ${formatTanggal(bayar[2])}</span>
+              <span style="text-align:right;">${formatRupiah(bayar[3])}</span>
+            </div>`;
+          });
+          html += `<div class="total-row" style="border-top:none; margin-top:4px; padding-top:8px;">
+            <span class="label">Sudah Bayar</span>
+            <span class="amount">${formatRupiah(totalPembayaran)}</span>
+          </div>
+          <div class="total-row" style="border-top:none; padding-top:4px; background:#fff3e0; border-radius:4px;">
+            <span class="label" style="color:#e65100;">Sisa Bayar</span>
+            <span class="amount" style="color:#e65100;">${formatRupiah(sisaBayar)}</span>
+          </div>`;
+        } else {
+          html += `<div class="total-row" style="border-top:none; margin-top:4px; padding-top:4px;">
+            <span class="label" style="font-size:0.85rem; color:#999;">Belum ada pembayaran</span>
+          </div>`;
+        }
+
+        html += `<div style="text-align:right; margin-top:12px; gap:8px; display:flex; justify-content:flex-end;">
+          <button class="btn btn-success btn-sm" onclick="tambahPembayaran('${noTag}')">➕ Tambah Pembayaran</button>
+          <button class="btn btn-danger btn-sm" onclick="kirimWAItem('${noTag}')" style="margin-left:4px;">📲 Kirim WA</button>
         </div>`;
 
         container.innerHTML = html;
@@ -777,6 +807,37 @@
       } catch (err) {
         container.innerHTML = '<div class="empty" style="padding:6px;">Gagal memuat.</div>';
       }
+    }
+
+    // ===== TAMBAH PEMBAYARAN =====
+
+    function tambahPembayaran(noTag) {
+      const jumlah = prompt('Jumlah pembayaran (Rp):');
+      if (!jumlah || isNaN(jumlah) || parseInt(jumlah) <= 0) {
+        showToast('Jumlah tidak valid.', true);
+        return;
+      }
+
+      const keterangan = prompt('Keterangan (opsional):') || '';
+
+      fetch(SCRIPT_URL, {
+        method: 'POST',
+        mode: 'no-cors',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          action: 'add_pembayaran',
+          no_tagihan: noTag,
+          jumlah_bayar: parseInt(jumlah),
+          keterangan: keterangan
+        })
+      }).then(() => {
+        showToast(`✅ Pembayaran ${formatRupiah(jumlah)} berhasil ditambahkan.`);
+        // Reload halaman untuk update data
+        setTimeout(() => location.reload(), 1000);
+      }).catch(err => {
+        console.error('Gagal tambah pembayaran:', err);
+        showToast('Gagal menambah pembayaran.', true);
+      });
     }
 
     async function kirimWAItem(noTag) {
