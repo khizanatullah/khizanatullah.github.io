@@ -1,0 +1,92 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Test Detail Tagihan</title>
+  <style>
+    body { font-family: sans-serif; max-width: 700px; margin: 20px auto; padding: 0 16px; }
+    .card { background: #fff; border-radius: 8px; padding: 16px; margin-bottom: 16px; box-shadow: 0 2px 4px rgba(0,0,0,0.1); }
+    .error { color: red; }
+    pre { background: #f5f5f5; padding: 12px; border-radius: 4px; }
+  </style>
+</head>
+<body>
+  <h1>Test Detail Tagihan</h1>
+  <div id="output"></div>
+
+  <script>
+    const SCRIPT_URL = 'https://script.google.com/macros/s/AKfycbwSPEwTeAceWUdouag6ORG4czgNUP6X2mKZHWdvMgh5OiLZyGGxopfGp3ZSpQOU9fpkSA/exec';
+    const params = new URLSearchParams(window.location.search);
+    const noPelanggan = params.get('no') || '1';
+
+    const output = document.getElementById('output');
+    output.innerHTML = '<p>Memuat data pelanggan no=' + noPelanggan + '...</p>';
+
+    async function test() {
+      try {
+        output.innerHTML += '<p>[√] Memulai fetch...</p>';
+
+        const pelangganRes = await fetch(SCRIPT_URL + '?action=list_pelanggan');
+        output.innerHTML += '<p>[√] Response pelanggan status: ' + pelangganRes.status + '</p>';
+
+        const pelangganText = await pelangganRes.text();
+        output.innerHTML += '<p>[√] Response text length: ' + pelangganText.length + '</p>';
+        output.innerHTML += '<pre>' + pelangganText + '</pre>';
+
+        const pelangganJson = JSON.parse(pelangganText);
+        output.innerHTML += '<p>[√] Parsed JSON rows: ' + (pelangganJson.rows ? pelangganJson.rows.length : 'tidak ada rows') + '</p>';
+
+        const pelanggan = pelangganJson.rows.find(r => String(r[0]) === noPelanggan);
+        if (!pelanggan) {
+          output.innerHTML += '<p class="error">Pelanggan tidak ditemukan!</p>';
+          return;
+        }
+
+        output.innerHTML += '<p>[√] Pelanggan ditemukan: ' + pelanggan[1] + '</p>';
+
+        const tagihanRes = await fetch(SCRIPT_URL + '?action=list_tagihan&no=' + encodeURIComponent(noPelanggan));
+        output.innerHTML += '<p>[√] Response tagihan status: ' + tagihanRes.status + '</p>';
+
+        const tagihanText = await tagihanRes.text();
+        output.innerHTML += '<pre>' + tagihanText + '</pre>';
+
+        const tagihanJson = JSON.parse(tagihanText);
+        const tagihans = tagihanJson.rows || [];
+        output.innerHTML += '<p>[√] Jumlah tagihan: ' + tagihans.length + '</p>';
+
+        // Tampilkan data
+        let html = '<div class="card"><h2>Data Pembeli</h2>';
+        html += '<p><strong>Nama:</strong> ' + pelanggan[1] + '</p>';
+        html += '<p><strong>No. HP:</strong> ' + (pelanggan[2] || '-') + '</p>';
+        html += '<p><strong>Alamat:</strong> ' + (pelanggan[3] || '-') + '</p>';
+        html += '</div>';
+
+        if (tagihans.length === 0) {
+          html += '<div class="card"><h2>Tagihan</h2><p>Belum ada tagihan.</p></div>';
+        } else {
+          html += '<div class="card"><h2>Tagihan (' + tagihans.length + ')</h2>';
+          html += '<table border="1" cellpadding="8" cellspacing="0">';
+          html += '<tr><th>No. Tagihan</th><th>Tanggal</th><th>Status</th><th>Total</th></tr>';
+          tagihans.forEach(row => {
+            html += '<tr>';
+            html += '<td>' + (row[0] || '-') + '</td>';
+            html += '<td>' + (row[2] ? new Date(row[2]).toLocaleDateString('id-ID') : '-') + '</td>';
+            html += '<td>' + (row[3] || '-') + '</td>';
+            html += '<td>Rp ' + Number(row[5] || 0).toLocaleString('id-ID') + '</td>';
+            html += '</tr>';
+          });
+          html += '</table></div>';
+        }
+
+        output.innerHTML = html;
+      } catch (err) {
+        output.innerHTML = '<p class="error">❌ Error: ' + err.message + '</p>';
+        output.innerHTML += '<pre>' + err.stack + '</pre>';
+      }
+    }
+
+    test();
+  </script>
+</body>
+</html>
