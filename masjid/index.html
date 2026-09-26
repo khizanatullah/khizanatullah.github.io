@@ -6,344 +6,60 @@
 <title>Papan Info Masjid Al-Ikhlas</title>
 <style>
   @import url('https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;600;700&family=Playfair+Display:wght@700&display=swap');
-
-  * {
-    margin: 0;
-    padding: 0;
-    box-sizing: border-box;
-  }
-
-  body {
-    font-family: 'Poppins', sans-serif;
-    background: #0a0e1a;
-    color: #ffffff;
-    min-height: 100vh;
-    display: flex;
-    justify-content: center;
-    align-items: center;
-    padding: 20px;
-  }
-
-  .board {
-    width: 100%;
-    max-width: 900px;
-    background: linear-gradient(135deg, #0d1520 0%, #1a2538 100%);
-    border-radius: 20px;
-    padding: 30px;
-    box-shadow: 0 20px 60px rgba(0,0,0,0.5), inset 0 1px 0 rgba(255,255,255,0.05);
-    border: 1px solid rgba(255,255,255,0.08);
-  }
-
-  .board-header {
-    text-align: center;
-    margin-bottom: 25px;
-    padding-bottom: 20px;
-    border-bottom: 1px solid rgba(255,255,255,0.08);
-    position: relative;
-  }
-
-  .logo-icon {
-    font-size: 32px;
-    margin-bottom: 8px;
-  }
-
-  .masjid-name {
-    font-family: 'Playfair Display', serif;
-    font-size: 24px;
-    color: #c9a84c;
-    letter-spacing: 2px;
-    margin-bottom: 4px;
-  }
-
-  .masjid-location {
-    font-size: 12px;
-    color: #6b7a8f;
-    letter-spacing: 1px;
-    text-transform: uppercase;
-  }
-
-  /* Lokasi dinamis badge */
-  .location-badge {
-    display: inline-block;
-    margin-top: 8px;
-    padding: 3px 10px;
-    background: rgba(107,122,143,0.15);
-    border-radius: 12px;
-    font-size: 11px;
-    color: #8fa8c0;
-  }
-
-  .location-loading {
-    color: #4a5c72;
-    animation: pulse 1.5s infinite;
-  }
-
-  @keyframes pulse {
-    0%, 100% { opacity: 0.4; }
-    50% { opacity: 1; }
-  }
-
-  .time-display {
-    display: flex;
-    justify-content: center;
-    align-items: center;
-    gap: 30px;
-    margin-bottom: 25px;
-    flex-wrap: wrap;
-  }
-
-  .time-box {
-    text-align: center;
-    padding: 15px 25px;
-    background: rgba(255,255,255,0.03);
-    border-radius: 12px;
-    border: 1px solid rgba(255,255,255,0.06);
-    min-width: 150px;
-  }
-
-  .time-label {
-    font-size: 11px;
-    color: #6b7a8f;
-    text-transform: uppercase;
-    letter-spacing: 2px;
-    margin-bottom: 8px;
-  }
-
-  .time-value {
-    font-size: 28px;
-    font-weight: 700;
-    color: #ffffff;
-    letter-spacing: 2px;
-  }
-
-  .date-value {
-    font-size: 14px;
-    color: #c9a84c;
-    margin-top: 5px;
-    letter-spacing: 1px;
-  }
-
-  .main-content {
-    display: grid;
-    grid-template-columns: 1fr 1.5fr;
-    gap: 25px;
-    margin-bottom: 25px;
-  }
-
-  @media (max-width: 700px) {
-    .main-content {
-      grid-template-columns: 1fr;
-    }
-    .time-display {
-      flex-direction: column;
-      gap: 15px;
-    }
-    .board {
-      padding: 15px;
-    }
-  }
-
-  .prayer-panel {
-    background: rgba(255,255,255,0.03);
-    border-radius: 12px;
-    padding: 20px;
-    border: 1px solid rgba(255,255,255,0.06);
-    height: 100%;
-  }
-
-  .panel-title {
-    font-size: 13px;
-    color: #c9a84c;
-    text-transform: uppercase;
-    letter-spacing: 2px;
-    margin-bottom: 15px;
-    text-align: center;
-    padding-bottom: 10px;
-    border-bottom: 1px solid rgba(255,255,255,0.06);
-  }
-
-  .prayer-list {
-    display: flex;
-    flex-direction: column;
-    gap: 8px;
-  }
-
-  .prayer-item {
-    display: flex;
-    justify-content: space-between;
-    align-items: center;
-    padding: 10px 12px;
-    background: rgba(255,255,255,0.03);
-    border-radius: 8px;
-    transition: all 0.3s ease;
-  }
-
-  .prayer-item:hover {
-    background: rgba(255,255,255,0.06);
-    transform: translateX(5px);
-  }
-
-  .prayer-name {
-    font-weight: 600;
-    color: #a0b4cc;
-    display: flex;
-    align-items: center;
-    gap: 8px;
-  }
-
-  .prayer-icon {
-    font-size: 16px;
-  }
-
-  .prayer-time {
-    font-size: 16px;
-    font-weight: 700;
-    color: #ffffff;
-  }
-
-  .countdown-section {
-    background: linear-gradient(135deg, rgba(201,168,76,0.08) 0%, rgba(201,168,76,0.03) 100%);
-    border-radius: 12px;
-    padding: 20px;
-    border: 1px solid rgba(201,168,76,0.15);
-    text-align: center;
-  }
-
-  .countdown-title {
-    font-size: 13px;
-    color: #c9a84c;
-    text-transform: uppercase;
-    letter-spacing: 2px;
-    margin-bottom: 15px;
-  }
-
-  .countdown-timer {
-    font-size: 42px;
-    font-weight: 700;
-    color: #ffffff;
-    letter-spacing: 3px;
-    margin-bottom: 10px;
-  }
-
-  .countdown-label {
-    font-size: 13px;
-    color: #6b7a8f;
-    letter-spacing: 1px;
-  }
-
-  .countdown-subuh-time {
-    margin-top: 12px;
-    font-size: 12px;
-    color: #c9a84c;
-    letter-spacing: 1px;
-  }
-
-  .announcements {
-    background: rgba(255,255,255,0.03);
-    border-radius: 12px;
-    padding: 20px;
-    border: 1px solid rgba(255,255,255,0.06);
-  }
-
-  .ann-title {
-    font-size: 13px;
-    color: #c9a84c;
-    text-transform: uppercase;
-    letter-spacing: 2px;
-    margin-bottom: 15px;
-    text-align: center;
-    padding-bottom: 10px;
-    border-bottom: 1px solid rgba(255,255,255,0.06);
-  }
-
-  .announcement {
-    padding: 12px;
-    background: rgba(255,255,255,0.02);
-    border-radius: 8px;
-    margin-bottom: 10px;
-    border-left: 3px solid #c9a84c;
-  }
-
-  .announcement:last-child {
-    margin-bottom: 0;
-  }
-
-  .ann-badge {
-    display: inline-block;
-    padding: 2px 8px;
-    background: rgba(201,168,76,0.15);
-    color: #c9a84c;
-    font-size: 10px;
-    border-radius: 4px;
-    letter-spacing: 1px;
-    margin-bottom: 6px;
-    text-transform: uppercase;
-  }
-
-  .ann-text {
-    font-size: 13px;
-    line-height: 1.6;
-    color: #c0cedb;
-  }
-
-  .ann-leader {
-    color: #ffffff;
-    font-weight: 600;
-  }
-
-  .ann-time {
-    color: #c9a84c;
-    font-size: 12px;
-    margin-top: 4px;
-  }
-
-  .banner {
-    background: linear-gradient(90deg, rgba(201,168,76,0.12) 0%, rgba(201,168,76,0.05) 100%);
-    border-radius: 12px;
-    padding: 18px 20px;
-    border: 1px solid rgba(201,168,76,0.15);
-    text-align: center;
-    margin-top: 25px;
-  }
-
-  .banner-quote {
-    font-family: 'Playfair Display', serif;
-    font-size: 16px;
-    color: #c9a84c;
-    font-style: italic;
-    letter-spacing: 1px;
-    line-height: 1.6;
-  }
-
-  .banner-arabic {
-    font-size: 14px;
-    color: #8b7a4a;
-    margin-top: 5px;
-    font-style: normal;
-  }
-
-  .footer {
-    text-align: center;
-    margin-top: 20px;
-    font-size: 10px;
-    color: #3d4a5c;
-    letter-spacing: 1px;
-  }
+  * { margin:0; padding:0; box-sizing:border-box; }
+  body { font-family:'Poppins',sans-serif; background:#0a0e1a; color:#fff; min-height:100vh; display:flex; justify-content:center; align-items:center; padding:20px; }
+  .board { width:100%; max-width:900px; background:linear-gradient(135deg,#0d1520 0%,#1a2538 100%); border-radius:20px; padding:30px; box-shadow:0 20px 60px rgba(0,0,0,0.5), inset 0 1px 0 rgba(255,255,255,0.05); border:1px solid rgba(255,255,255,0.08); }
+  .board-header { text-align:center; margin-bottom:25px; padding-bottom:20px; border-bottom:1px solid rgba(255,255,255,0.08); position:relative; }
+  .logo-icon { font-size:32px; margin-bottom:8px; }
+  .masjid-name { font-family:'Playfair+Display',serif; font-size:24px; color:#c9a84c; letter-spacing:2px; margin-bottom:4px; }
+  .location-badge { display:inline-block; margin-top:8px; padding:3px 10px; background:rgba(107,122,143,0.15); border-radius:12px; font-size:11px; color:#8fa8c0; }
+  .location-loading { animation:pulse 1.5s infinite; }
+  .location-fallback { color:#e8894a; font-style:italic; }
+  .api-status { font-size:10px; color:#4a5c72; margin-top:6px; letter-spacing:0.5px; }
+  @keyframes pulse { 0%,100%{opacity:0.4;} 50%{opacity:1;} }
+  .time-display { display:flex; justify-content:center; align-items:center; gap:30px; margin-bottom:25px; flex-wrap:wrap; }
+  .time-box { text-align:center; padding:15px 25px; background:rgba(255,255,255,0.03); border-radius:12px; border:1px solid rgba(255,255,255,0.06); min-width:150px; }
+  .time-label { font-size:11px; color:#6b7a8f; text-transform:uppercase; letter-spacing:2px; margin-bottom:8px; }
+  .time-value { font-size:28px; font-weight:700; color:#fff; letter-spacing:2px; }
+  .date-value { font-size:14px; color:#c9a84c; margin-top:5px; letter-spacing:1px; }
+  .main-content { display:grid; grid-template-columns:1fr 1.5fr; gap:25px; margin-bottom:25px; }
+  @media (max-width:700px) { .main-content { grid-template-columns:1fr; } .time-display { flex-direction:column; gap:15px; } .board { padding:15px; } }
+  .prayer-panel { background:rgba(255,255,255,0.03); border-radius:12px; padding:20px; border:1px solid rgba(255,255,255,0.06); height:100%; }
+  .panel-title { font-size:13px; color:#c9a84c; text-transform:uppercase; letter-spacing:2px; margin-bottom:15px; text-align:center; padding-bottom:10px; border-bottom:1px solid rgba(255,255,255,0.06); }
+  .prayer-list { display:flex; flex-direction:column; gap:8px; }
+  .prayer-item { display:flex; justify-content:space-between; align-items:center; padding:10px 12px; background:rgba(255,255,255,0.03); border-radius:8px; transition:all 0.3s ease; }
+  .prayer-item:hover { background:rgba(255,255,255,0.06); transform:translateX(5px); }
+  .prayer-name { font-weight:600; color:#a0b4cc; display:flex; align-items:center; gap:8px; }
+  .prayer-icon { font-size:16px; }
+  .prayer-time { font-size:16px; font-weight:700; color:#fff; }
+  .countdown-section { background:linear-gradient(135deg, rgba(201,168,76,0.08) 0%, rgba(201,168,76,0.03) 100%); border-radius:12px; padding:20px; border:1px solid rgba(201,168,76,0.15); text-align:center; }
+  .countdown-title { font-size:13px; color:#c9a84c; text-transform:uppercase; letter-spacing:2px; margin-bottom:15px; }
+  .countdown-timer { font-size:42px; font-weight:700; color:#fff; letter-spacing:3px; margin-bottom:10px; }
+  .countdown-label { font-size:13px; color:#6b7a8f; letter-spacing:1px; }
+  .countdown-prayer-target { margin-top:12px; font-size:12px; color:#c9a84c; letter-spacing:1px; }
+  .announcements { background:rgba(255,255,255,0.03); border-radius:12px; padding:20px; border:1px solid rgba(255,255,255,0.06); }
+  .ann-title { font-size:13px; color:#c9a84c; text-transform:uppercase; letter-spacing:2px; margin-bottom:15px; text-align:center; padding-bottom:10px; border-bottom:1px solid rgba(255,255,255,0.06); }
+  .announcement { padding:12px; background:rgba(255,255,255,0.02); border-radius:8px; margin-bottom:10px; border-left:3px solid #c9a84c; }
+  .announcement:last-child { margin-bottom:0; }
+  .ann-badge { display:inline-block; padding:2px 8px; background:rgba(201,168,76,0.15); color:#c9a84c; font-size:10px; border-radius:4px; letter-spacing:1px; margin-bottom:6px; text-transform:uppercase; }
+  .ann-text { font-size:13px; line-height:1.6; color:#c0cedb; }
+  .ann-leader { color:#fff; font-weight:600; }
+  .ann-time { color:#c9a84c; font-size:12px; margin-top:4px; }
+  .banner { background:linear-gradient(90deg, rgba(201,168,76,0.12) 0%, rgba(201,168,76,0.05) 100%); border-radius:12px; padding:18px 20px; border:1px solid rgba(201,168,76,0.15); text-align:center; margin-top:25px; }
+  .banner-quote { font-family:'Playfair+Display',serif; font-size:16px; color:#c9a84c; font-style:italic; letter-spacing:1px; line-height:1.6; }
+  .banner-arabic { font-size:14px; color:#8b7a4a; margin-top:5px; font-style:normal; }
+  .footer { text-align:center; margin-top:20px; font-size:10px; color:#3d4a5c; letter-spacing:1px; }
+  .footer-note { color:#5a6a7c; margin-top:8px; font-size:9px; }
 </style>
 </head>
 <body>
-
 <div class="board">
-  <!-- Header -->
   <div class="board-header">
     <div class="logo-icon">🕌</div>
     <div class="masjid-name">MASJID AL-IKHLAS</div>
-    <div id="location-display" class="location-badge location-loading">
-      🔍 Mendeteksi lokasi...
-    </div>
+    <div id="location-display" class="location-badge location-loading">🔍 Mendeteksi lokasi...</div>
+    <div id="api-status" class="api-status">⏳ Memuat waktu sholat...</div>
   </div>
-
-  <!-- Time Display -->
   <div class="time-display">
     <div class="time-box">
       <div class="time-label">Waktu Sekarang</div>
@@ -356,312 +72,237 @@
       <div class="date-value" id="hijriah-day">---</div>
     </div>
   </div>
-
-  <!-- Main Content -->
   <div class="main-content">
-    <!-- Prayer Times Panel -->
     <div class="prayer-panel">
       <div class="panel-title">⏰ Jadwal Shalat</div>
       <div class="prayer-list" id="prayer-list"></div>
     </div>
-
-    <!-- Countdown Section -->
     <div class="countdown-section">
-      <div class="countdown-title">Countdown Menuju Subuh</div>
+      <div class="countdown-title">Countdown Menuju Sholat</div>
       <div class="countdown-timer" id="countdown-timer">--:--:--</div>
-      <div class="countdown-label" id="countdown-status">Menunggu Subuh</div>
-      <div class="countdown-subuh-time" id="subuh-time-display">Subuh: 03:55 WIB</div>
+      <div class="countdown-label" id="countdown-status">Menunggu sholat...</div>
+      <div class="countdown-prayer-target" id="prayer-target">Target: --</div>
     </div>
   </div>
-
-  <!-- Announcements -->
   <div class="announcements">
     <div class="ann-title">📢 Pengumuman</div>
-    <div id="announcements-container">
-      <div class="announcement" style="text-align:center;color:#6b7a8f;">
-        Memuat pengumuman...
-      </div>
-    </div>
+    <div id="announcements-container"><div class="announcement" style="text-align:center;color:#6b7a8f;">Memuat pengumuman...</div></div>
   </div>
-
-  <!-- Banner -->
   <div class="banner">
     <div class="banner-quote">"Worship with a sincere heart and intention for Allah"</div>
     <div class="banner-arabic"> ٱلصَّلَاةُ خَيْرٌ مِّنَ النَّوْمِ </div>
   </div>
-
   <div class="footer">
     Masjid Al-Ikhlas • Update Otomatis
+    <div class="footer-note" id="footer-note"></div>
   </div>
 </div>
-
 <script>
-// ==================== KONFIGURASI ====================
-const DEFAULT_LOCATION = "Denpasar, Bali";
-const DEFAULT_TIMEZONE = "Asia/Jakarta";
+const DEFAULT_LOCATION="Denpasar, Bali";
+const DEFAULT_LAT=-8.6705;
+const DEFAULT_LNG=115.2129;
+const FALLBACK_TIMINGS={subuh:"03:55",dzuhur:"11:15",ashar:"14:30",maghrib:"17:16",isya:"18:25"};
+let detectedLocation=DEFAULT_LOCATION, gLat=DEFAULT_LAT, gLng=DEFAULT_LNG, cachedPrayerTimes=null, cachedDateKey=null, apiFailed=false;
 
-const PRAYER_TIMES = {
-  subuh:    { time: "03:55", icon: "🌅" },
-  dzuhur:  { time: "11:15", icon: "☀️" },
-  ashar:   { time: "14:30", icon: "🌤️" },
-  maghrib: { time: "17:16", icon: "🌆" },
-  isya:    { time: "18:25", icon: "🌙" }
-};
-
-// State
-let detectedLocation = DEFAULT_LOCATION;
-let detectedTimezone = DEFAULT_TIMEZONE;
-let geoSupported = false;
-
-// ==================== GEOLOCATION ====================
-
-function setLocationDisplay(text, isLoading = false) {
-  const el = document.getElementById("location-display");
-  el.textContent = text;
-  el.className = "location-badge" + (isLoading ? " location-loading" : "");
+function setLocationDisplay(text, isLoading=false, isFallback=false){
+  const el=document.getElementById("location-display");
+  el.textContent=text;
+  el.className="location-badge"+(isLoading?" location-loading":"")+(isFallback?" location-fallback":"");
 }
-
-function reverseGeocode(lat, lon) {
-  const url = `https://nominatim.openstreetmap.org/reverse?lat=${lat}&lon=${lon}&format=json&zoom=10&accept-language=id`;
-
-  return fetch(url, {
-    headers: { "User-Agent": "MasjidInfoBoard/1.0" }
-  })
-  .then(res => {
-    if (!res.ok) throw new Error(`HTTP ${res.status}`);
-    return res.json();
-  })
-  .then(data => {
-    const addr = data.address || {};
-    const city = addr.city || addr.town || addr.village || addr.county || "";
-    const state = addr.state || "";
-    const country = addr.country || "";
-
-    let parts = [];
-    if (city) parts.push(city);
-    if (state) parts.push(state);
-    if (country && country !== "Indonesia") parts.push(country);
-
-    return parts.join(", ") || DEFAULT_LOCATION;
-  });
+async function reverseGeocode(lat,lon){
+  const url=`https://nominatim.openstreetmap.org/reverse?lat=${lat}&lon=${lon}&format=json&zoom=10&accept-language=id`;
+  const res=await fetch(url,{headers:{"User-Agent":"MasjidInfoBoard/1.0"}});
+  if(!res.ok) throw new Error(`HTTP ${res.status}`);
+  const data=await res.json();
+  const addr=data.address||{};
+  const city=addr.city||addr.town||addr.village||addr.county||"";
+  const state=addr.state||"";
+  const country=addr.country||"";
+  const parts=[city,state,country].filter(Boolean);
+  return parts.length?parts.join(", "):DEFAULT_LOCATION;
 }
-
-function detectLocation() {
-  if (!navigator.geolocation) {
-    setLocationDisplay(DEFAULT_LOCATION);
-    return Promise.resolve(DEFAULT_LOCATION);
-  }
-
-  geoSupported = true;
-  setLocationDisplay("🔍 Mendeteksi lokasi...", true);
-
-  return new Promise((resolve) => {
-    navigator.geolocation.getCurrentPosition(
-      async (pos) => {
-        try {
-          const lat = pos.coords.latitude.toFixed(4);
-          const lon = pos.coords.longitude.toFixed(4);
-          const location = await reverseGeocode(lat, lon);
-          detectedLocation = location;
-          setLocationDisplay(location);
-          resolve(location);
-        } catch (err) {
-          console.warn("Reverse geocode gagal:", err);
-          setLocationDisplay(DEFAULT_LOCATION);
-          resolve(DEFAULT_LOCATION);
-        }
-      },
-      (err) => {
-        // User denied / timeout / unavailable
-        let msg = DEFAULT_LOCATION;
-        if (err.code === err.PERMISSION_DENIED) {
-          msg = "📍 Izin lokasi ditolak — tampilkan lokasi default";
-        } else if (err.code === err.TIMEOUT) {
-          msg = "⏱️ Timeout lokasi — tampilkan lokasi default";
-        }
-        setLocationDisplay(msg);
-        resolve(DEFAULT_LOCATION);
-      },
-      {
-        enableHighAccuracy: false,
-        timeout: 8000,
-        maximumAge: 300000 // 5 menit cache
+function initGeolocation(){
+  return new Promise((resolve)=>{
+    if(!navigator.geolocation){
+      setLocationDisplay(DEFAULT_LOCATION);
+      gLat=DEFAULT_LAT; gLng=DEFAULT_LNG;
+      resolve({lat:gLat,lng:gLng,name:DEFAULT_LOCATION});
+      return;
+    }
+    navigator.geolocation.getCurrentPosition(async(pos)=>{
+      gLat=pos.coords.latitude.toFixed(6);
+      gLng=pos.coords.longitude.toFixed(6);
+      try{
+        const loc=await reverseGeocode(gLat,gLng);
+        detectedLocation=loc;
+        setLocationDisplay(loc);
+        resolve({lat:gLat,lng:gLng,name:loc});
+      }catch(err){
+        console.warn("Reverse geocode gagal:",err);
+        detectedLocation=DEFAULT_LOCATION;
+        setLocationDisplay(DEFAULT_LOCATION);
+        resolve({lat:gLat,lng:gLng,name:DEFAULT_LOCATION});
       }
-    );
+    },(err)=>{
+      let msg=DEFAULT_LOCATION;
+      if(err.code===err.PERMISSION_DENIED) msg="📍 Izin lokasi ditolak — waktu estimasi WIB";
+      else if(err.code===err.TIMEOUT) msg="⏱️ Timeout lokasi — waktu estimasi WIB";
+      else msg="📡 Lokasi tidak tersedia — waktu estimasi WIB";
+      setLocationDisplay(msg,false,true);
+      gLat=DEFAULT_LAT; gLng=DEFAULT_LNG;
+      resolve({lat:gLat,lng:gLng,name:DEFAULT_LOCATION});
+    },{enableHighAccuracy:false,timeout:8000,maximumAge:300000});
   });
 }
-
-// ==================== FUNGSI UTAMA ====================
-
-function getIndonesianDay(date) {
-  const days = ["Minggu", "Senin", "Selasa", "Rabu", "Kamis", "Jumat", "Sabtu"];
-  return days[date.getDay()];
+function getTodayKey(){
+  const d=new Date();
+  return `${d.getFullYear()}-${String(d.getMonth()+1).padStart(2,"0")}-${String(d.getDate()).padStart(2,"0")}`;
 }
-
-function getIndonesianMonth(date) {
-  const months = ["Januari", "Februari", "Maret", "April", "Mei", "Juni",
-                  "Juli", "Agustus", "September", "Oktober", "November", "Desember"];
-  return months[date.getMonth()];
+function parseAladhanTimings(data){
+  const t=data.data.timings;
+  return {
+    subuh:t.Fajr||t.Imsak||FALLBACK_TIMINGS.subuh,
+    dzuhur:t.Dhuhr||FALLBACK_TIMINGS.dzuhur,
+    ashar:t.Asr||FALLBACK_TIMINGS.ashar,
+    maghrib:t.Maghrib||t.Sunset||FALLBACK_TIMINGS.maghrib,
+    isya:t.Isha||FALLBACK_TIMINGS.isya,
+    imsak:t.Imsak||null,
+    raw:t
+  };
 }
-
-function formatTime(date) {
-  return date.toLocaleTimeString("id-ID", {
-    hour: "2-digit",
-    minute: "2-digit",
-    second: "2-digit",
-    hour12: false
+function fetchAladhan(lat,lng){
+  const url=`https://api.aladhan.com/v1/timings?latitude=${lat}&longitude=${lng}&method=2`;
+  return fetch(url,{headers:{"User-Agent":"MasjidInfoBoard/1.0"}})
+    .then(r=>{if(!r.ok) throw new Error(`HTTP ${r.status}`); return r.json();})
+    .then(data=>{if(data.code!==200) throw new Error(data.status||"Unknown"); return parseAladhanTimings(data);});
+}
+function loadPrayerTimes(lat,lng){
+  const today=getTodayKey();
+  if(cachedDateKey===today && cachedPrayerTimes) return Promise.resolve(cachedPrayerTimes);
+  return fetchAladhan(lat,lng)
+    .then(times=>{cachedPrayerTimes=times; cachedDateKey=today; apiFailed=false; return times;})
+    .catch(err=>{console.warn("Aladhan API gagal, pakai fallback:",err); apiFailed=true; cachedPrayerTimes={...FALLBACK_TIMINGS,imsak:null,raw:null}; cachedDateKey=today; return cachedPrayerTimes;});
+}
+function getIndonesianDay(date){return ["Minggu","Senin","Selasa","Rabu","Kamis","Jumat","Sabtu"][date.getDay()];}
+function getIndonesianMonth(date){return ["Januari","Februari","Maret","April","Mei","Juni","Juli","Agustus","September","Oktober","November","Desember"][date.getMonth()];}
+function formatTime(date){return date.toLocaleTimeString("id-ID",{hour:"2-digit",minute:"2-digit",second:"2-digit",hour12:false});}
+function renderPrayerTimes(times){
+  const container=document.getElementById("prayer-list");
+  container.innerHTML="";
+  const items=[{key:"subuh",label:"Subuh",icon:"🌅"},{key:"dzuhur",label:"Dzuhur",icon:"☀️"},{key:"ashar",label:"Ashar",icon:"🌤️"},{key:"maghrib",label:"Maghrib",icon:"🌆"},{key:"isya",label:"Isya",icon:"🌙"}];
+  items.forEach(({key,label,icon})=>{
+    const time=times[key]||"--:--";
+    const el=document.createElement("div");
+    el.className="prayer-item";
+    el.innerHTML=`<div class="prayer-name"><span class="prayer-icon">${icon}</span>${label}</div><div class="prayer-time">${time} WIB</div>`;
+    container.appendChild(el);
   });
 }
-
-function getCurrentTimeAndDate() {
-  const now = new Date();
-  const timeStr = formatTime(now);
-  const dayName = getIndonesianDay(now);
-  const monthName = getIndonesianMonth(now);
-  const dateStr = `${now.getDate()} ${monthName} ${now.getFullYear()}, ${dayName}`;
-  return { time: timeStr, date: dateStr };
-}
-
-function timeDiffSeconds(targetTime, now) {
-  const [h, m] = targetTime.split(":").map(Number);
-  const target = new Date(now);
-  target.setHours(h, m, 0, 0);
-  if (target <= now) {
-    target.setDate(target.getDate() + 1);
+function updateCountdown(times,now){
+  const statusEl=document.getElementById("countdown-status");
+  const timerEl=document.getElementById("countdown-timer");
+  const targetEl=document.getElementById("prayer-target");
+  const prayers=[{name:"Subuh",key:"subuh"},{name:"Dzuhur",key:"dzuhur"},{name:"Ashar",key:"ashar"},{name:"Maghrib",key:"maghrib"},{name:"Isya",key:"isya"}];
+  const nowMinutes=now.getHours()*60+now.getMinutes();
+  let next=null;
+  prayers.forEach(p=>{
+    const [h,m]=(times[p.key]||"00:00").split(":").map(Number);
+    const prayerMin=h*60+m;
+    if(prayerMin>nowMinutes){
+      if(!next||prayerMin<next.prayerMin) next={name:p.name,time:times[p.key],prayerMin,diff:prayerMin-nowMinutes};
+    }
+  });
+  if(next){
+    timerEl.textContent=formatCountdown(next.diff*60);
+    statusEl.textContent="Menunggu sholat...";
+    statusEl.style.color="#6b7a8f";
+    targetEl.textContent=`Menuju ${next.name} • ${next.time} WIB`;
+    targetEl.style.color="#c9a84c";
+  }else{
+    const [h,m]=(times.subuh||FALLBACK_TIMINGS.subuh).split(":").map(Number);
+    const subuhMin=h*60+m;
+    const diff=(subuhMin+24*60)-nowMinutes;
+    timerEl.textContent=formatCountdown(Math.max(0,diff*60));
+    statusEl.textContent="Semua sholat hari ini telah tiba";
+    statusEl.style.color="#c9a84c";
+    targetEl.textContent=`Estimasi Subuh besok ≈ ${times.subuh} WIB`;
+    targetEl.style.color="#8b7a4a";
   }
-  return Math.floor((target - now) / 1000);
 }
-
-function formatCountdown(totalSeconds) {
-  if (totalSeconds <= 0) return "00 jam 00 menit 00 detik";
-  const hours = Math.floor(totalSeconds / 3600);
-  const minutes = Math.floor((totalSeconds % 3600) / 60);
-  const seconds = totalSeconds % 60;
-  return `${String(hours).padStart(2, "0")} jam ${String(minutes).padStart(2, "0")} menit ${String(seconds).padStart(2, "0")} detik`;
+function formatCountdown(totalSeconds){
+  if(totalSeconds<=0) return "00 jam 00 menit 00 detik";
+  const h=Math.floor(totalSeconds/3600);
+  const m=Math.floor((totalSeconds%3600)/60);
+  const s=totalSeconds%60;
+  return `${String(h).padStart(2,"0")} jam ${String(m).padStart(2,"0")} menit ${String(s).padStart(2,"0")} detik`;
 }
-
-// ==================== RENDER ====================
-
-function renderPrayerTimes() {
-  const container = document.getElementById("prayer-list");
-  container.innerHTML = "";
-  Object.entries(PRAYER_TIMES).forEach(([key, val]) => {
-    const item = document.createElement("div");
-    item.className = "prayer-item";
-    item.innerHTML = `
-      <div class="prayer-name">
-        <span class="prayer-icon">${val.icon}</span>
-        ${key.charAt(0).toUpperCase() + key.slice(1)}
-      </div>
-      <div class="prayer-time">${val.time} WIB</div>
-    `;
-    container.appendChild(item);
-  });
+function updateClock(){
+  const now=new Date();
+  document.getElementById("current-time").textContent=formatTime(now);
+  document.getElementById("current-date").textContent=`${now.getDate()} ${getIndonesianMonth(now)} ${now.getFullYear()}, ${getIndonesianDay(now)}`;
+  document.getElementById("hijriah-day").textContent="6 Rabiul Akhir 1448 H";
 }
-
-function renderAnnouncements(announcements) {
-  const container = document.getElementById("announcements-container");
-  container.innerHTML = "";
-  if (!announcements || announcements.length === 0) {
-    container.innerHTML = `
-      <div class="announcement" style="text-align:center;color:#6b7a8f;">
-        Belum ada pengumuman
-      </div>`;
+function updateApiStatus(times,apiFailedFlag){
+  const el=document.getElementById("api-status");
+  const noteEl=document.getElementById("footer-note");
+  if(apiFailedFlag){
+    el.textContent="⚠️ Gagal connect ke API — menggunakan estimasi WIB";
+    el.style.color="#e8894a";
+    noteEl.textContent="Waktu sholat estimasi WIB (hardcoded fallback). Untuk akurasi, aktifkan izin lokasi.";
     return;
   }
-  announcements.forEach((ann) => {
-    const div = document.createElement("div");
-    div.className = "announcement";
-
-    const hasLeader = ann.leader && ann.leader.trim();
-    const hasTitle = ann.title && ann.title.trim();
-
-    let bodyHtml = "";
-    if (hasLeader) {
-      bodyHtml += `<span class="ann-leader">${ann.leader}</span>`;
-      if (ann.body) bodyHtml += ` ${ann.body}`;
-    } else if (hasTitle) {
-      bodyHtml += `<strong>${ann.title}</strong>`;
-      if (ann.body) bodyHtml += `<br>${ann.body}`;
-    } else if (ann.body) {
-      bodyHtml += ann.body;
-    }
-
-    let timeHtml = "";
-    if (ann.time) {
-      timeHtml = `<div class="ann-time" style="margin-top:6px;">${ann.time}</div>`;
-    }
-
-    div.innerHTML = `
-      <div class="ann-badge">${ann.badge || "Pengumuman"}</div>
-      <div class="ann-text">${bodyHtml}${timeHtml}</div>
-    `;
+  el.textContent=`✅ Waktu dari Kemenag (Method 2) • Lokasi: ${detectedLocation}`;
+  el.style.color="#4a5c72";
+  noteEl.textContent="Waktu sholat otomatis dari API Aladhan Method 2 (Kemenag).";
+}
+async function loadAnnouncements(){
+  const container=document.getElementById("announcements-container");
+  try{
+    const res=await fetch("./announcements.json");
+    if(!res.ok) throw new Error(`HTTP ${res.status}`);
+    const data=await res.json();
+    if(!Array.isArray(data)) throw new Error("Format JSON tidak sesuai");
+    renderAnnouncements(data);
+  }catch(err){
+    console.warn("Gagal load announcements.json:",err);
+    container.innerHTML=`<div class="announcement" style="text-align:center;color:#6b7a8f;">Gagal memuat pengumuman</div>`;
+  }
+}
+function renderAnnouncements(announcements){
+  const container=document.getElementById("announcements-container");
+  container.innerHTML="";
+  if(!announcements||announcements.length===0){
+    container.innerHTML=`<div class="announcement" style="text-align:center;color:#6b7a8f;">Belum ada pengumuman</div>`;
+    return;
+  }
+  announcements.forEach(ann=>{
+    const div=document.createElement("div");
+    div.className="announcement";
+    const hasLeader=ann.leader&&ann.leader.trim();
+    const hasTitle=ann.title&&ann.title.trim();
+    let bodyHtml="";
+    if(hasLeader){bodyHtml+=`<span class="ann-leader">${ann.leader}</span>`; if(ann.body) bodyHtml+=` ${ann.body}`;}
+    else if(hasTitle){bodyHtml+=`<strong>${ann.title}</strong>`; if(ann.body) bodyHtml+=`<br>${ann.body}`;}
+    else if(ann.body) bodyHtml+=ann.body;
+    const timeHtml=ann.time?`<div class="ann-time" style="margin-top:6px;">${ann.time}</div>`:"";
+    div.innerHTML=`<div class="ann-badge">${ann.badge||"Pengumuman"}</div><div class="ann-text">${bodyHtml}${timeHtml}</div>`;
     container.appendChild(div);
   });
 }
-
-async function loadAnnouncements() {
-  const container = document.getElementById("announcements-container");
-  try {
-    const res = await fetch("./announcements.json");
-    if (!res.ok) throw new Error(`HTTP ${res.status}`);
-    const data = await res.json();
-    if (!Array.isArray(data)) throw new Error("Format JSON tidak sesuai");
-    renderAnnouncements(data);
-  } catch (err) {
-    console.warn("Gagal load announcements.json:", err);
-    container.innerHTML = `
-      <div class="announcement" style="text-align:center;color:#6b7a8f;">
-        Gagal memuat pengumuman
-      </div>`;
-  }
-}
-
-function updateCountdown() {
-  const now = new Date();
-  const subuhTime = PRAYER_TIMES.subuh.time;
-  const diff = timeDiffSeconds(subuhTime, now);
-  document.getElementById("countdown-timer").textContent = formatCountdown(diff);
-  const statusEl = document.getElementById("countdown-status");
-  if (diff <= 0) {
-    statusEl.textContent = "✨ Subuh telah tiba!";
-    statusEl.style.color = "#c9a84c";
-  } else if (diff < 3600) {
-    statusEl.textContent = "⏳ Segera Subuh!";
-    statusEl.style.color = "#e8894a";
-  } else {
-    statusEl.textContent = "Menunggu Subuh...";
-    statusEl.style.color = "#6b7a8f";
-  }
-  document.getElementById("subuh-time-display").textContent =
-    `Subuh: ${subuhTime} WIB`;
-}
-
-function updateClock() {
-  const { time, date } = getCurrentTimeAndDate();
-  document.getElementById("current-time").textContent = time;
-  document.getElementById("current-date").textContent = date;
-  document.getElementById("hijriah-day").textContent = "6 Rabiul Akhir 1448 H";
-}
-
-// ==================== INIT ====================
-
-renderPrayerTimes();
-loadAnnouncements();
-updateClock();
-updateCountdown();
-
-// Deteksi lokasi — jangan tunggu, lanjut animasi jam dulu
-detectLocation().catch(err => {
-  console.warn("Geolocation error:", err);
-  setLocationDisplay(DEFAULT_LOCATION);
-});
-
-setInterval(() => {
+function init(){
+  renderPrayerTimes(FALLBACK_TIMINGS);
   updateClock();
-  updateCountdown();
-}, 1000);
+  loadAnnouncements();
+  initGeolocation().then(pos=>{
+    loadPrayerTimes(pos.lat,pos.lng).then(times=>{
+      renderPrayerTimes(times);
+      updateApiStatus(times,apiFailed);
+      updateCountdown(times,new Date());
+    });
+  });
+  setInterval(()=>{const now=new Date(); updateClock(); updateCountdown(cachedPrayerTimes||FALLBACK_TIMINGS,now);},1000);
+}
+init();
 </script>
-
 </body>
 </html>
