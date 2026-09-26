@@ -39,6 +39,7 @@
     margin-bottom: 25px;
     padding-bottom: 20px;
     border-bottom: 1px solid rgba(255,255,255,0.08);
+    position: relative;
   }
 
   .logo-icon {
@@ -59,6 +60,27 @@
     color: #6b7a8f;
     letter-spacing: 1px;
     text-transform: uppercase;
+  }
+
+  /* Lokasi dinamis badge */
+  .location-badge {
+    display: inline-block;
+    margin-top: 8px;
+    padding: 3px 10px;
+    background: rgba(107,122,143,0.15);
+    border-radius: 12px;
+    font-size: 11px;
+    color: #8fa8c0;
+  }
+
+  .location-loading {
+    color: #4a5c72;
+    animation: pulse 1.5s infinite;
+  }
+
+  @keyframes pulse {
+    0%, 100% { opacity: 0.4; }
+    50% { opacity: 1; }
   }
 
   .time-display {
@@ -316,7 +338,9 @@
   <div class="board-header">
     <div class="logo-icon">🕌</div>
     <div class="masjid-name">MASJID AL-IKHLAS</div>
-    <div class="masjid-location">Denpasar, Bali</div>
+    <div id="location-display" class="location-badge location-loading">
+      🔍 Mendeteksi lokasi...
+    </div>
   </div>
 
   <!-- Time Display -->
@@ -364,7 +388,7 @@
       <div class="ann-badge">Pengajian Malam</div>
       <div class="ann-text">
         <strong>Pengajian Yasinan Malam Jum'at</strong><br>
-        <span class="ann-time">Setelah shalat Isya • Pukul 19:30 WITA</span>
+        <span class="ann-time">Setelah shalat Isya • Pukul 18:30 WIB</span>
       </div>
     </div>
   </div>
@@ -376,19 +400,15 @@
   </div>
 
   <div class="footer">
-    Masjid Al-Ikhlas • Denpasar • Update Otomatis
+    Masjid Al-Ikhlas • Update Otomatis
   </div>
 </div>
 
 <script>
 // ==================== KONFIGURASI ====================
-const MASJID = {
-  name: "Masjid Al-Ikhlas",
-  location: "Denpasar, Bali",
-  timezone: "Asia/Jakarta",
-};
+const DEFAULT_LOCATION = "Denpasar, Bali";
+const DEFAULT_TIMEZONE = "Asia/Jakarta";
 
-// Jadwal shalat (WIB) — ganti sesuai jadwal atual
 const PRAYER_TIMES = {
   subuh:    { time: "03:55", icon: "🌅" },
   dzuhur:  { time: "11:15", icon: "☀️" },
@@ -396,6 +416,89 @@ const PRAYER_TIMES = {
   maghrib: { time: "17:16", icon: "🌆" },
   isya:    { time: "18:25", icon: "🌙" }
 };
+
+// State
+let detectedLocation = DEFAULT_LOCATION;
+let detectedTimezone = DEFAULT_TIMEZONE;
+let geoSupported = false;
+
+// ==================== GEOLOCATION ====================
+
+function setLocationDisplay(text, isLoading = false) {
+  const el = document.getElementById("location-display");
+  el.textContent = text;
+  el.className = "location-badge" + (isLoading ? " location-loading" : "");
+}
+
+function reverseGeocode(lat, lon) {
+  const url = `https://nominatim.openstreetmap.org/reverse?lat=${lat}&lon=${lon}&format=json&zoom=10&accept-language=id`;
+
+  return fetch(url, {
+    headers: { "User-Agent": "MasjidInfoBoard/1.0" }
+  })
+  .then(res => {
+    if (!res.ok) throw new Error(`HTTP ${res.status}`);
+    return res.json();
+  })
+  .then(data => {
+    const addr = data.address || {};
+    const city = addr.city || addr.town || addr.village || addr.county || "";
+    const state = addr.state || "";
+    const country = addr.country || "";
+
+    let parts = [];
+    if (city) parts.push(city);
+    if (state) parts.push(state);
+    if (country && country !== "Indonesia") parts.push(country);
+
+    return parts.join(", ") || DEFAULT_LOCATION;
+  });
+}
+
+function detectLocation() {
+  if (!navigator.geolocation) {
+    setLocationDisplay(DEFAULT_LOCATION);
+    return Promise.resolve(DEFAULT_LOCATION);
+  }
+
+  geoSupported = true;
+  setLocationDisplay("🔍 Mendeteksi lokasi...", true);
+
+  return new Promise((resolve) => {
+    navigator.geolocation.getCurrentPosition(
+      async (pos) => {
+        try {
+          const lat = pos.coords.latitude.toFixed(4);
+          const lon = pos.coords.longitude.toFixed(4);
+          const location = await reverseGeocode(lat, lon);
+          detectedLocation = location;
+          setLocationDisplay(location);
+          resolve(location);
+        } catch (err) {
+          console.warn("Reverse geocode gagal:", err);
+          setLocationDisplay(DEFAULT_LOCATION);
+          resolve(DEFAULT_LOCATION);
+        }
+      },
+      (err) => {
+        // User denied / timeout / unavailable
+        let msg = DEFAULT_LOCATION;
+        if (err.code === err.PERMISSION_DENIED) {
+          msg = "📍 Izin lokasi ditolak — tampilkan lokasi default";
+        } else if (err.code === err.TIMEOUT) {
+          msg = "⏱️ Timeout lokasi — tampilkan lokasi default";
+        }
+        setLocationDisplay(msg);
+        resolve(DEFAULT_LOCATION);
+      },
+      {
+        enableHighAccuracy: false,
+        timeout: 8000,
+        maximumAge: 300000 // 5 menit cache
+      }
+    );
+  });
+}
 
 // ==================== FUNGSI UTAMA ====================
 
@@ -426,13 +529,6 @@ function getCurrentTimeAndDate() {
   const monthName = getIndonesianMonth(now);
   const dateStr = `${now.getDate()} ${monthName} ${now.getFullYear()}, ${dayName}`;
   return { time: timeStr, date: dateStr };
-}
-
-function timestampToTime(ts) {
-  const d = new Date(ts);
-  const h = String(d.getHours()).padStart(2, "0");
-  const m = String(d.getMinutes()).padStart(2, "0");
-  return `${h}:${m}`;
 }
 
 function timeDiffSeconds(targetTime, now) {
@@ -466,7 +562,7 @@ function renderPrayerTimes() {
         <span class="prayer-icon">${val.icon}</span>
         ${key.charAt(0).toUpperCase() + key.slice(1)}
       </div>
-      <div class="prayer-time">${val.time} WITA</div>
+      <div class="prayer-time">${val.time} WIB</div>
     `;
     container.appendChild(item);
   });
@@ -504,6 +600,12 @@ function updateClock() {
 renderPrayerTimes();
 updateClock();
 updateCountdown();
+
+// Deteksi lokasi — jangan tunggu, lanjut animasi jam dulu
+detectLocation().catch(err => {
+  console.warn("Geolocation error:", err);
+  setLocationDisplay(DEFAULT_LOCATION);
+});
 
 setInterval(() => {
   updateClock();
