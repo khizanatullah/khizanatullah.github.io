@@ -327,7 +327,7 @@
       <div class="date-value" id="current-date">---</div>
     </div>
     <div class="time-box">
-      <div class="time-label">Tanggal Hijriah</div>
+      <div class="time-label">Tanggal</div>
       <div class="time-value" id="hijriah-date" style="font-size:20px;">--</div>
       <div class="date-value" id="hijriah-day">---</div>
     </div>
@@ -346,7 +346,7 @@
       <div class="countdown-title">Countdown Menuju Subuh</div>
       <div class="countdown-timer" id="countdown-timer">--:--:--</div>
       <div class="countdown-label" id="countdown-status">Menunggu Subuh</div>
-      <div class="countdown-subuh-time" id="subuh-time-display">Subuh: 04:55 WITA</div>
+      <div class="countdown-subuh-time" id="subuh-time-display">Subuh: 03:55 WIB</div>
     </div>
   </div>
 
@@ -357,7 +357,7 @@
       <div class="ann-badge">Imsak & Subuh</div>
       <div class="ann-text">
         <span class="ann-leader">Ust. Mahfud</span> akan memimpin shalat Subuh beserta <span class="ann-time">Wajib dan Sunnah</span>
-        <div class="ann-time" style="margin-top:6px;">⏰ 04:30 - 05:15 WITA</div>
+        <div class="ann-time" style="margin-top:6px;">⏰ 03:30 - 04:15 WIB</div>
       </div>
     </div>
     <div class="announcement">
@@ -385,16 +385,16 @@
 const MASJID = {
   name: "Masjid Al-Ikhlas",
   location: "Denpasar, Bali",
-  timezone: "Asia/Makassar",
+  timezone: "Asia/Jakarta",
 };
 
-// Jadwal shalat (WITA) — ganti sesuai jadwal atual
+// Jadwal shalat (WIB) — ganti sesuai jadwal atual
 const PRAYER_TIMES = {
-  subuh:    { time: "04:55", icon: "🌅" },
-  dzuhur:  { time: "12:15", icon: "☀️" },
-  ashar:   { time: "15:30", icon: "🌤️" },
-  maghrib: { time: "18:16", icon: "🌆" },
-  isya:    { time: "19:25", icon: "🌙" }
+  subuh:    { time: "03:55", icon: "🌅" },
+  dzuhur:  { time: "11:15", icon: "☀️" },
+  ashar:   { time: "14:30", icon: "🌤️" },
+  maghrib: { time: "17:16", icon: "🌆" },
+  isya:    { time: "18:25", icon: "🌙" }
 };
 
 // ==================== FUNGSI UTAMA ====================
@@ -489,7 +489,7 @@ function updateCountdown() {
     statusEl.style.color = "#6b7a8f";
   }
   document.getElementById("subuh-time-display").textContent =
-    `Subuh: ${subuhTime} WITA`;
+    `Subuh: ${subuhTime} WIB`;
 }
 
 function updateClock() {
