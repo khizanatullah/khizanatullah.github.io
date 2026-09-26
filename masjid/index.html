@@ -377,18 +377,9 @@
   <!-- Announcements -->
   <div class="announcements">
     <div class="ann-title">📢 Pengumuman</div>
-    <div class="announcement">
-      <div class="ann-badge">Imsak & Subuh</div>
-      <div class="ann-text">
-        <span class="ann-leader">Ust. Mahfud</span> akan memimpin shalat Subuh beserta <span class="ann-time">Wajib dan Sunnah</span>
-        <div class="ann-time" style="margin-top:6px;">⏰ 03:30 - 04:15 WIB</div>
-      </div>
-    </div>
-    <div class="announcement">
-      <div class="ann-badge">Pengajian Malam</div>
-      <div class="ann-text">
-        <strong>Pengajian Yasinan Malam Jum'at</strong><br>
-        <span class="ann-time">Setelah shalat Isya • Pukul 18:30 WIB</span>
+    <div id="announcements-container">
+      <div class="announcement" style="text-align:center;color:#6b7a8f;">
+        Memuat pengumuman...
       </div>
     </div>
   </div>
@@ -568,6 +559,64 @@ function renderPrayerTimes() {
   });
 }
 
+function renderAnnouncements(announcements) {
+  const container = document.getElementById("announcements-container");
+  container.innerHTML = "";
+  if (!announcements || announcements.length === 0) {
+    container.innerHTML = `
+      <div class="announcement" style="text-align:center;color:#6b7a8f;">
+        Belum ada pengumuman
+      </div>`;
+    return;
+  }
+  announcements.forEach((ann) => {
+    const div = document.createElement("div");
+    div.className = "announcement";
+
+    const hasLeader = ann.leader && ann.leader.trim();
+    const hasTitle = ann.title && ann.title.trim();
+
+    let bodyHtml = "";
+    if (hasLeader) {
+      bodyHtml += `<span class="ann-leader">${ann.leader}</span>`;
+      if (ann.body) bodyHtml += ` ${ann.body}`;
+    } else if (hasTitle) {
+      bodyHtml += `<strong>${ann.title}</strong>`;
+      if (ann.body) bodyHtml += `<br>${ann.body}`;
+    } else if (ann.body) {
+      bodyHtml += ann.body;
+    }
+
+    let timeHtml = "";
+    if (ann.time) {
+      timeHtml = `<div class="ann-time" style="margin-top:6px;">${ann.time}</div>`;
+    }
+
+    div.innerHTML = `
+      <div class="ann-badge">${ann.badge || "Pengumuman"}</div>
+      <div class="ann-text">${bodyHtml}${timeHtml}</div>
+    `;
+    container.appendChild(div);
+  });
+}
+
+async function loadAnnouncements() {
+  const container = document.getElementById("announcements-container");
+  try {
+    const res = await fetch("./announcements.json");
+    if (!res.ok) throw new Error(`HTTP ${res.status}`);
+    const data = await res.json();
+    if (!Array.isArray(data)) throw new Error("Format JSON tidak sesuai");
+    renderAnnouncements(data);
+  } catch (err) {
+    console.warn("Gagal load announcements.json:", err);
+    container.innerHTML = `
+      <div class="announcement" style="text-align:center;color:#6b7a8f;">
+        Gagal memuat pengumuman
+      </div>`;
+  }
+}
+
 function updateCountdown() {
   const now = new Date();
   const subuhTime = PRAYER_TIMES.subuh.time;
@@ -598,6 +647,7 @@ function updateClock() {
 // ==================== INIT ====================
 
 renderPrayerTimes();
+loadAnnouncements();
 updateClock();
 updateCountdown();
 
