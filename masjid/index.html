@@ -1,0 +1,515 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Papan Info Masjid Al-Ikhlas</title>
+<style>
+  @import url('https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;600;700&family=Playfair+Display:wght@700&display=swap');
+
+  * {
+    margin: 0;
+    padding: 0;
+    box-sizing: border-box;
+  }
+
+  body {
+    font-family: 'Poppins', sans-serif;
+    background: #0a0e1a;
+    color: #ffffff;
+    min-height: 100vh;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    padding: 20px;
+  }
+
+  .board {
+    width: 100%;
+    max-width: 900px;
+    background: linear-gradient(135deg, #0d1520 0%, #1a2538 100%);
+    border-radius: 20px;
+    padding: 30px;
+    box-shadow: 0 20px 60px rgba(0,0,0,0.5), inset 0 1px 0 rgba(255,255,255,0.05);
+    border: 1px solid rgba(255,255,255,0.08);
+  }
+
+  .board-header {
+    text-align: center;
+    margin-bottom: 25px;
+    padding-bottom: 20px;
+    border-bottom: 1px solid rgba(255,255,255,0.08);
+  }
+
+  .logo-icon {
+    font-size: 32px;
+    margin-bottom: 8px;
+  }
+
+  .masjid-name {
+    font-family: 'Playfair Display', serif;
+    font-size: 24px;
+    color: #c9a84c;
+    letter-spacing: 2px;
+    margin-bottom: 4px;
+  }
+
+  .masjid-location {
+    font-size: 12px;
+    color: #6b7a8f;
+    letter-spacing: 1px;
+    text-transform: uppercase;
+  }
+
+  .time-display {
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    gap: 30px;
+    margin-bottom: 25px;
+    flex-wrap: wrap;
+  }
+
+  .time-box {
+    text-align: center;
+    padding: 15px 25px;
+    background: rgba(255,255,255,0.03);
+    border-radius: 12px;
+    border: 1px solid rgba(255,255,255,0.06);
+    min-width: 150px;
+  }
+
+  .time-label {
+    font-size: 11px;
+    color: #6b7a8f;
+    text-transform: uppercase;
+    letter-spacing: 2px;
+    margin-bottom: 8px;
+  }
+
+  .time-value {
+    font-size: 28px;
+    font-weight: 700;
+    color: #ffffff;
+    letter-spacing: 2px;
+  }
+
+  .date-value {
+    font-size: 14px;
+    color: #c9a84c;
+    margin-top: 5px;
+    letter-spacing: 1px;
+  }
+
+  .main-content {
+    display: grid;
+    grid-template-columns: 1fr 1.5fr;
+    gap: 25px;
+    margin-bottom: 25px;
+  }
+
+  @media (max-width: 700px) {
+    .main-content {
+      grid-template-columns: 1fr;
+    }
+    .time-display {
+      flex-direction: column;
+      gap: 15px;
+    }
+    .board {
+      padding: 15px;
+    }
+  }
+
+  .prayer-panel {
+    background: rgba(255,255,255,0.03);
+    border-radius: 12px;
+    padding: 20px;
+    border: 1px solid rgba(255,255,255,0.06);
+    height: 100%;
+  }
+
+  .panel-title {
+    font-size: 13px;
+    color: #c9a84c;
+    text-transform: uppercase;
+    letter-spacing: 2px;
+    margin-bottom: 15px;
+    text-align: center;
+    padding-bottom: 10px;
+    border-bottom: 1px solid rgba(255,255,255,0.06);
+  }
+
+  .prayer-list {
+    display: flex;
+    flex-direction: column;
+    gap: 8px;
+  }
+
+  .prayer-item {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    padding: 10px 12px;
+    background: rgba(255,255,255,0.03);
+    border-radius: 8px;
+    transition: all 0.3s ease;
+  }
+
+  .prayer-item:hover {
+    background: rgba(255,255,255,0.06);
+    transform: translateX(5px);
+  }
+
+  .prayer-name {
+    font-weight: 600;
+    color: #a0b4cc;
+    display: flex;
+    align-items: center;
+    gap: 8px;
+  }
+
+  .prayer-icon {
+    font-size: 16px;
+  }
+
+  .prayer-time {
+    font-size: 16px;
+    font-weight: 700;
+    color: #ffffff;
+  }
+
+  .countdown-section {
+    background: linear-gradient(135deg, rgba(201,168,76,0.08) 0%, rgba(201,168,76,0.03) 100%);
+    border-radius: 12px;
+    padding: 20px;
+    border: 1px solid rgba(201,168,76,0.15);
+    text-align: center;
+  }
+
+  .countdown-title {
+    font-size: 13px;
+    color: #c9a84c;
+    text-transform: uppercase;
+    letter-spacing: 2px;
+    margin-bottom: 15px;
+  }
+
+  .countdown-timer {
+    font-size: 42px;
+    font-weight: 700;
+    color: #ffffff;
+    letter-spacing: 3px;
+    margin-bottom: 10px;
+  }
+
+  .countdown-label {
+    font-size: 13px;
+    color: #6b7a8f;
+    letter-spacing: 1px;
+  }
+
+  .countdown-subuh-time {
+    margin-top: 12px;
+    font-size: 12px;
+    color: #c9a84c;
+    letter-spacing: 1px;
+  }
+
+  .announcements {
+    background: rgba(255,255,255,0.03);
+    border-radius: 12px;
+    padding: 20px;
+    border: 1px solid rgba(255,255,255,0.06);
+  }
+
+  .ann-title {
+    font-size: 13px;
+    color: #c9a84c;
+    text-transform: uppercase;
+    letter-spacing: 2px;
+    margin-bottom: 15px;
+    text-align: center;
+    padding-bottom: 10px;
+    border-bottom: 1px solid rgba(255,255,255,0.06);
+  }
+
+  .announcement {
+    padding: 12px;
+    background: rgba(255,255,255,0.02);
+    border-radius: 8px;
+    margin-bottom: 10px;
+    border-left: 3px solid #c9a84c;
+  }
+
+  .announcement:last-child {
+    margin-bottom: 0;
+  }
+
+  .ann-badge {
+    display: inline-block;
+    padding: 2px 8px;
+    background: rgba(201,168,76,0.15);
+    color: #c9a84c;
+    font-size: 10px;
+    border-radius: 4px;
+    letter-spacing: 1px;
+    margin-bottom: 6px;
+    text-transform: uppercase;
+  }
+
+  .ann-text {
+    font-size: 13px;
+    line-height: 1.6;
+    color: #c0cedb;
+  }
+
+  .ann-leader {
+    color: #ffffff;
+    font-weight: 600;
+  }
+
+  .ann-time {
+    color: #c9a84c;
+    font-size: 12px;
+    margin-top: 4px;
+  }
+
+  .banner {
+    background: linear-gradient(90deg, rgba(201,168,76,0.12) 0%, rgba(201,168,76,0.05) 100%);
+    border-radius: 12px;
+    padding: 18px 20px;
+    border: 1px solid rgba(201,168,76,0.15);
+    text-align: center;
+    margin-top: 25px;
+  }
+
+  .banner-quote {
+    font-family: 'Playfair Display', serif;
+    font-size: 16px;
+    color: #c9a84c;
+    font-style: italic;
+    letter-spacing: 1px;
+    line-height: 1.6;
+  }
+
+  .banner-arabic {
+    font-size: 14px;
+    color: #8b7a4a;
+    margin-top: 5px;
+    font-style: normal;
+  }
+
+  .footer {
+    text-align: center;
+    margin-top: 20px;
+    font-size: 10px;
+    color: #3d4a5c;
+    letter-spacing: 1px;
+  }
+</style>
+</head>
+<body>
+
+<div class="board">
+  <!-- Header -->
+  <div class="board-header">
+    <div class="logo-icon">🕌</div>
+    <div class="masjid-name">MASJID AL-IKHLAS</div>
+    <div class="masjid-location">Denpasar, Bali</div>
+  </div>
+
+  <!-- Time Display -->
+  <div class="time-display">
+    <div class="time-box">
+      <div class="time-label">Waktu Sekarang</div>
+      <div class="time-value" id="current-time">--:--:--</div>
+      <div class="date-value" id="current-date">---</div>
+    </div>
+    <div class="time-box">
+      <div class="time-label">Tanggal Hijriah</div>
+      <div class="time-value" id="hijriah-date" style="font-size:20px;">--</div>
+      <div class="date-value" id="hijriah-day">---</div>
+    </div>
+  </div>
+
+  <!-- Main Content -->
+  <div class="main-content">
+    <!-- Prayer Times Panel -->
+    <div class="prayer-panel">
+      <div class="panel-title">⏰ Jadwal Shalat</div>
+      <div class="prayer-list" id="prayer-list"></div>
+    </div>
+
+    <!-- Countdown Section -->
+    <div class="countdown-section">
+      <div class="countdown-title">Countdown Menuju Subuh</div>
+      <div class="countdown-timer" id="countdown-timer">--:--:--</div>
+      <div class="countdown-label" id="countdown-status">Menunggu Subuh</div>
+      <div class="countdown-subuh-time" id="subuh-time-display">Subuh: 04:55 WITA</div>
+    </div>
+  </div>
+
+  <!-- Announcements -->
+  <div class="announcements">
+    <div class="ann-title">📢 Pengumuman</div>
+    <div class="announcement">
+      <div class="ann-badge">Imsak & Subuh</div>
+      <div class="ann-text">
+        <span class="ann-leader">Ust. Mahfud</span> akan memimpin shalat Subuh beserta <span class="ann-time">Wajib dan Sunnah</span>
+        <div class="ann-time" style="margin-top:6px;">⏰ 04:30 - 05:15 WITA</div>
+      </div>
+    </div>
+    <div class="announcement">
+      <div class="ann-badge">Pengajian Malam</div>
+      <div class="ann-text">
+        <strong>Pengajian Yasinan Malam Jum'at</strong><br>
+        <span class="ann-time">Setelah shalat Isya • Pukul 19:30 WITA</span>
+      </div>
+    </div>
+  </div>
+
+  <!-- Banner -->
+  <div class="banner">
+    <div class="banner-quote">"Worship with a sincere heart and intention for Allah"</div>
+    <div class="banner-arabic"> ٱلصَّلَاةُ خَيْرٌ مِّنَ النَّوْمِ </div>
+  </div>
+
+  <div class="footer">
+    Masjid Al-Ikhlas • Denpasar • Update Otomatis
+  </div>
+</div>
+
+<script>
+// ==================== KONFIGURASI ====================
+const MASJID = {
+  name: "Masjid Al-Ikhlas",
+  location: "Denpasar, Bali",
+  timezone: "Asia/Makassar",
+};
+
+// Jadwal shalat (WITA) — ganti sesuai jadwal atual
+const PRAYER_TIMES = {
+  subuh:    { time: "04:55", icon: "🌅" },
+  dzuhur:  { time: "12:15", icon: "☀️" },
+  ashar:   { time: "15:30", icon: "🌤️" },
+  maghrib: { time: "18:16", icon: "🌆" },
+  isya:    { time: "19:25", icon: "🌙" }
+};
+
+// ==================== FUNGSI UTAMA ====================
+
+function getIndonesianDay(date) {
+  const days = ["Minggu", "Senin", "Selasa", "Rabu", "Kamis", "Jumat", "Sabtu"];
+  return days[date.getDay()];
+}
+
+function getIndonesianMonth(date) {
+  const months = ["Januari", "Februari", "Maret", "April", "Mei", "Juni",
+                  "Juli", "Agustus", "September", "Oktober", "November", "Desember"];
+  return months[date.getMonth()];
+}
+
+function formatTime(date) {
+  return date.toLocaleTimeString("id-ID", {
+    hour: "2-digit",
+    minute: "2-digit",
+    second: "2-digit",
+    hour12: false
+  });
+}
+
+function getCurrentTimeAndDate() {
+  const now = new Date();
+  const timeStr = formatTime(now);
+  const dayName = getIndonesianDay(now);
+  const monthName = getIndonesianMonth(now);
+  const dateStr = `${now.getDate()} ${monthName} ${now.getFullYear()}, ${dayName}`;
+  return { time: timeStr, date: dateStr };
+}
+
+function timestampToTime(ts) {
+  const d = new Date(ts);
+  const h = String(d.getHours()).padStart(2, "0");
+  const m = String(d.getMinutes()).padStart(2, "0");
+  return `${h}:${m}`;
+}
+
+function timeDiffSeconds(targetTime, now) {
+  const [h, m] = targetTime.split(":").map(Number);
+  const target = new Date(now);
+  target.setHours(h, m, 0, 0);
+  if (target <= now) {
+    target.setDate(target.getDate() + 1);
+  }
+  return Math.floor((target - now) / 1000);
+}
+
+function formatCountdown(totalSeconds) {
+  if (totalSeconds <= 0) return "00 jam 00 menit 00 detik";
+  const hours = Math.floor(totalSeconds / 3600);
+  const minutes = Math.floor((totalSeconds % 3600) / 60);
+  const seconds = totalSeconds % 60;
+  return `${String(hours).padStart(2, "0")} jam ${String(minutes).padStart(2, "0")} menit ${String(seconds).padStart(2, "0")} detik`;
+}
+
+// ==================== RENDER ====================
+
+function renderPrayerTimes() {
+  const container = document.getElementById("prayer-list");
+  container.innerHTML = "";
+  Object.entries(PRAYER_TIMES).forEach(([key, val]) => {
+    const item = document.createElement("div");
+    item.className = "prayer-item";
+    item.innerHTML = `
+      <div class="prayer-name">
+        <span class="prayer-icon">${val.icon}</span>
+        ${key.charAt(0).toUpperCase() + key.slice(1)}
+      </div>
+      <div class="prayer-time">${val.time} WITA</div>
+    `;
+    container.appendChild(item);
+  });
+}
+
+function updateCountdown() {
+  const now = new Date();
+  const subuhTime = PRAYER_TIMES.subuh.time;
+  const diff = timeDiffSeconds(subuhTime, now);
+  document.getElementById("countdown-timer").textContent = formatCountdown(diff);
+  const statusEl = document.getElementById("countdown-status");
+  if (diff <= 0) {
+    statusEl.textContent = "✨ Subuh telah tiba!";
+    statusEl.style.color = "#c9a84c";
+  } else if (diff < 3600) {
+    statusEl.textContent = "⏳ Segera Subuh!";
+    statusEl.style.color = "#e8894a";
+  } else {
+    statusEl.textContent = "Menunggu Subuh...";
+    statusEl.style.color = "#6b7a8f";
+  }
+  document.getElementById("subuh-time-display").textContent =
+    `Subuh: ${subuhTime} WITA`;
+}
+
+function updateClock() {
+  const { time, date } = getCurrentTimeAndDate();
+  document.getElementById("current-time").textContent = time;
+  document.getElementById("current-date").textContent = date;
+  document.getElementById("hijriah-day").textContent = "6 Rabiul Akhir 1448 H";
+}
+
+// ==================== INIT ====================
+
+renderPrayerTimes();
+updateClock();
+updateCountdown();
+
+setInterval(() => {
+  updateClock();
+  updateCountdown();
+}, 1000);
+</script>
+
+</body>
+</html>
