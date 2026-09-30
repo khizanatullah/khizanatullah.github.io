@@ -355,7 +355,17 @@
     white-space: nowrap;
   }
   .td-stock.low { color: #e65100; font-weight: 500; }
-  .td-stock.nostock { color: #c62828; }
+  .td-stock.nostock { color: #c62828; font-weight: 600; }
+  .td-stock .stock-badge { 
+    display: inline-block; 
+    padding: 1px 6px; 
+    border-radius: 3px; 
+    font-size: 10px; 
+    font-weight: 600;
+  }
+  .td-stock .stock-badge.habis { background: #FFEBEE; color: #C62828; }
+  .td-stock .stock-badge.low { background: #FFF3E0; color: #E65100; }
+  .td-stock .stock-badge.minus { background: #E3F2FD; color: #1565C0; }
 
   .btn-add {
     background: var(--blue-500);
@@ -603,6 +613,11 @@
     .stat-card { padding: 8px 12px; min-width: 80px; }
     .stat-card .stat-value { font-size: 15px; }
   }
+
+.td-stock.minus { color: #1565C0; font-weight: 500; }  /* Biru untuk stok negatif */
+  .td-stock.decimal { font-variant-numeric: tabular-nums; } /* Alignment desimal */
+  .stock-warning { background: #FFF3E0; color: #E65100; padding: 2px 6px; border-radius: 3px; font-size: 11px; }
+  .stock-minus { background: #E3F2FD; color: #1565C0; padding: 2px 6px; border-radius: 3px; font-size: 11px; }
 </style>
 </head>
 <body>
@@ -792,11 +807,14 @@ function renderTable() {
       if (stockInfo === 0) {
         stockClass = 'nostock';
         stockText = 'Habis';
+      } else if (stockInfo < 0) {
+        stockClass = 'minus';
+        stockText = formatStockDisplay(stockInfo);
       } else if (stockInfo <= 5) {
         stockClass = 'low';
-        stockText = stockInfo;
+        stockText = formatStockDisplay(stockInfo);
       } else {
-        stockText = stockInfo;
+        stockText = formatStockDisplay(stockInfo);
       }
     }
 
@@ -1005,7 +1023,8 @@ btnCheckout.addEventListener('click', () => {
       .right { text-align: right; }
       .total-row { font-weight: bold; font-size: 15px; background: #e3f2fd; }
       .footer { text-align: center; color: #999; font-size: 11px; margin-top: 20px; }
-    </style></head><body>
+    
+  </style></head><body>
       <h1>TB. KHIZANATULLAH</h1>
       <div class="sub">Toko PONPES MTA</div>
       <table>
@@ -1049,7 +1068,343 @@ $('btnSearch').addEventListener('click', () => {
 // Real-time search — hasil muncul langsung saat mengetik (debounce 300ms)
 let searchTimer;
 searchInput.addEventListener('input', () => {
-  clearTimeout(searchTimer);
+  clearTimeout(
+<script>
+// ========== STOCK LOADER (Fetch dari Google Sheets) ==========
+// Modul ini fetch data stok dari Google Sheets & merge ke PRODUCTS
+(async function initStockLoader() {
+  'use strict';
+  
+  const SHEET_CSV_URL = 'https://docs.google.com/spreadsheets/d/1D1w0ghs6CNRs5I7TCj1Uh_hOZ2wPQyjBUihKtcFnFbg/export?format=csv';
+  const CACHE_KEY = 'toko_stok_cache';
+  const CACHE_EXPIRY_HOURS = 1; // Cache 1 jam
+  
+  // Helper: normalize nama untuk matching
+  function normalizeName(name) {
+    if (!name) return '';
+    let n = name.toLowerCase();
+    n = n.replace(/\s+/g, ' ').trim();
+    n = n.replace(/["'`]/g, '');
+    n = n.replace(/[()]/g, ' ');
+    n = n.replace(/[-_]/g, ' ');
+    n = n.replace(/\//g, ' ');
+    n = n.replace(/\s+/g, ' ').trim();
+    return n;
+  }
+  
+  // Helper: format stok buat tampilan (desimal pakai koma)
+  function formatStockDisplay(angka) {
+    if (angka === null || angka === undefined || isNaN(angka)) return '-';
+    
+    const num = Number(angka);
+    
+    // Cek apakah desimal
+    const isDecimal = num !== Math.floor(num);
+    
+    if (num < 0) {
+      const absVal = Math.abs(num);
+      const formatted = formatNumberManual(absVal, isDecimal);
+      return 'Minus ' + formatted;
+    } else {
+      return formatNumberManual(num, isDecimal);
+    }
+  }
+  
+  // Format angka manual: ribuan pakai titik, desimal pakai koma
+  function formatNumberManual(num, isDecimal) {
+    const absNum = Math.abs(num);
+    
+    // Split integer & desimal
+    const intPart = Math.floor(absNum);
+    const decPart = isDecimal ? absNum - intPart : 0;
+    
+    // Format integer dengan titik ribuan
+    const intStr = String(intPart);
+    let formattedInt = '';
+    for (let i = 0; i < intStr.length; i++) {
+      if (i > 0 && (intStr.length - i) % 3 === 0) {
+        formattedInt += '.';
+      }
+      formattedInt += intStr[i];
+    }
+    
+    // Format desimal
+    if (isDecimal) {
+      const decRounded = Math.round(decPart * 100) / 100;
+      const decStr = String(decRounded).split('.')[1] || '00';
+      const decPadded = (decStr + '00').substring(0, 2);
+      return formattedInt + ',' + decPadded;
+    }
+    
+    return formattedInt;
+  }
+  
+  // Helper: parse CSV text → array of objects
+  function parseCSV(text) {
+    const lines = text.split(/\r?\n/);
+    const result = [];
+    let header = null;
+    
+    for (let i = 0; i < lines.length; i++) {
+      const line = lines[i].trim();
+      if (!line) continue;
+      
+      // Skip baris yang bukan data (header cetak ulang, kosong, dll)
+      if (line.startsWith('Tanggal cetak') || line === ',,,,') continue;
+      
+      // Parse CSV line (handle quoted fields)
+      const row = parseCSVLine(line);
+      if (!header) {
+        header = row;
+        continue;
+      }
+      
+      if (row.length >= 4) {
+        const nama = row[0].trim();
+        // Skip header ulang atau baris kosong
+        if (!nama || nama === 'Nama Barang') continue;
+        
+        const satuan = row[1] ? row[1].trim() : '';
+        const hargaStr = row[2] ? row[2].trim() : '';
+        const stokStr = row[3] ? row[3].trim() : '';
+        
+        // Parse harga
+        let harga = null;
+        if (hargaStr) {
+          const h = hargaStr.replace(/[\.]/g, '').replace(/,/g, '.');
+          const parsed = parseFloat(h);
+          if (!isNaN(parsed)) harga = parsed;
+        }
+        
+        // Parse stok
+        let stok = null;
+        if (stokStr) {
+          const s = stokStr.replace(/[\.]/g, '').replace(/,/g, '.');
+          const parsed = parseFloat(s);
+          if (!isNaN(parsed)) stok = parsed;
+        }
+        
+        result.push({
+          nama: nama,
+          satuan: satuan,
+          harga: harga,
+          stok: stok,
+          nama_norm: normalizeName(nama)
+        });
+      }
+    }
+    return result;
+  }
+  
+  // Parse satu baris CSV (handle quoted fields dengan koma didalamnya)
+  function parseCSVLine(line) {
+    const result = [];
+    let current = '';
+    let inQuotes = false;
+    
+    for (let i = 0; i < line.length; i++) {
+      const ch = line[i];
+      if (ch === '"') {
+        if (inQuotes && i + 1 < line.length && line[i + 1] === '"') {
+          // Escape quote: "" → "
+          current += '"';
+          i++; // skip next quote
+        } else {
+          inQuotes = !inQuotes;
+        }
+      } else if (ch === ',' && !inQuotes) {
+        result.push(current);
+        current = '';
+      } else {
+        current += ch;
+      }
+    }
+    result.push(current);
+    return result;
+  }
+  
+  // Lookup stok berdasarkan nama produk
+  function lookupStock(productName, stockMap) {
+    const norm = normalizeName(productName);
+    
+    // Exact match (prioritas utama)
+    if (stockMap.has(norm)) {
+      return stockMap.get(norm);
+    }
+    
+    // Fuzzy: cari partial match yang SAFE
+    // Hanya match kalau:
+    // - Nama web mengandung nama sheet (web lebih spesifik), ATAU
+    // - Nama sheet mengandung nama web DAN nama web >= 5 karakter (menghindari match false seperti "OLI")
+    for (const [sheetNorm, sheetStok] of stockMap.entries()) {
+      const webContainsSheet = norm.includes(sheetNorm);
+      const sheetContainsWeb = sheetNorm.includes(norm);
+      
+      if (webContainsSheet) {
+        // Web mengandung sheet → ini aman (nama web lebih lengkap)
+        return sheetStok;
+      }
+      
+      if (sheetContainsWeb && norm.length >= 5) {
+        // Sheet mengandung web, tapi hanya kalau web cukup spesifik (>= 5 char)
+        // Ini menghindari false match: "OLI" (3 char) nggak akan match ke sheet yang mengandung "OLI"
+        return sheetStok;
+      }
+    }
+    
+    return null;
+  }
+  
+  // Cache management
+  function getCache() {
+    try {
+      const raw = localStorage.getItem(CACHE_KEY);
+      if (!raw) return null;
+      const data = JSON.parse(raw);
+      // Cek expiry
+      if (data.timestamp && Date.now() - data.timestamp < CACHE_EXPIRY_HOURS * 60 * 60 * 1000) {
+        return data;
+      }
+      // Expired → delete
+      localStorage.removeItem(CACHE_KEY);
+      return null;
+    } catch (e) {
+      return null;
+    }
+  }
+  
+  function setCache(data) {
+    try {
+      localStorage.setItem(CACHE_KEY, JSON.stringify({
+        timestamp: Date.now(),
+        ...data
+      }));
+    } catch (e) {
+      // localStorage mungkin penuh atau nggak available
+    }
+  }
+  
+  // Main: load stok dari sheet
+  async function loadStockFromSheet() {
+    // Cek cache dulu
+    const cached = getCache();
+    if (cached && cached.stockMap) {
+      console.log('[StockLoader] Menggunakan cache stok (valid)');
+      return cached.stockMap;
+    }
+    
+    // Tampilkan loading status (kalauloading element masih ada)
+    const loadingEl = document.getElementById('loading');
+    const loadingMsg = loadingEl ? loadingEl.querySelector('p') : null;
+    if (loadingMsg) {
+      loadingMsg.textContent = 'Memuat data stok dari Google Sheets...';
+    }
+    
+    try {
+      const response = await fetch(SHEET_CSV_URL, {
+        method: 'GET',
+        headers: { 'Accept': 'text/csv' }
+      });
+      
+      if (!response.ok) {
+        throw new Error(`HTTP ${response.status}: ${response.statusText}`);
+      }
+      
+      const text = await response.text();
+      const rows = parseCSV(text);
+      
+      // Build stock map: normalized name → stock value
+      const stockMap = new Map();
+      for (const row of rows) {
+        if (row.stok !== null && row.nama_norm) {
+          // Kalau ada duplikat, ambil stok terbesar (lebih realistis)
+          const prev = stockMap.get(row.nama_norm);
+          if (prev === undefined || row.stok > prev) {
+            stockMap.set(row.nama_norm, row.stok);
+          }
+        }
+      }
+      
+      console.log(`[StockLoader] Loaded ${stockMap.size} produk stok dari sheet`);
+      
+      // Cache
+      setCache({ stockMap: Array.from(stockMap.entries()) });
+      
+      return stockMap;
+    } catch (error) {
+      console.error('[StockLoader] Gagal load stok:', error);
+      showToast('Gagal memuat data stok. Coba refresh halaman.', 'error');
+      return null;
+    }
+  }
+  
+  // Merge stok ke PRODUCTS
+  function mergeStockIntoProducts(stockMap) {
+    if (!stockMap || stockMap.size === 0) return 0;
+    
+    let matched = 0;
+    for (const product of window.PRODUCTS) {
+      const stock = lookupStock(product.n, stockMap);
+      if (stock !== null) {
+        product.s = stock;
+        matched++;
+      }
+    }
+    
+    console.log(`[StockLoader] Merged stok ke ${matched}/${window.PRODUCTS.length} produk`);
+    return matched;
+  }
+  
+  // Render ulang tabel setelah stok dimuat
+  function refreshTable() {
+    if (typeof renderTable === 'function') {
+      renderTable();
+    }
+    
+    // Update stats stok (tambahan informasi)
+    updateStockStats();
+  }
+  
+  // Tampilkan statistik stok di halaman (optional)
+  function updateStockStats() {
+    // Cari elemen stat tambahan kalau ada
+    // Ini optional, bisa nggak diimplementasi
+  }
+  
+  // Main execution
+  async function main() {
+    // Load stok
+    const stockMap = await loadStockFromSheet();
+    
+    if (stockMap) {
+      // Merge ke PRODUCTS
+      mergeStockIntoProducts(stockMap);
+      
+      // Refresh tampilan
+      refreshTable();
+      
+      // Tampilkan notifikasi sukses (gunakan toast kalau ada)
+      if (typeof showToast === 'function') {
+        const cached = getCache();
+        if (cached) {
+          showToast(`Stok diperbarui (${stockMap.size} produk)`, 'success');
+        } else {
+          showToast(`Stok dimuat (${stockMap.size} produk)`, 'info');
+        }
+      }
+    } else {
+      // Kalau gagal, PRODUCTS tetep ada tapi tanpa stok → kolom stok tampil "-"
+      if (typeof showToast === 'function') {
+        showToast('Data stok tidak tersedia', 'warning');
+      }
+    }
+  }
+  
+  // Run
+  main();
+})();
+</script>
+searchTimer);
   searchTimer = setTimeout(() => {
     searchQuery = searchInput.value;
     currentPage = 1;
