@@ -1091,9 +1091,9 @@ init();
 (async function initStockLoader() {
   'use strict';
   
-  const SHEET_CSV_URL = 'https://docs.google.com/spreadsheets/d/1D1w0ghs6CNRs5I7TCj1Uh_hOZ2wPQyjBUihKtcFnFbg/export?format=csv';
+  const SHEET_CSV_URL = 'https://docs.google.com/spreadsheets/d/1VZkfhTL5M8lhAAK8rBQDdnUMOhpsaSGXWjMRDUxv9jA/export?format=csv';
   const CACHE_KEY = 'toko_stok_cache';
-  const CACHE_EXPIRY_HOURS = 1; // Cache 1 jam
+  const CACHE_EXPIRY_HOURS = 0; // 0 = tidak expire, simpan permanen di localStorage
   
   // Helper: normalize nama untuk matching
   function normalizeName(name) {
