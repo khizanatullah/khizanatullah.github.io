@@ -1091,7 +1091,7 @@ init();
 (async function initStockLoader() {
   'use strict';
   
-  const SHEET_CSV_URL = 'https://docs.google.com/spreadsheets/d/1VZkfhTL5M8lhAAK8rBQDdnUMOhpsaSGXWjMRDUxv9jA/export?format=csv';
+  const SHEET_URL = 'https://script.google.com/macros/s/AKfycbynModQS2XU26GTy6X5MLCyeFHLoGkWtH2lDnP4vXqIwDDj7RijSc1uM63vvJxEtYc_xQ/exec';
   const CACHE_KEY = 'toko_stok_cache';
   const CACHE_EXPIRY_HOURS = 0; // 0 = tidak expire, simpan permanen di localStorage
   
@@ -1317,26 +1317,22 @@ init();
     }
     
     try {
-      const response = await fetch(SHEET_CSV_URL, {
-        method: 'GET',
-        headers: { 'Accept': 'text/csv' }
-      });
+      const response = await fetch(SHEET_URL);
       
       if (!response.ok) {
         throw new Error(`HTTP ${response.status}: ${response.statusText}`);
       }
       
-      const text = await response.text();
-      const rows = parseCSV(text);
+      const data = await response.json(); // GAS kembalikan JSON langsung
       
       // Build stock map: normalized name → stock value
       const stockMap = new Map();
-      for (const row of rows) {
-        if (row.stok !== null && row.nama_norm) {
-          // Kalau ada duplikat, ambil stok terbesar (lebih realistis)
-          const prev = stockMap.get(row.nama_norm);
-          if (prev === undefined || row.stok > prev) {
-            stockMap.set(row.nama_norm, row.stok);
+      for (const item of data) {
+        if (item.stok !== null && item.nama) {
+          const norm = normalizeName(item.nama);
+          const prev = stockMap.get(norm);
+          if (prev === undefined || item.stok > prev) {
+            stockMap.set(norm, item.stok);
           }
         }
       }
