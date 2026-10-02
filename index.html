@@ -1,4 +1,4 @@
-﻿<!DOCTYPE html>
+<!DOCTYPE html>
 <html lang="id">
 <head>
     <meta charset="UTF-8">
@@ -108,10 +108,6 @@
             color: white;
             border-color: #4a90d9;
         }
-        .pagination buttonDisabled {
-            opacity: 0.5;
-            cursor: not-allowed;
-        }
         .no-results {
             text-align: center;
             padding: 40px;
@@ -153,7 +149,6 @@
         const itemsPerPage = 10;
         let filteredProducts = [];
 
-        // Load data
         fetch('produk.json')
             .then(response => response.json())
             .then(data => {
@@ -175,16 +170,11 @@
                 return;
             }
 
-            tbody.innerHTML = pageProducts.map(p => `
-                <tr>
-                    <td style="font-weight: 500;">${escapeHtml(p.nama)}</td>
-                    <td>${escapeHtml(p.satuan)}</td>
-                    <td class="numeric">${formatRupiah(p.harga_jual)}</td>
-                    <td class="${parseInt(p.stok.replace(/,/g, '')) < 0 ? 'stock-negative' : ''}">
-                        ${escapeHtml(p.stok)}
-                    </td>
-                </tr>
-            `).join('');
+            tbody.innerHTML = pageProducts.map(p => {
+                const stockNum = parseInt(p.stok.replace(/,/g, ''));
+                const stockClass = stockNum < 0 ? 'stock-negative' : '';
+                return '<tr><td style="font-weight: 500;">' + escapeHtml(p.nama) + '</td><td>' + escapeHtml(p.satuan) + '</td><td class="numeric">' + formatRupiah(p.harga_jual) + '</td><td class="' + stockClass + '">' + escapeHtml(p.stok) + '</td></tr>';
+            }).join('');
         }
 
         function renderPagination() {
@@ -197,11 +187,8 @@
             }
 
             let html = '';
-            
-            // Prev button
-            html += `<button onclick="changePage(${currentPage - 1})" ${currentPage === 1 ? 'class="pagination buttonDisabled"' : ''}>« Prev</button>`;
+            html += '<button onclick="changePage(' + (currentPage - 1) + ')"' + (currentPage === 1 ? ' class="pagination buttonDisabled"' : '') + '>« Prev</button>';
 
-            // Page numbers
             const maxPagesToShow = 5;
             let startPage = Math.max(1, currentPage - 2);
             let endPage = Math.min(totalPages, startPage + maxPagesToShow - 1);
@@ -211,12 +198,10 @@
             }
 
             for (let i = startPage; i <= endPage; i++) {
-                html += `<button onclick="changePage(${i})" class="${currentPage === i ? 'active' : ''}">${i}</button>`;
+                html += '<button onclick="changePage(' + i + ')" class="' + (currentPage === i ? 'active' : '') + '">' + i + '</button>';
             }
 
-            // Next button
-            html += `<button onclick="changePage(${currentPage + 1})" ${currentPage === totalPages ? 'class="pagination buttonDisabled"' : ''}>Next »</button>`;
-
+            html += '<button onclick="changePage(' + (currentPage + 1) + ')"' + (currentPage === totalPages ? ' class="pagination buttonDisabled"' : '') + '>Next »</button>';
             pagination.innerHTML = html;
         }
 
@@ -228,13 +213,7 @@
 
         function searchProducts() {
             const query = document.getElementById('searchInput').value.toLowerCase().trim();
-            
-            if (query === '') {
-                filteredProducts = products;
-            } else {
-                filteredProducts = products.filter(p => p.nama.toLowerCase().includes(query));
-            }
-            
+            filteredProducts = query === '' ? products : products.filter(p => p.nama.toLowerCase().includes(query));
             currentPage = 1;
             renderProducts();
             renderPagination();
@@ -247,23 +226,13 @@
         }
 
         function formatRupiah(nilai) {
-            // Convert to number first (handle commas as decimal separator)
             const num = parseFloat(nilai.replace(/\./g, '').replace(',', '.'));
             if (isNaN(num)) return nilai;
-            
-            return 'Rp ' + num.toLocaleString('id-ID', {
-                style: 'currency',
-                currency: 'IDR',
-                minimumFractionDigits: 2,
-                maximumFractionDigits: 2
-            });
+            return 'Rp ' + num.toLocaleString('id-ID', { style: 'currency', currency: 'IDR', minimumFractionDigits: 2, maximumFractionDigits: 2 });
         }
 
-        // Handle search on Enter key
         document.getElementById('searchInput').addEventListener('keypress', function(e) {
-            if (e.key === 'Enter') {
-                searchProducts();
-            }
+            if (e.key === 'Enter') searchProducts();
         });
     </script>
 </body>
