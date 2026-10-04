@@ -1,0 +1,111 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>🤖 Brosur Chat Bot</title>
+  <style>
+    * { margin: 0; padding: 0; box-sizing: border-box; }
+    body { font-family: 'Segoe UI', sans-serif; background: #f0f2f5; padding: 20px; }
+    .container { max-width: 800px; margin: 0 auto; }
+    h1 { text-align: center; color: #1a1a2e; margin-bottom: 20px; }
+    .upload-box {
+      border: 2px dashed #3498db; border-radius: 10px;
+      padding: 30px; text-align: center; background: white;
+      cursor: pointer; box-shadow: 0 2px 6px rgba(0,0,0,0.1);
+    }
+    #pdfInput { display: none; }
+    #searchInput {
+      width: 100%; padding: 12px; margin-top: 20px;
+      border: 1px solid #ccc; border-radius: 8px; font-size: 16px;
+    }
+    #chatOutput {
+      margin-top: 20px; background: white; border-radius: 10px;
+      padding: 20px; box-shadow: 0 2px 6px rgba(0,0,0,0.1); min-height: 200px;
+    }
+    .result { padding: 10px 0; border-bottom: 1px solid #eee; }
+    .label { font-weight: bold; color: #3498db; }
+  </style>
+</head>
+<body>
+  <div class="container">
+    <h1>📄 Chat dengan Brosur PDF</h1>
+    <label class="upload-box" onclick="document.getElementById('pdfInput').click()">
+      Pilih File PDF
+      <input type="file" id="pdfInput" accept="application/pdf" hidden />
+    </label>
+    <input type="text" id="searchInput" placeholder="Ketuk Enter untuk cari di PDF..." />
+    <div id="chatOutput">Silakan upload PDF terlebih dahulu.</div>
+  </div>
+
+  <!-- PDF.js -->
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/pdf.js/2.15.349/pdf.min.js"></script>
+  <script>
+    const input = document.getElementById('pdfInput');
+    const searchBox = document.getElementById('searchInput');
+    const output = document.getElementById('chatOutput');
+    let pdfText = "";
+
+    input.addEventListener('change', function () {
+      const file = this.files[0];
+      if (!file) return;
+      output.innerHTML = "<p>Sedang memproses PDF...</p>";
+
+      const fileReader = new FileReader();
+      fileReader.onload = function () {
+        const typedArray = new Uint8Array(this.result);
+        pdfjsLib.getDocument(typedArray).promise.then(function (pdf) {
+          let text = "";
+          const totalPages = pdf.numPages;
+          let count = 0;
+
+          for (let i = 1; i <= totalPages; i++) {
+            pdf.getPage(i).then(function (page) {
+              page.getTextContent().then(function (content) {
+                text += content.items.map(item => item.str).join(" ") + "\n";
+                count++;
+                if (count === totalPages) {
+                  pdfText = text.toLowerCase();
+                  output.innerHTML = "<p>✅ PDF berhasil dimuat. Sekarang ketik untuk mencari...</p>";
+                }
+              });
+            });
+          }
+        });
+      };
+      fileReader.readAsArrayBuffer(file);
+    });
+
+    searchBox.addEventListener('keydown', function (e) {
+      if (e.key === "Enter") {
+        const query = this.value.toLowerCase().trim();
+        output.innerHTML = "";
+        if (!pdfText) {
+          output.innerHTML = "<p style='color:red'>Upload PDF dulu!</p>";
+          return;
+        }
+        if (!query) return;
+
+        const lines = pdfText.split("\n");
+        let found = [];
+        for (let line of lines) {
+          if (line.includes(query)) {
+            found.push(line.trim());
+          }
+        }
+
+        if (found.length > 0) {
+          found.slice(0, 10).forEach(line => {
+            const div = document.createElement("div");
+            div.className = "result";
+            div.innerHTML = `<span class="label">📌</span> ${line}`;
+            output.appendChild(div);
+          });
+        } else {
+          output.innerHTML = "<p style='color:#999'>Tidak ditemukan</p>";
+        }
+      }
+    });
+  </script>
+</body>
+</html>
