@@ -5,50 +5,52 @@
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
   <title>Katalog Produk KHIZ</title>
   <style>
+    * { box-sizing: border-box; }
     body {
       font-family: 'Segoe UI', sans-serif;
       background: #e0f7ff;
-      color: #333;
       margin: 0;
       padding: 20px;
     }
     header {
       text-align: center;
-      margin-bottom: 20px;
+      margin-bottom: 15px;
     }
-    h1 { color: #0066cc; }
+    h1 { color: #0066cc; font-size: 22px; }
     #search {
-      width: 90%;
+      width: 95%;
       max-width: 500px;
       padding: 10px 15px;
       border: 1px solid #0066cc;
       border-radius: 5px;
       margin: 10px auto;
       display: block;
+      font-size: 14px;
     }
     #products {
       display: grid;
-      grid-template-columns: repeat(auto-fill, minmax(220px, 1fr));
-      gap: 15px;
-      margin-top: 20px;
+      grid-template-columns: repeat(2, 1fr);
+      gap: 12px;
+      margin-top: 15px;
     }
     .product-card {
       background: white;
       border: 1px solid #0099ff;
       border-radius: 10px;
-      padding: 15px;
+      padding: 12px;
       box-shadow: 2px 2px 6px rgba(0,0,0,0.1);
     }
     .product-card h3 {
-      font-size: 16px;
-      margin: 0 0 5px;
+      font-size: 15px;
+      margin: 0 0 4px;
       color: #0055aa;
     }
-    .product-card p { font-size: 14px; margin: 3px 0; }
+    .product-card p { font-size: 13px; margin: 2px 0; }
     .no-result {
       text-align: center;
       padding: 30px;
       color: #666;
+      grid-column: 1 / -1;
     }
   </style>
 </head>
@@ -56,21 +58,23 @@
   <header>
     <h1>🛒 Katalog Produk KHIZ</h1>
     <input type="text" id="search" placeholder="🔍 Cari nama barang..." />
+    <small>Total: <span id="count">0</span> produk</small>
   </header>
   <div id="products"></div>
 
   <script>
     let products = [];
     const container = document.getElementById("products");
-    const searchInput = document.getElementById("search");
+    const countSpan = document.getElementById("count");
 
     function formatRupiah(num) {
       return `Rp ${num.toLocaleString('id-ID', { maximumFractionDigits: 0 })}`;
     }
 
     function render(list) {
+      countSpan.textContent = products.length;
       if (!list.length) {
-        container.innerHTML = '<div class="no-result">Tidak ditemukan produk.</div>';
+        container.innerHTML = '<div class="no-result">Tidak ditemukan</div>';
         return;
       }
       container.innerHTML = list.map(p => `
@@ -82,28 +86,19 @@
       `).join('');
     }
 
-    function filter() {
-      const keyword = (searchInput.value || '').toLowerCase().trim();
-      if (!keyword) return render(products);
-      render(products.filter(p =>
-        (p["Nama Barang"] || '').toLowerCase().includes(keyword)
-      ));
-    }
-
-    searchInput.addEventListener("input", filter);
+    document.getElementById("search").addEventListener("input", e => {
+      const k = e.target.value.toLowerCase().trim();
+      render(k ? products.filter(p => (p["Nama Barang"] || '').toLowerCase().includes(k)) : products);
+    });
 
     fetch('./products.json')
-      .then(res => {
-        if (!res.ok) throw new Error("HTTP " + res.status);
-        return res.json();
-      })
+      .then(res => res.json())
       .then(data => {
-        console.log("✅ Loaded:", data.length, "produk");
         products = data;
         render(products);
       })
-      .catch(err => {
-        container.innerHTML = `<div class="no-result" style="color:red">⚠️ Gagal memuat data produk: ${err.message}</div>`;
+      .catch(() => {
+        container.innerHTML = '<div class="no-result" style="color:red">Gagal muat data</div>';
       });
   </script>
 </body>
