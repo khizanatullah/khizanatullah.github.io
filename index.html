@@ -17,88 +17,168 @@
       margin-bottom: 15px;
     }
     h1 { color: #0066cc; font-size: 22px; }
-    #search {
-      width: 95%;
-      max-width: 500px;
-      padding: 10px 15px;
+    #search { width: 95%; max-width: 500px; padding: 8px 12px; border: 1px solid #0066cc; border-radius: 5px; margin: 8px auto; display: block; font-size: 14px; }
+    .controls {
+      display: flex;
+      justify-content: center;
+      gap: 10px;
+      margin: 10px 0;
+      flex-wrap: wrap;
+    }
+    .controls button, .controls select {
+      padding: 8px 12px;
       border: 1px solid #0066cc;
       border-radius: 5px;
-      margin: 10px auto;
-      display: block;
-      font-size: 14px;
+      background: white;
+      cursor: pointer;
+      font-size: 13px;
     }
     #products {
       display: grid;
       grid-template-columns: repeat(2, 1fr);
-      gap: 12px;
-      margin-top: 15px;
+      gap: 10px;
+      margin-top: 10px;
     }
     .product-card {
       background: white;
       border: 1px solid #0099ff;
       border-radius: 10px;
-      padding: 12px;
+      padding: 10px;
       box-shadow: 2px 2px 6px rgba(0,0,0,0.1);
     }
-    .product-card h3 {
-      font-size: 15px;
-      margin: 0 0 4px;
-      color: #0055aa;
+    .product-card h3 { font-size: 14px; margin: 0 0 4px; color: #0055aa; }
+    .product-card p { font-size: 12px; margin: 2px 0; }
+    .pagination { text-align: center; margin-top: 15px; }
+    .pagination button {
+      padding: 6px 12px;
+      margin: 0 4px;
+      border: 1px solid #0066cc;
+      border-radius: 4px;
+      background: white;
+      cursor: pointer;
     }
-    .product-card p { font-size: 13px; margin: 2px 0; }
-    .no-result {
-      text-align: center;
-      padding: 30px;
-      color: #666;
-      grid-column: 1 / -1;
-    }
+    .pagination button.active { background: #0066cc; color: white; }
+    .no-result { text-align: center; padding: 30px; color: #666; grid-column: 1 / -1; }
   </style>
 </head>
 <body>
   <header>
     <h1>🛒 Katalog Produk KHIZ</h1>
     <input type="text" id="search" placeholder="🔍 Cari nama barang..." />
-    <small>Total: <span id="count">0</span> produk</small>
+    <small>Total: <span id="count">0</span> produk | Hal <span id="curPage">1</span>/<span id="totalPages">1</span></small>
+
+    <div class="controls">
+      <select id="category">
+        <option value="">Semua Kategori</option>
+      </select>
+      <button onclick="exportCSV()">📥 Export CSV</button>
+    </div>
   </header>
+
   <div id="products"></div>
+  <div class="pagination" id="pagination"></div>
 
   <script>
     let products = [];
-    const container = document.getElementById("products");
-    const countSpan = document.getElementById("count");
+    let currentPage = 1;
+    const itemsPerPage = 50;
 
     function formatRupiah(num) {
       return `Rp ${num.toLocaleString('id-ID', { maximumFractionDigits: 0 })}`;
     }
 
-    function render(list) {
-      countSpan.textContent = products.length;
-      if (!list.length) {
-        container.innerHTML = '<div class="no-result">Tidak ditemukan</div>';
+    function getCategories(list){
+      const cats=new Set();
+      list.forEach(p=>{
+        const n=(p["Nama Barang"]||'').toUpperCase();
+        if(n.includes('BESI'))cats.add('BESI');
+        if(n.includes('PAKU'))cats.add('PAKU');
+        if(n.includes('BAN')||n.includes('RODA'))cats.add('BAN');
+        if(n.includes('LED')||n.includes('LAMPU'))cats.add('LAMPU');
+        if(n.includes('KARET')||n.includes('SELANG'))cats.add('SELANG');
+        if(n.includes('CAT'))cats.add('CAT');
+        if(n.includes('KAWAT'))cats.add('KAWAT');
+        if(n.includes('PARANET'))cats.add('PARANET');
+        if(n.includes('KABEL'))cats.add('KABEL');
+        if(n.includes('MCB')||n.includes('SEKRUP'))cats.add('ELEKTRIK');
+        if(n.includes('BOHLAM')||n.includes('TESPEN'))cats.add('LAMPU');
+        if(n.includes('STOP KONTAK'))cats.add('STOP KONTAK');
+        if(n.includes('KRAN')||n.includes('EMER'))cats.add('KRAN');
+      });
+      return Array.from(cats).sort();
+    }
+
+    function render(list,page=1){
+      const totalPages=Math.ceil(list.length/itemsPerPage);
+      const start=(page-1)*itemsPerPage;
+      const items=list.slice(start,start+itemsPerPage);
+      document.getElementById("count").textContent=products.length;
+      document.getElementById("curPage").textContent=page;
+      document.getElementById("totalPages").textContent=totalPages;
+      if(!items.length){
+        document.getElementById("products").innerHTML='<div class="no-result">Tidak ditemukan</div>';
+        document.getElementById("pagination").innerHTML='';
         return;
       }
-      container.innerHTML = list.map(p => `
+      document.getElementById("products").innerHTML=items.map(p=>`
         <div class="product-card">
           <h3>${p["Nama Barang"]}</h3>
           <p><strong>Harga:</strong> ${formatRupiah(p["Hrg. Jual"])}</p>
           <p><strong>Stok:</strong> ${p["Stok"] ?? '-'}</p>
         </div>
       `).join('');
+      let pagHTML='';
+      for(let i=1;i<=totalPages;i++){
+        pagHTML+=`<button onclick="goToPage(${i})" class="${i==page?'active':''}">${i}</button>`;
+      }
+      document.getElementById("pagination").innerHTML=pagHTML;
     }
 
-    document.getElementById("search").addEventListener("input", e => {
-      const k = e.target.value.toLowerCase().trim();
-      render(k ? products.filter(p => (p["Nama Barang"] || '').toLowerCase().includes(k)) : products);
-    });
+    function goToPage(page){
+      const filtered=filterProducts();
+      render(filtered,page);
+    }
+
+    function filterProducts(){
+      const searchKey=document.getElementById("search").value.toLowerCase().trim();
+      const category=document.getElementById("category").value;
+      return products.filter(p=>{
+        const matchSearch=(p["Nama Barang"]||'').toLowerCase().includes(searchKey);
+        const matchCategory=!category||(p["Nama Barang"]||'').toUpperCase().includes(category);
+        return matchSearch&&matchCategory;
+      });
+    }
+
+    function exportCSV(){
+      const list=filterProducts();
+      const csv="Nama Barang,Harga Jual,Satuan,Stok\n"+list.map(p=>`"${p["Nama Barang"]||''}","${p["Hrg. Jual"]||''}","${p["Satuan"]||''}","${p["Stok"]||''}"`).join("\n");
+      const blob=new Blob([csv],{type:'text/csv'});
+      const url=URL.createObjectURL(blob);
+      const a=document.createElement('a');
+      a.href=url;
+      a.download=`produk_khiz_${new Date().toISOString().slice(0,10)}.csv`;
+      a.click();
+    }
+
+    document.getElementById("search").addEventListener("input",()=>{currentPage=1;render(filterProducts(),1)});
+    document.getElementById("category").addEventListener("change",()=>{currentPage=1;render(filterProducts(),1)});
 
     fetch('./products.json')
-      .then(res => res.json())
-      .then(data => {
-        products = data;
-        render(products);
+      .then(res=>res.json())
+      .then(data=>{
+        products=data;
+        document.getElementById("count").textContent=products.length;
+        const catEl=document.getElementById("category");
+        getCategories(products).forEach(cat=>{
+          const opt=document.createElement("option");
+          opt.value=cat;
+          opt.textContent=cat;
+          catEl.appendChild(opt);
+        });
+        render(filterProducts(),1);
       })
-      .catch(() => {
-        container.innerHTML = '<div class="no-result" style="color:red">Gagal muat data</div>';
+      .catch(()=>{
+        document.getElementById("products").innerHTML='<div class="no-result" style="color:red">Gagal memuat data produk</div>';
       });
   </script>
 </body>
