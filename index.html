@@ -92,11 +92,18 @@
 
     searchInput.addEventListener("input", filter);
 
-    fetch('products.json')
-      .then(r => r.json())
-      .then(data => { products = data; render(products); })
-      .catch(() => {
-        container.innerHTML = '<div class="no-result">Gagal memuat data produk.</div>';
+    fetch('./products.json')
+      .then(res => {
+        if (!res.ok) throw new Error("HTTP " + res.status);
+        return res.json();
+      })
+      .then(data => {
+        console.log("✅ Loaded:", data.length, "produk");
+        products = data;
+        render(products);
+      })
+      .catch(err => {
+        container.innerHTML = `<div class="no-result" style="color:red">⚠️ Gagal memuat data produk: ${err.message}</div>`;
       });
   </script>
 </body>
