@@ -674,7 +674,7 @@
   function buildWaText() {
     const week = getWeekRange();
     let text = '📋 *Laporan Absensi TB. KHIZANATULLAH*\n';
-    text += 'Mingguan: *' + week.startStr + ' s/d ' + week.endStr + '*\n\n';
+    text += 'Menyampaikan absensi tanggal: *' + week.startStr + ' s/d ' + week.endStr + '*\n\n';
 
     const weekRecords = records.filter(function (r) {
       return r.tanggal >= week.startStr && r.tanggal <= week.endStr;
@@ -682,7 +682,7 @@
 
     if (weekRecords.length === 0) {
       text += 'Belum ada catatan absensi mingguan.\n';
-      text += '\n📊 Jumlah hari kerja: Senin - Sabtu (6 hari)\n';
+      text += '\n> Mohon koreksi jika ada kesalahan 🙏🏻\n';
       return text;
     }
 
