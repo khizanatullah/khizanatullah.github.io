@@ -150,7 +150,7 @@
           <label>Nama Penerima</label>
           <input type="text" id="recipient" placeholder="Siapa yang akan menerima" required>
           <label>Estimasi Kirim (tanggal)</label>
-          <input type="date" id="est-ship" required>
+          <input type="date" id="estShip" required>
         </div>
 
         <label>Item Pemesanan <span style="font-weight:400;color:#6e7681">(bisa ditambah)</span></label>
@@ -221,7 +221,7 @@ const els = {
   customer: $('customer'),
   destination: $('destination'),
   recipient: $('recipient'),
-  estShip: $('est-ship'),
+  estShip: $('estShip'),
   status: $('status'),
   notes: $('notes'),
   itemsContainer: $('items-container'),
@@ -416,46 +416,7 @@ function resetForm() {
   $('orders-section').style.display = 'none';
 }
 
-els.form.addEventListener('submit', (e) => {
-  e.preventDefault();
-  const customer = els.customer.value.trim();
-  const destination = els.destination.value.trim();
-  const recipient = els.recipient.value.trim();
-  const estShip = els.estShip.value;
-  const status = els.status.value;
-  const notes = els.notes.value.trim();
-  const items = getItemsFromForm();
 
-  if (!customer || !destination || !recipient || !estShip) {
-    showToast('⚠️ Mohon isi nama pelanggan, alamat, penerima, dan estimasi kirim.', true);
-    return;
-  }
-  if (!validDate(estShip)) {
-    showToast('⚠️ Tanggal estimasi kirim tidak valid.', true);
-    return;
-  }
-  if (items.length === 0) {
-    showToast('⚠️ Tambahkan minimal 1 item.', true);
-    return;
-  }
-
-  const order = {
-    id: genId(),
-    customer,
-    destination,
-    recipient,
-    estShip,
-    status,
-    notes,
-    items,
-    createdAt: new Date().toISOString(),
-  };
-  orders.unshift(order);
-  saveOrders();
-  renderOrders();
-  showToast(`✅ Pesanan ${order.id} berhasil disimpan!`);
-  resetForm();
-});
 
 // ===== Delete =====
 function deleteOrder(id) {
@@ -541,18 +502,27 @@ els.form.addEventListener('submit', (e) => {
       items, createdAt: orders[idx].createdAt,
     };
     showToast(`✅ Pesanan ${editing} berhasil diperbarui!`);
-    delete orders.find(x => x.id === editing);
-    localStorage.setItem('po_orders', JSON.stringify(orders));
-    renderOrders();
-    resetForm();
   } else {
-    const order = { id: genId(), customer, destination, recipient, estShip, status, notes, items, createdAt: new Date().toISOString() };
+    const order = {
+      id: genId(),
+      customer,
+      destination,
+      recipient,
+      estShip,
+      status,
+      notes,
+      items,
+      createdAt: new Date().toISOString(),
+    };
     orders.unshift(order);
     saveOrders();
-    renderOrders();
     showToast(`✅ Pesanan ${order.id} berhasil disimpan!`);
-    resetForm();
   }
+
+  localStorage.setItem('po_orders', JSON.stringify(orders));
+  renderOrders();
+  resetForm();
+  els.form.dataset.editing = '';
 });
 
 // ===== Navigation =====
