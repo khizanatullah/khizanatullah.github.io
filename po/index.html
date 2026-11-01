@@ -628,6 +628,7 @@ function openEditForm(id) {
 els.newOrderBtn.addEventListener('click', () => {
   resetForm();
 });
+els.addItem.addEventListener('click', addItemRow);
 
 // ===== Toast =====
 function showToast(msg, isError = false) {
