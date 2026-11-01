@@ -22,10 +22,7 @@
   * { box-sizing: border-box; margin: 0; padding: 0; }
   body {
     font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
-    background: var(--bg);
-    color: var(--text);
-    line-height: 1.5;
-    padding: 16px;
+    background: var(--bg); color: var(--text); line-height: 1.5; padding: 16px;
   }
   .wrap { max-width: 960px; margin: 0 auto; }
   header { margin-bottom: 20px; }
@@ -33,12 +30,8 @@
   header p { color: var(--muted); font-size: 14px; }
 
   .card {
-    background: var(--card);
-    border: 1px solid var(--border);
-    border-radius: var(--radius);
-    padding: 18px;
-    margin-bottom: 18px;
-    box-shadow: var(--shadow);
+    background: var(--card); border: 1px solid var(--border); border-radius: var(--radius);
+    padding: 18px; margin-bottom: 18px; box-shadow: var(--shadow);
   }
   .card h2 { font-size: 17px; margin-bottom: 14px; }
   .card .sub { color: var(--muted); font-size: 13px; margin-bottom: 12px; }
@@ -49,8 +42,8 @@
 
   label { display: block; font-size: 13px; font-weight: 600; color: var(--muted); margin-bottom: 4px; }
   input, select, textarea {
-    width: 100%; padding: 9px 11px; border: 1px solid var(--border);
-    border-radius: 6px; font-size: 14px; font-family: inherit; background: #fff;
+    width: 100%; padding: 9px 11px; border: 1px solid var(--border); border-radius: 6px;
+    font-size: 14px; font-family: inherit; background: #fff;
   }
   input:focus, select:focus, textarea:focus {
     outline: 2px solid #3182ce; border-color: #3182ce;
@@ -82,9 +75,7 @@
   .totals { font-size: 13px; color: var(--muted); margin-top: 6px; }
   .totals span { font-weight: 700; }
 
-  .item-summary {
-    display: flex; flex-wrap: wrap; gap: 6px; padding: 6px 0;
-  }
+  .item-summary { display: flex; flex-wrap: wrap; gap: 6px; padding: 6px 0; }
   .item-chip {
     background: #edf2f7; border: 1px solid var(--border); border-radius: 6px;
     padding: 4px 8px; font-size: 12px; max-width: 200px;
@@ -123,6 +114,12 @@
   .toast.show { opacity: 1; transform: translateX(-50%) translateY(0); }
 
   .badge { display:inline-block; padding:2px 8px; border-radius:10px; font-size:11px; font-weight:700; background:#eef2f7; color:#444; }
+
+  .csv-hint {
+    background: #f0f9ff; border: 1px solid #bae6fd; border-radius: 6px;
+    padding: 10px 14px; font-size: 13px; color: #0e7490; margin-bottom: 14px;
+  }
+  .csv-hint b { color: #0f4c81; }
 </style>
 </head>
 <body>
@@ -137,7 +134,7 @@
   <section id="form-section">
     <div class="card">
       <h2>✏️ Form Pemesanan Baru</h2>
-      <p class="sub">Isi data pemesanan di bawah, tambahkan item sebanyak yang diperlukan, lalu klik <b>Simpan Pesanan</b>.</p>
+      <p class="sub">Isi data pemesanan, tambahkan item, lalu klik <b>Simpan Pesanan</b>. Data tersimpan otomatis di localStorage.</p>
 
       <form id="order-form">
         <div class="grid">
@@ -150,7 +147,7 @@
           <label>Nama Penerima</label>
           <input type="text" id="recipient" placeholder="Siapa yang akan menerima" required>
           <label>Estimasi Kirim (tanggal)</label>
-          <input type="date" id="est-ship" required>
+          <input type="date" id="estShip" required>
         </div>
 
         <label>Item Pemesanan <span style="font-weight:400;color:#6e7681">(bisa ditambah)</span></label>
@@ -177,7 +174,17 @@
         <label>Keterangan Tambahan / Tambahan Pesanan</label>
         <textarea id="notes" rows="3" placeholder="Catatan tambahan, permintaan khusus, atau pesanan lanjutan..."></textarea>
 
-        <div style="margin-top:14px; display:flex; gap:10px; flex-wrap:wrap;">
+        <div class="csv-hint">
+          <b>💾 Penyimpanan data:</b> data tersimpan otomatis di <b>localStorage</b> (tiap browser). Untuk bukti/backup berupa <b>po.csv</b>, klik tombol
+          <b>📤 Unduh po.csv</b>. Untuk membaca po.csv, gunakan <b>📥 Muat dari po.csv</b>.
+        </div>
+
+        <div style="display:flex; gap:10px; flex-wrap:wrap; align-items:center;">
+          <button type="button" id="export-csv-btn" class="btn btn-sm btn-outline">📤 Unduh po.csv</button>
+          <label class="btn btn-sm btn-outline" style="cursor:pointer;">
+            📥 Muat dari po.csv
+            <input type="file" id="csv-file" accept=".csv" style="display:none;">
+          </label>
           <button type="submit" class="btn btn-primary">💾 Simpan Pesanan</button>
           <button type="reset" class="btn btn-outline">Batal</button>
         </div>
@@ -194,7 +201,6 @@
         <button id="clear-all-btn" class="btn btn-outline btn-sm">Hapus Semua</button>
       </div>
     </div>
-
     <div id="orders-list">
       <div class="empty-state">
         <div class="big">📭</div>
@@ -221,7 +227,7 @@ const els = {
   customer: $('customer'),
   destination: $('destination'),
   recipient: $('recipient'),
-  estShip: $('est-ship'),
+  estShip: $('estShip'),
   status: $('status'),
   notes: $('notes'),
   itemsContainer: $('items-container'),
@@ -231,9 +237,11 @@ const els = {
   newOrderBtn: $('new-order-btn'),
   clearAllBtn: $('clear-all-btn'),
   toast: $('toast'),
+  csvFile: $('csv-file'),
+  exportCsvBtn: $('export-csv-btn'),
 };
 
-// ===== Breadth helpers =====
+// ===== Helpers =====
 function todayStr() {
   const d = new Date();
   return `${d.getFullYear()}-${String(d.getMonth()+1).padStart(2,'0')}-${String(d.getDate()).padStart(2,'0')}`;
@@ -251,8 +259,144 @@ function statusClass(v) {
   const map = { pending: 'status-pending', shipped: 'status-shipped', delivered: 'status-delivered' };
   return map[v] || 'status-pending';
 }
+function statusValue(v) {
+  const map = { pending: 'pending', shipped: 'shipped', delivered: 'delivered' };
+  return map[v] || v;
+}
 
-// ===== Init =====
+// ===== CSV export / import =====
+function csvEscape(s) {
+  if (s == null) return '';
+  const str = String(s);
+  if (str.indexOf(',') !== -1 || str.indexOf('"') !== -1 || str.indexOf('\n') !== -1 || str.indexOf('\r') !== -1) {
+    return '"' + str.replace(/"/g, '""') + '"';
+  }
+  return str;
+}
+
+function orderToRow(o) {
+  const items = o.items.map(it => {
+    let s = `${it.name} x${it.qty}`;
+    if (it.brand) s += ` (${it.brand})`;
+    return s;
+  }).join('; ');
+  return [
+    o.id,
+    o.customer,
+    o.destination,
+    o.recipient,
+    o.estShip,
+    statusLabel(o.status),
+    o.notes || '',
+    items,
+  ];
+}
+
+function exportCSV() {
+  if (orders.length === 0) {
+    showToast('⚠️ Belum ada data pemesanan untuk di-ekspor.', true);
+    return;
+  }
+  const headers = ['ID','Pelanggan','Alamat Tujuan','Penerima','Estimasi Kirim','Status','Keterangan','Item'];
+  const lines = [headers.map(csvEscape).join(',')];
+  orders.forEach(o => lines.push(orderToRow(o).map(csvEscape).join(',')));
+  const csv = lines.join('\r\n');
+  const blob = new Blob([csv], { type: 'text/csv;charset=utf-8;' });
+  const url = URL.createObjectURL(blob);
+  const a = document.createElement('a');
+  a.href = url;
+  a.download = 'po.csv';
+  document.body.appendChild(a);
+  a.click();
+  document.body.removeChild(a);
+  URL.revokeObjectURL(url);
+  showToast('✅ Data berhasil diunduh ke po.csv');
+}
+
+function parseCSVLine(line) {
+  const result = [];
+  let cur = '';
+  let inQuotes = false;
+  for (let i = 0; i < line.length; i++) {
+    const ch = line[i];
+    if (inQuotes) {
+      if (ch === '"') {
+        if (line[i+1] === '"') { cur += '"'; i++; }
+        else inQuotes = false;
+      } else cur += ch;
+    } else {
+      if (ch === '"') inQuotes = true;
+      else if (ch === ',') { result.push(cur); cur = ''; }
+      else cur += ch;
+    }
+  }
+  result.push(cur);
+  return result;
+}
+
+function parseItems(itemStr) {
+  const items = [];
+  const parts = itemStr.split(/[;,]\s*/);
+  for (const p of parts) {
+    const t = p.trim();
+    if (!t) continue;
+    const m = t.match(/^([^xX]+)\s*x\s*(\d+)(?:\s*\((.*?)\))?\s*$/i);
+    if (m) {
+      items.push({ name: m[1].trim(), qty: parseInt(m[2], 10), spec: '', brand: m[3] ? m[3].trim() : '' });
+    }
+  }
+  return items;
+}
+
+function importCSVFile(file) {
+  if (!file) return;
+  const reader = new FileReader();
+  reader.onload = e => {
+    const text = e.target.result.trim();
+    if (!text) { showToast('⚠️ File CSV kosong.'); return; }
+    const lines = text.split(/\r?\n/);
+    const header = parseCSVLine(lines[0]).map(h => h.trim().replace(/^"|"$/g, ''));
+    const idx = { id: -1, customer: -1, destination: -1, recipient: -1, estShip: -1, status: -1, notes: -1, items: -1 };
+    header.forEach((h, i) => { idx[h] = i; });
+    const required = ['ID','Pelanggan','Alamat Tujuan','Penerima','Estimasi Kirim','Status','Item'];
+    let missing = required.filter(h => idx[h] === -1);
+    if (missing.length) {
+      showToast(`⚠️ Format CSV tidak mengenali kolom: ${missing.join(', ')}`, true);
+      return;
+    }
+    const newOrders = [];
+    for (let i = 1; i < lines.length; i++) {
+      const line = lines[i].trim();
+      if (!line) continue;
+      const cols = parseCSVLine(line);
+      const order = {
+        id: cols[idx.ID] || `PO-${String(orders.length + nextId).padStart(3,'0')}`,
+        customer: cols[idx.Pelanggan] || '',
+        destination: cols[idx['Alamat Tujuan']] || '',
+        recipient: cols[idx.Penerima] || '',
+        estShip: cols[idx['Estimasi Kirim']] || '',
+        status: statusValue(cols[idx.Status] || 'pending'),
+        notes: cols[idx.Keterangan] || '',
+        items: parseItems(cols[idx.Item] || ''),
+      };
+      if (order.customer && order.destination) {
+        newOrders.push(order);
+      }
+    }
+    if (newOrders.length === 0) {
+      showToast('⚠️ Tidak ada data pemesanan yang dipparse dari CSV.', true);
+      return;
+    }
+    if (!confirm(`Import ${newOrders.length} pemesanan dari po.csv? (tambahkan ke daftar)`)) return;
+    orders = newOrders.concat(orders);
+    saveOrders();
+    renderOrders();
+    showToast(`✅ Diimpor ${newOrders.length} pemesanan dari po.csv`);
+  };
+  reader.readAsText(file);
+}
+
+// ===== Persistence =====
 function loadOrders() {
   try {
     const raw = localStorage.getItem('po_orders');
@@ -289,18 +433,12 @@ function getItemsFromForm() {
   rows.forEach(r => {
     const name = r.querySelector('.item-name').value.trim();
     if (!name) return;
-    items.push({
-      name: name,
-      qty: parseInt(r.querySelector('.item-qty').value, 10) || 1,
-      spec: r.querySelector('.item-spec').value.trim(),
-      brand: r.querySelector('.item-brand').value.trim(),
-    });
+    items.push({ name, qty: parseInt(r.querySelector('.item-qty').value, 10) || 1, spec: r.querySelector('.item-spec').value.trim(), brand: r.querySelector('.item-brand').value.trim() });
   });
   return items;
 }
 function updateItemCount() {
-  const n = els.itemsContainer.querySelectorAll('.item-row').length;
-  els.itemCount.textContent = n;
+  els.itemCount.textContent = els.itemsContainer.querySelectorAll('.item-row').length;
 }
 
 // ===== Render orders table =====
@@ -312,26 +450,20 @@ function renderOrders() {
         <div class="big">📭</div>
         <p>Belum ada data pemesanan.</p>
         <p style="font-size:13px;">Isi form di atas untuk mencatat pesanan pertama.</p>
-      </div>
-    `;
+      </div>`;
     return;
   }
   let html = `<table><thead><tr>
     <th>ID</th><th>Pelanggan</th><th>Item</th><th>Tujuan</th><th>Penerima</th>
     <th>Est. Kirim</th><th>Status</th><th>Waktu</th><th>Aksi</th>
   </tr></thead><tbody>`;
-  orders.forEach((o, i) => {
-    const itemsSummary = o.items.map(it => {
-      let s = `${it.name} <b>x${it.qty}</b>`;
-      if (it.brand) s += ` <i>(${it.brand})</i>`;
-      if (it.spec) s += ` · ${it.spec}`;
-      return s;
-    }).join('<br>');
+  orders.forEach(o => {
+    const itemsSummary = o.items.map(it => `<span class="item-chip">${esc(it.name)} <b>x${it.qty}</b></span>`).join('');
     const stamp = o.createdAt ? new Date(o.createdAt).toLocaleString('id-ID') : '';
     html += `<tr class="fade-in">
       <td style="white-space:nowrap"><code>${o.id}</code></td>
       <td>${esc(o.customer)}</td>
-      <td class="item-summary">${o.items.map(it => `<span class="item-chip">${esc(it.name)} <b>x${it.qty}</b></span>`).join('')}</td>
+      <td class="item-summary">${itemsSummary}</td>
       <td>${esc(o.destination)}</td>
       <td>${esc(o.recipient)}</td>
       <td style="white-space:nowrap">${o.estShip}</td>
@@ -342,15 +474,12 @@ function renderOrders() {
         <button class="btn btn-danger btn-sm delete-btn" data-id="${o.id}">🗑️ Hapus</button>
       </td>
     </tr>`;
-    // Expanded detail
+    const itemsDetail = o.items.map(it => `  • ${esc(it.name)} — Jumlah ${it.qty} — ${it.brand ? 'Merk: ' + esc(it.brand) : ''}` + (it.spec ? ` Spesifikasi: ${esc(it.spec)}` : '')).join('<br>');
     html += `<tr class="spoiler" data-id="${o.id}">
       <td colspan="9"><div class="spoiler-content">
-        <b>📌 Detail:</b><br><br>
-        <b>Item:</b><br>`;
-    o.items.forEach(it => {
-      html += `  • ${esc(it.name)} — Jumlah ${it.qty} — ${it.brand ? 'Merk: ' + esc(it.brand) + '<br>' : ''}${it.spec ? 'Spesifikasi: ' + esc(it.spec) + '<br>' : ''}`;
-    });
-    html += `<br><b>Tujuan:</b> ${esc(o.destination)}<br>
+        📌 Detail:<br><br>
+        <b>Item:</b><br>${itemsDetail}<br>
+        <b>Tujuan:</b> ${esc(o.destination)}<br>
         <b>Penerima:</b> ${esc(o.recipient)}<br>
         <b>Estimasi kirim:</b> ${o.estShip}<br>
         <b>Status:</b> <span class="status-pill ${statusClass(o.status)}">${statusLabel(o.status)}</span><br>
@@ -372,23 +501,12 @@ function renderOrders() {
   html += `</tbody></table>`;
   list.innerHTML = html;
 
-  // Click spoiler to open/close
-  list.querySelectorAll('.spoiler').forEach(tr => {
-    tr.addEventListener('click', () => tr.classList.toggle('open'));
-  });
-  // Edit buttons
-  list.querySelectorAll('.edit-btn').forEach(b => {
-    b.addEventListener('click', () => openEditForm(b.dataset.id));
-  });
-  // Delete buttons
-  list.querySelectorAll('.delete-btn').forEach(b => {
-    b.addEventListener('click', () => deleteOrder(b.dataset.id));
-  });
-  // Status change on expanded row
+  list.querySelectorAll('.spoiler').forEach(tr => tr.addEventListener('click', () => tr.classList.toggle('open')));
+  list.querySelectorAll('.edit-btn').forEach(b => b.addEventListener('click', () => openEditForm(b.dataset.id)));
+  list.querySelectorAll('.delete-btn').forEach(b => b.addEventListener('click', () => deleteOrder(b.dataset.id)));
   list.querySelectorAll('.status-select').forEach(s => {
     s.addEventListener('change', () => {
-      const id = s.dataset.id;
-      const o = orders.find(x => x.id === id);
+      const o = orders.find(x => x.id === s.dataset.id);
       if (o) { o.status = s.value; saveOrders(); renderOrders(); }
     });
   });
@@ -404,110 +522,19 @@ function esc(s) {
 // ===== Form submit =====
 function resetForm() {
   els.form.reset();
-  els.itemsContainer.innerHTML = `<div class="item-row">
-    <input type="text" class="item-name" placeholder="Nama barang (A/B/C/...)" required>
-    <input type="number" class="item-qty" placeholder="Jumlah" min="1" value="1" style="width:70px">
-    <input type="text" class="item-spec" placeholder="Spesifikasi">
-    <input type="text" class="item-brand" placeholder="Merk">
-    <button type="button" class="btn btn-danger btn-sm remove-item">×</button>
-  </div>`;
-  updateItemCount();
-  $('form-section').style.display = 'block';
-  $('orders-section').style.display = 'none';
-}
-
-els.form.addEventListener('submit', (e) => {
-  e.preventDefault();
-  const customer = els.customer.value.trim();
-  const destination = els.destination.value.trim();
-  const recipient = els.recipient.value.trim();
-  const estShip = els.estShip.value;
-  const status = els.status.value;
-  const notes = els.notes.value.trim();
-  const items = getItemsFromForm();
-
-  if (!customer || !destination || !recipient || !estShip) {
-    showToast('⚠️ Mohon isi nama pelanggan, alamat, penerima, dan estimasi kirim.', true);
-    return;
-  }
-  if (!validDate(estShip)) {
-    showToast('⚠️ Tanggal estimasi kirim tidak valid.', true);
-    return;
-  }
-  if (items.length === 0) {
-    showToast('⚠️ Tambahkan minimal 1 item.', true);
-    return;
-  }
-
-  const order = {
-    id: genId(),
-    customer,
-    destination,
-    recipient,
-    estShip,
-    status,
-    notes,
-    items,
-    createdAt: new Date().toISOString(),
-  };
-  orders.unshift(order);
-  saveOrders();
-  renderOrders();
-  showToast(`✅ Pesanan ${order.id} berhasil disimpan!`);
-  resetForm();
-});
-
-// ===== Delete =====
-function deleteOrder(id) {
-  if (!confirm('Hapus pesanan ini? Aksi ini tak bisa dibatalkan.')) return;
-  orders = orders.filter(o => o.id !== id);
-  saveOrders();
-  renderOrders();
-  showToast('🗑️ Pesanan dihapus.');
-}
-
-// ===== Clear all (confirm tricky) =====
-els.clearAllBtn.addEventListener('click', () => {
-  if (orders.length === 0) { showToast('Tidak ada data yang dihapus.'); return; }
-  if (!confirm(`Hapus semua ${orders.length} pesanan? Ini tidak bisa dibatalkan.`)) return;
-  orders = [];
-  saveOrders();
-  renderOrders();
-  showToast('🗑️ Semua pesanan dihapus.');
-});
-
-// ===== Edit =====
-function openEditForm(id) {
-  const o = orders.find(x => x.id === id);
-  if (!o) return;
-  els.customer.value = o.customer;
-  els.destination.value = o.destination;
-  els.recipient.value = o.recipient;
-  els.estShip.value = o.estShip;
-  els.status.value = o.status;
-  els.notes.value = o.notes || '';
-  // rebuild item rows
-  els.itemsContainer.innerHTML = '';
-  o.items.forEach(it => {
-    const row = document.createElement('div');
-    row.className = 'item-row';
-    row.innerHTML = `
-      <input type="text" class="item-name" value="${esc(it.name)}" required>
-      <input type="number" class="item-qty" value="${it.qty}" min="1" style="width:70px">
-      <input type="text" class="item-spec" value="${esc(it.spec)}">
-      <input type="text" class="item-brand" value="${esc(it.brand)}">
+  els.itemsContainer.innerHTML = `
+    <div class="item-row">
+      <input type="text" class="item-name" placeholder="Nama barang (A/B/C/...)" required>
+      <input type="number" class="item-qty" placeholder="Jumlah" min="1" value="1" style="width:70px">
+      <input type="text" class="item-spec" placeholder="Spesifikasi">
+      <input type="text" class="item-brand" placeholder="Merk">
       <button type="button" class="btn btn-danger btn-sm remove-item">×</button>
-    `;
-    row.querySelector('.remove-item').addEventListener('click', () => row.remove());
-    els.itemsContainer.appendChild(row);
-  });
+    </div>`;
   updateItemCount();
-  $('form-section').style.display = 'block';
-  $('orders-section').style.display = 'none';
-  els.form.dataset.editing = o.id;
+  els.sectionForm.style.display = 'block';
+  els.sectionOrders.style.display = 'none';
 }
 
-// Support editing on submit
 els.form.addEventListener('submit', (e) => {
   e.preventDefault();
   const editing = els.form.dataset.editing;
@@ -535,25 +562,67 @@ els.form.addEventListener('submit', (e) => {
   if (editing) {
     const idx = orders.findIndex(x => x.id === editing);
     if (idx === -1) { showToast('⚠️ Pesanan tidak ditemukan.', true); return; }
-    orders[idx] = {
-      ...orders[idx],
-      customer, destination, recipient, estShip, status, notes,
-      items, createdAt: orders[idx].createdAt,
-    };
+    orders[idx] = { ...orders[idx], customer, destination, recipient, estShip, status, notes, items, createdAt: orders[idx].createdAt };
     showToast(`✅ Pesanan ${editing} berhasil diperbarui!`);
-    delete orders.find(x => x.id === editing);
-    localStorage.setItem('po_orders', JSON.stringify(orders));
-    renderOrders();
-    resetForm();
   } else {
     const order = { id: genId(), customer, destination, recipient, estShip, status, notes, items, createdAt: new Date().toISOString() };
     orders.unshift(order);
     saveOrders();
-    renderOrders();
     showToast(`✅ Pesanan ${order.id} berhasil disimpan!`);
-    resetForm();
   }
+
+  localStorage.setItem('po_orders', JSON.stringify(orders));
+  renderOrders();
+  resetForm();
+  els.form.dataset.editing = '';
 });
+
+// ===== Delete / clear / edit =====
+function deleteOrder(id) {
+  if (!confirm('Hapus pesanan ini? Aksi ini tak bisa dibatalkan.')) return;
+  orders = orders.filter(o => o.id !== id);
+  saveOrders();
+  renderOrders();
+  showToast('🗑️ Pesanan dihapus.');
+}
+
+els.clearAllBtn.addEventListener('click', () => {
+  if (orders.length === 0) { showToast('Tidak ada data yang dihapus.'); return; }
+  if (!confirm(`Hapus semua ${orders.length} pesanan? Ini tidak bisa dibatalkan.`)) return;
+  orders = [];
+  saveOrders();
+  renderOrders();
+  showToast('🗑️ Semua pesanan dihapus.');
+});
+
+function openEditForm(id) {
+  const o = orders.find(x => x.id === id);
+  if (!o) return;
+  els.customer.value = o.customer;
+  els.destination.value = o.destination;
+  els.recipient.value = o.recipient;
+  els.estShip.value = o.estShip;
+  els.status.value = o.status;
+  els.notes.value = o.notes || '';
+  els.itemsContainer.innerHTML = '';
+  o.items.forEach(it => {
+    const row = document.createElement('div');
+    row.className = 'item-row';
+    row.innerHTML = `
+      <input type="text" class="item-name" value="${esc(it.name)}" required>
+      <input type="number" class="item-qty" value="${it.qty}" min="1" style="width:70px">
+      <input type="text" class="item-spec" value="${esc(it.spec)}">
+      <input type="text" class="item-brand" value="${esc(it.brand)}">
+      <button type="button" class="btn btn-danger btn-sm remove-item">×</button>
+    `;
+    row.querySelector('.remove-item').addEventListener('click', () => row.remove());
+    els.itemsContainer.appendChild(row);
+  });
+  updateItemCount();
+  els.sectionForm.style.display = 'block';
+  els.sectionOrders.style.display = 'none';
+  els.form.dataset.editing = id;
+}
 
 // ===== Navigation =====
 els.newOrderBtn.addEventListener('click', () => {
@@ -567,6 +636,42 @@ function showToast(msg, isError = false) {
   els.toast.classList.add('show');
   setTimeout(() => els.toast.classList.remove('show'), 3200);
 }
+
+// ===== CSV =====
+function exportCSV() {
+  if (orders.length === 0) {
+    showToast('⚠️ Belum ada data pemesanan untuk di-ekspor.', true);
+    return;
+  }
+  const headers = ['ID','Pelanggan','Alamat Tujuan','Penerima','Estimasi Kirim','Status','Keterangan','Item'];
+  const lines = [headers.map(csvEscape).join(',')];
+  orders.forEach(o => lines.push(orderToRow(o).map(csvEscape).join(',')));
+  const csv = lines.join('\r\n');
+  const blob = new Blob([csv], { type: 'text/csv;charset=utf-8;' });
+  const url = URL.createObjectURL(blob);
+  const a = document.createElement('a');
+  a.href = url;
+  a.download = 'po.csv';
+  document.body.appendChild(a);
+  a.click();
+  document.body.removeChild(a);
+  URL.revokeObjectURL(url);
+  showToast('✅ Data berhasil diunduh ke po.csv');
+}
+
+function onFileSelected(e) {
+  const file = e.target.files[0];
+  if (!file) return;
+  if (!file.name.toLowerCase().endsWith('.csv')) {
+    showToast('⚠️ Hanya file CSV yang didukung.', true);
+    return;
+  }
+  importCSVFile(file);
+  e.target.value = '';
+}
+
+els.exportCsvBtn.addEventListener('click', exportCSV);
+els.csvFile.addEventListener('change', onFileSelected);
 
 // ===== Start =====
 loadOrders();
