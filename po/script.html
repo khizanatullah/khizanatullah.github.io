@@ -1,0 +1,20 @@
+<script>
+let items=[];
+const $=id=>document.getElementById(id);
+const esc=s=>String(s??'').replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#039;'}[c]));
+
+function status(msg,ok=true){const e=$('status');e.textContent=msg;e.className='status '+(ok?'ok':'err');e.classList.remove('hidden');clearTimeout(window.t);window.t=setTimeout(()=>e.classList.add('hidden'),3000)}
+function render(){const e=$('items');if(!items.length){e.innerHTML='<div class="empty">Belum ada barang ditambahkan.</div>';return}
+ e.innerHTML=items.map((x,i)=>`<div class="item"><div><div class="itemName">${esc(x.nama)}</div><div>${esc(x.jumlah)}</div></div><button class="remove" onclick="removeItem(${i})">Hapus</button></div>`).join('')}
+function addItem(){let n=$('barang').value.trim(),q=$('jumlah').value.trim();if(!n)return status('Nama barang wajib diisi.',false);if(!q)return status('Jumlah barang wajib diisi.',false);items.push({nama:n,jumlah:q});$('barang').value='';$('jumlah').value='';$('barang').focus();render()}
+function removeItem(i){items.splice(i,1);render()}
+function save(){let d={nama:$('nama').value.trim(),alamat:$('alamat').value.trim(),tanggal:$('tanggal').value,items:items};
+ if(!d.nama)return status('Nama pelanggan wajib diisi.',false);if(!d.alamat)return status('Alamat kirim wajib diisi.',false);if(!d.tanggal)return status('Tanggal kirim wajib dipilih.',false);if(!d.items.length)return status('Tambahkan minimal satu barang.',false);
+ $('save').disabled=true;google.script.run.withSuccessHandler(r=>{$('save').disabled=false;status(r.message);clearForm();load()}).withFailureHandler(e=>{$('save').disabled=false;status(e.message||'Gagal menyimpan.',false)}).saveOrder(d)}
+function clearForm(){$('nama').value='';$('alamat').value='';$('tanggal').value='';$('barang').value='';$('jumlah').value='';items=[];render()}
+function load(){$('listPanel').classList.remove('hidden');$('list').innerHTML='<div style="color:#fff;padding:15px">Memuat...</div>';google.script.run.withSuccessHandler(a=>{$('list').innerHTML=a.length?a.map(x=>`<button class="customer" onclick="detail(${x.row})">${esc(x.nama)}</button>`).join(''):'<div style="color:#fff;padding:15px">Belum ada data.</div>'}).withFailureHandler(e=>status(e.message||'Gagal mengambil data.',false)).getCustomers()}
+function detail(row){$('detailPanel').classList.remove('hidden');$('detail').innerHTML='<div class="detail">Memuat...</div>';google.script.run.withSuccessHandler(c=>{let b=String(c.barang||'').split(';').map(x=>x.trim()).filter(Boolean);$('detail').innerHTML=`<div class="detail"><div><b>Nama:</b> ${esc(c.nama)}</div><div><b>Alamat:</b> ${esc(c.alamat)}</div><div><b>Tanggal Kirim:</b> ${esc(c.tanggal)}</div><div><b>Barang:</b><ul class="barang">${b.map(x=>`<li>${esc(x)}</li>`).join('')}</ul></div></div>`;$('detailPanel').scrollIntoView({behavior:'smooth'})}).withFailureHandler(e=>status(e.message||'Gagal mengambil detail.',false)).getCustomer(row)}
+$('add').onclick=addItem;$('save').onclick=save;$('view').onclick=load;$('refresh').onclick=load;$('close').onclick=()=>$('detailPanel').classList.add('hidden');
+$('pick').onclick=()=>{let e=$('tanggal');if(e.showPicker)e.showPicker();else e.focus()};
+$('barang').onkeydown=e=>{if(e.key==='Enter')addItem()};$('jumlah').onkeydown=e=>{if(e.key==='Enter')addItem()};render();
+</script>
