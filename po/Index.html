@@ -1,0 +1,50 @@
+<!doctype html>
+<html lang="id">
+<head>
+  <base target="_top">
+  <meta name="viewport" content="width=device-width,initial-scale=1">
+  <title>TB. KHIZANATULLAH</title>
+  <?!= include('Style'); ?>
+</head>
+<body>
+<main class="app">
+  <header class="hero">
+    <h1>TB. KHIZANATULLAH</h1>
+    <div>0852 5764 6392</div>
+  </header>
+
+  <section class="card">
+    <div class="row"><label>Nama Pelanggan:</label><input id="nama" placeholder="Nama Pelanggan"></div>
+    <div class="row"><label>Alamat Kirim:</label><input id="alamat" placeholder="Alamat Kirim"></div>
+    <div class="row date"><label>Tanggal Kirim:</label><button id="pick" type="button">Pilih Tanggal</button><input id="tanggal" type="date" placeholder="Tanggal Kirim"></div>
+  </section>
+
+  <h2>Masukkan Data Pesanan:</h2>
+  <section class="card">
+    <div class="row"><label>Nama Barang:</label><input id="barang" placeholder="Nama Barang"></div>
+    <div class="row"><label>Jumlah:</label><input id="jumlah" placeholder="Jumlah Barang"></div>
+    <div class="center"><button id="add" class="btn blue">TAMBAHKAN</button></div>
+  </section>
+
+  <section id="items" class="items"><div class="empty">Belum ada barang ditambahkan.</div></section>
+
+  <div class="actions">
+    <button id="save" class="btn green">SIMPAN</button>
+    <button id="view" class="btn yellow">LIHAT DATA</button>
+  </div>
+
+  <section id="listPanel" class="panel hidden">
+    <div class="panelHead"><h2>Daftar Pelanggan</h2><button id="refresh">↻ Refresh</button></div>
+    <div id="list"></div>
+  </section>
+
+  <section id="detailPanel" class="panel hidden">
+    <div class="panelHead"><h2>Detail Pelanggan</h2><button id="close">Tutup</button></div>
+    <div id="detail"></div>
+  </section>
+
+  <div id="status" class="status hidden"></div>
+</main>
+<?!= include('Script'); ?>
+</body>
+</html>
