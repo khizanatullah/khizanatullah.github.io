@@ -682,15 +682,15 @@
         const pesan = [
           `📦 RINCIAN PESANAN`,
           `━━━━━━━━━━━━━━`,
-          `👤 Nama: ${data.pelanggan}`,
+          `👤 Nama: ${data.pelanggan || "—"}`,
           `📍 Alamat: ${data.alamat || "—"}`,
-          `📦 Barang: ${data.barang || "—"}`,
+          `📅 Tanggal Pemesan: ${data.tglPesan || "—"}`,
+          `📌 Barang: ${data.barang || "—"}`,
           `📊 Jumlah: ${data.jumlah || "—"} ${data.satuan || ""}`,
           `⭐ Status: ${data.status || "belum dikirim"}`,
-          `📅 Tanggal Pesan: ${data.tglPesan || "—"}`,
           `📅 Tanggal Kirim: ${data.tglKirim || "—"}`,
           `━━━━━━━━━━━━━━`
-        ].join("\n");
+        ].join("\n");.join("\n");
 
         const waUrl = `https://wa.me/6285728389595?text=${encodeURIComponent(pesan)}`;
         window.open(waUrl, "_blank");
