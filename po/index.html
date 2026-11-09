@@ -471,25 +471,34 @@
         return;
       }
 
-      tbody.innerHTML = allData.map((item, index) => {
-        const statusClass = item.status || "belum dikirim";
-        const statusBadge = `badge-${statusClass.split(" ").join("-")}`;
-        return `
-          <tr>
-            <td><strong>${escapeHtml(item.pelanggan || "—")}</strong></td>
-            <td>${escapeHtml(item.alamat || "—")}</td>
-            <td>${escapeHtml(item.barang || "—")}</td>
-            <td>${item.jumlah || "—"}</td>
-            <td>${escapeHtml(item.satuan || "—")}</td>
-            <td><span class="badge ${statusBadge}">${escapeHtml(item.status || "—")}</span></td>
-            <td>
-              <button class="btn btn-sm btn-icon btn-icon-edit" onclick="bukaEdit(${item.id})">✏️</button>
-              <button class="btn btn-sm btn-icon btn-icon-delete" onclick="hapusData(${item.id})">🗑️</button>
-              <a href="javascript:void(0);" class="btn btn-sm btn-icon" onclick="kirimWa(${item.id})" style="background:#25d3aa;color:#fff;">💬 WA</a>
-            </td>
-          </tr>
-        `;
-      }).join("");
+      let html = '';
+      allData.forEach((customer, idx) => {
+        // Header row for customer
+        html += `<tr>`;
+        html += `<td colspan="7" style="background:#f0f9ff; font-weight:600; padding:12px;">`;
+        html += `<strong>${escapeHtml(customer.pelanggan || "—")}</strong>`;
+        html += `<br><small>📍 ${escapeHtml(customer.alamat || "—")} | 📅 ${escapeHtml(customer.tglPesan || "—")}</small>`;
+        html += `<br>📊 ${customer.items.length} item`;
+        html += `</td></tr>`;
+
+        // Items for this customer
+        customer.items.forEach((item, idx2) => {
+          const statusClass = item.status || "belum dikirim";
+          const statusBadge = `badge-${statusClass.split(" ").join("-")}`;
+          html += `<tr>`;
+          html += `<td colspan="7">`;
+          html += `📦 <strong>${escapeHtml(item.barang || "—")}</strong>`;
+          html += `<br>Qty: ${escapeHtml(item.jumlah || "—")} ${escapeHtml(item.satuan || "—")} | Status: <span class="badge ${statusBadge}">${escapeHtml(item.status || "—")}</span>`;
+          html += `<div style="margin-top:8px; display:flex; gap:8px;">`;
+          html += `<button class="btn btn-sm btn-icon btn-icon-edit" onclick="bukaEdit(${idx}, ${idx2})">✏️</button>`;
+          html += `<button class="btn btn-sm btn-icon btn-icon-delete" onclick="hapusData(${idx}, ${idx2})">🗑️</button>`;
+          html += `<a href="javascript:void(0);" class="btn btn-sm btn-icon" onclick="kirimWa('${escapeHtml(customer.pelanggan)}')" style="background:#25d3aa;color:#fff;">💬 WA</a>`;
+          html += `</div>`;
+          html += `</td></tr>`;
+        });
+      });
+
+      tbody.innerHTML = html;
     }
 
     async function simpanData(e) {
