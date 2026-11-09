@@ -485,7 +485,7 @@
             <td>
               <button class="btn btn-sm btn-icon btn-icon-edit" onclick="bukaEdit(${item.id})">✏️</button>
               <button class="btn btn-sm btn-icon btn-icon-delete" onclick="hapusData(${item.id})">🗑️</button>
-              <a href="https://wa.me/085728389595" target="_blank" class="btn btn-sm btn-icon" style="background:#25d3aa;color:#fff;">💬 WA</a>
+              <a href="javascript:void(0);" class="btn btn-sm btn-icon" onclick="kirimWa(${item.id})" style="background:#25d3aa;color:#fff;">💬 WA</a>
             </td>
           </tr>
         `;
@@ -666,6 +666,38 @@
     }
 
     document.addEventListener("DOMContentLoaded", loadAll);
-  </script>
+  
+    async function kirimWa(id) {
+      clearAlert();
+      try {
+        const resp = await fetch(`${SHEET_URL}?action=detail&id=${encodeURIComponent(id)}`);
+        const data = await resp.json();
+
+        if (data.error || !data.pelanggan) {
+          showAlert("error", "Data tidak ditemukan.");
+          return;
+        }
+
+        // Build message
+        const pesan = [
+          `📦 RINCIAN PESANAN`,
+          `━━━━━━━━━━━━━━`,
+          `👤 Nama: ${data.pelanggan}`,
+          `📍 Alamat: ${data.alamat || "—"}`,
+          `📦 Barang: ${data.barang || "—"}`,
+          `📊 Jumlah: ${data.jumlah || "—"} ${data.satuan || ""}`,
+          `⭐ Status: ${data.status || "belum dikirim"}`,
+          `📅 Tanggal Pesan: ${data.tglPesan || "—"}`,
+          `📅 Tanggal Kirim: ${data.tglKirim || "—"}`,
+          `━━━━━━━━━━━━━━`
+        ].join("\n");
+
+        const waUrl = `https://wa.me/6285728389595?text=${encodeURIComponent(pesan)}`;
+        window.open(waUrl, "_blank");
+      } catch (err) {
+        showAlert("error", "Gagal memulai WA: " + err.message);
+      }
+    }
+</script>
 </body>
 </html>
