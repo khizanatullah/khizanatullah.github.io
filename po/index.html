@@ -62,7 +62,7 @@
     .btn:active { transform: scale(0.98); }
 
     .btn-primary { background: var(--primary); color: white; }
-.btn-primary:hover { background: var(--primary-dark); }
+    .btn-primary:hover { background: var(--primary-dark); }
 
     .btn-success { background: var(--success); color: white; }
     .btn-success:hover { background: #15803d; }
@@ -238,7 +238,7 @@
     .alert-error { background: #fee2e2; color: #b91c1c; display: block; }
 
     .search-box {
-display: flex;
+      display: flex;
       gap: 12px;
       margin-bottom: 20px;
       flex-wrap: wrap;
@@ -275,18 +275,15 @@ display: flex;
       </div>
     </header>
 
-    <!-- Alert -->
     <div id="alert" class="alert"></div>
 
-    <!-- Search -->
     <div class="search-box">
       <input type="text" id="searchInput" placeholder="Cari data..." onkeyup="cari()">
       <button class="btn btn-outline" onclick="cari()">Cari</button>
       <button class="btn btn-outline" onclick="loadAll()">Reset</button>
     </div>
 
-    <!-- Form Tambah -->
-    <div class="card" id="formCard">
+    <div class="card">
       <h2>📝 Form Pemesanan</h2>
       <form id="dataForm" onsubmit="simpanData(event)">
         <div class="form-grid">
@@ -295,8 +292,8 @@ display: flex;
             <input type="text" id="nama" name="nama" placeholder="Contoh: Budi Santoso" required>
           </div>
           <div class="form-group">
-            <label for="alamat">Alamat Kirim</label>
-            <input type="text" id="alamat" name="alamat" placeholder="Contoh: Jl. Melati No. 12, Jakarta">
+            <label for="alamat">Alamat Kirim *</label>
+            <input type="text" id="alamat" name="alamat" placeholder="Contoh: Jl. Melati No. 12, Jakarta" required>
           </div>
           <div class="form-group">
             <label for="tglPesan">Tanggal Pemesan *</label>
@@ -344,7 +341,6 @@ display: flex;
       </form>
     </div>
 
-    <!-- Tabel Data -->
     <div class="card">
       <h2>📋 Daftar Data</h2>
       <div class="table-container">
@@ -352,16 +348,17 @@ display: flex;
           <thead>
             <tr>
               <th>Nama</th>
+              <th>Alamat Kirim</th>
               <th>Barang</th>
               <th>Jumlah</th>
               <th>Satuan</th>
               <th>Status</th>
               <th>Aksi</th>
-</tr>
+            </tr>
           </thead>
           <tbody id="tableBody">
             <tr>
-              <td colspan="6" class="empty-state">
+              <td colspan="7" class="empty-state">
                 <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
                   <rect x="3" y="3" width="18" height="18" rx="2" ry="2"/>
                   <circle cx="8.5" cy="8.5" r="1.5"/>
@@ -376,7 +373,6 @@ display: flex;
     </div>
   </div>
 
-  <!-- Modal Edit -->
   <div class="modal" id="editModal">
     <div class="modal-content">
       <h2>✏️ Edit Data</h2>
@@ -388,8 +384,8 @@ display: flex;
             <input type="text" id="editNama" name="nama" required>
           </div>
           <div class="form-group">
-            <label for="editAlamat">Alamat Kirim</label>
-            <input type="text" id="editAlamat" name="alamat">
+            <label for="editAlamat">Alamat Kirim *</label>
+            <input type="text" id="editAlamat" name="alamat" required>
           </div>
           <div class="form-group">
             <label for="editTglPesan">Tanggal Pemesan *</label>
@@ -439,14 +435,11 @@ display: flex;
   </div>
 
   <script>
-    const SHEET_URL = "https://script.google.com/macros/s/AKfycbxfIL6iF8px2ObfU5tvaeeCnFR5UIggOEcOELwjCrkDQNizDBfXtEmn47-Sod_RUwCh/exec";
+    const SHEET_URL = "https://script.google.com/macros/s/{YOUR_SCRIPT_ID}/exec";
 
     let allData = [];
     let editingId = null;
 
-    // ==========================
-    // LOAD DATA
-    // ==========================
     async function loadAll() {
       clearAlert();
       try {
@@ -463,14 +456,11 @@ display: flex;
       }
     }
 
-    // ==========================
-    // RENDER TABLE
-    // ==========================
     function renderTable() {
       const tbody = document.getElementById("tableBody");
-if (allData.length === 0) {
+      if (allData.length === 0) {
         tbody.innerHTML = `
-          <tr><td colspan="6" class="empty-state">
+          <tr><td colspan="7" class="empty-state">
             <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
               <rect x="3" y="3" width="18" height="18" rx="2" ry="2"/>
               <circle cx="8.5" cy="8.5" r="1.5"/>
@@ -487,6 +477,7 @@ if (allData.length === 0) {
         return `
           <tr>
             <td><strong>${escapeHtml(item.pelanggan || "—")}</strong></td>
+            <td>${escapeHtml(item.alamat || "—")}</td>
             <td>${escapeHtml(item.barang || "—")}</td>
             <td>${item.jumlah || "—"}</td>
             <td>${escapeHtml(item.satuan || "—")}</td>
@@ -494,15 +485,13 @@ if (allData.length === 0) {
             <td>
               <button class="btn btn-sm btn-icon btn-icon-edit" onclick="bukaEdit(${item.id})">✏️</button>
               <button class="btn btn-sm btn-icon btn-icon-delete" onclick="hapusData(${item.id})">🗑️</button>
+              <a href="https://wa.me/085728389595" target="_blank" class="btn btn-sm btn-icon" style="background:#25d3aa;color:#fff;">💬 WA</a>
             </td>
           </tr>
         `;
       }).join("");
     }
 
-    // ==========================
-    // SAVE DATA
-    // ==========================
     async function simpanData(e) {
       e.preventDefault();
       clearAlert();
@@ -539,9 +528,6 @@ if (allData.length === 0) {
       }
     }
 
-    // ==========================
-    // UPDATE DATA
-    // ==========================
     async function updateData(e) {
       e.preventDefault();
       clearAlert();
@@ -575,13 +561,10 @@ if (allData.length === 0) {
           showAlert("error", result.message || "Gagal memperbarui.");
         }
       } catch (err) {
-showAlert("error", "Koneksi gagal: " + err.message);
+        showAlert("error", "Koneksi gagal: " + err.message);
       }
     }
 
-    // ==========================
-    // HAPUS DATA
-    // ==========================
     async function hapusData(id) {
       if (!confirm("Hapus data ini? Tindakan ini permanen.")) return;
 
@@ -600,9 +583,6 @@ showAlert("error", "Koneksi gagal: " + err.message);
       }
     }
 
-    // ==========================
-    // EDIT DATA
-    // ==========================
     async function bukaEdit(id) {
       clearAlert();
       try {
@@ -631,13 +611,9 @@ showAlert("error", "Koneksi gagal: " + err.message);
       }
     }
 
-    // ==========================
-    // KALIAN / SETUP
-    // ==========================
     function resetForm() {
       document.getElementById("dataForm").reset();
       document.getElementById("tglPesan").valueAsDate = new Date();
-      // Set default date to today
       const today = new Date().toISOString().split("T")[0];
       document.getElementById("tglPesan").value = today;
       document.getElementById("tglKirim").value = "";
@@ -689,7 +665,6 @@ showAlert("error", "Koneksi gagal: " + err.message);
       return div.innerHTML;
     }
 
-    // Load data on page load
     document.addEventListener("DOMContentLoaded", loadAll);
   </script>
 </body>
