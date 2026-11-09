@@ -676,10 +676,10 @@
 
     document.addEventListener("DOMContentLoaded", loadAll);
   
-    async function kirimWa(id) {
+    async function kirimWa(nama) {
       clearAlert();
       try {
-        const resp = await fetch(`${SHEET_URL}?action=detail&id=${encodeURIComponent(id)}`);
+        const resp = await fetch(`${SHEET_URL}?action=detail&id=${encodeURIComponent(nama)}`);
         const data = await resp.json();
 
         if (data.error || !data.pelanggan) {
