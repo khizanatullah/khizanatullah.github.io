@@ -489,9 +489,9 @@
           html += `<td colspan="7">`;
           html += `📦 <strong>${escapeHtml(item.barang || "—")}</strong>`;
           html += `<br>Qty: ${escapeHtml(item.jumlah || "—")} ${escapeHtml(item.satuan || "—")} | Status: <span class="badge ${statusBadge}">${escapeHtml(item.status || "—")}</span>`;
-          html += `<div style="margin-top:8px; display:flex; gap:8px;">`;
-          html += `<button class="btn btn-sm btn-icon btn-icon-edit" onclick="bukaEdit(${idx}, ${idx2})">✏️</button>`;
-          html += `<button class="btn btn-sm btn-icon btn-icon-delete" onclick="hapusData(${idx}, ${idx2})">🗑️</button>`;
+      html += `<div style="margin-top:8px; display:flex; gap:8px;">`;
+          html += `<button class="btn btn-sm btn-icon btn-icon-edit" onclick="bukaEdit('${escapeHtml(customer.pelanggan)}')">✏️</button>`;
+          html += `<button class="btn btn-sm btn-icon btn-icon-delete" onclick="hapusData('${escapeHtml(customer.pelanggan)}')">🗑️</button>`;
           html += `<a href="javascript:void(0);" class="btn btn-sm btn-icon" onclick="kirimWa('${escapeHtml(customer.pelanggan)}')" style="background:#25d3aa;color:#fff;">💬 WA</a>`;
           html += `</div>`;
           html += `</td></tr>`;
@@ -574,11 +574,11 @@
       }
     }
 
-    async function hapusData(id) {
+    async function hapusData(nama) {
       if (!confirm("Hapus data ini? Tindakan ini permanen.")) return;
 
       try {
-        const resp = await fetch(`${SHEET_URL}?action=hapus&id=${encodeURIComponent(id)}`);
+        const resp = await fetch(`${SHEET_URL}?action=hapus&id=${encodeURIComponent(nama)}`);
         const result = await resp.json();
 
         if (result.success) {
@@ -592,10 +592,10 @@
       }
     }
 
-    async function bukaEdit(id) {
+    async function bukaEdit(nama) {
       clearAlert();
       try {
-        const resp = await fetch(`${SHEET_URL}?action=detail&id=${encodeURIComponent(id)}`);
+        const resp = await fetch(`${SHEET_URL}?action=detail&id=${encodeURIComponent(nama)}`);
         const data = await resp.json();
 
         if (data.error) {
