@@ -347,13 +347,16 @@
         <table>
           <thead>
             <tr>
-              <th>Nama</th>
+              <th style="width:40px;">No</th>
+              <th>Nama Pemesan</th>
               <th>Alamat Kirim</th>
+              <th>Tanggal Pesan</th>
               <th>Barang</th>
               <th>Jumlah</th>
               <th>Satuan</th>
               <th>Status</th>
-              <th>Aksi</th>
+              <th>Tanggal Kirim</th>
+              <th style="width:80px;">Aksi</th>
             </tr>
           </thead>
           <tbody id="tableBody">
@@ -460,7 +463,7 @@
       const tbody = document.getElementById("tableBody");
       if (allData.length === 0) {
         tbody.innerHTML = `
-          <tr><td colspan="7" class="empty-state">
+          <tr><td colspan="9" class="empty-state">
             <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
               <rect x="3" y="3" width="18" height="18" rx="2" ry="2"/>
               <circle cx="8.5" cy="8.5" r="1.5"/>
@@ -472,32 +475,29 @@
       }
 
       let html = '';
-      allData.forEach((customer, idx) => {
-        // Header row for customer
+      allData.forEach((row, idx) => {
+        const statusClass = row.status || "belum dikirim";
+        const statusBadge = `badge-${statusClass.split(" ").join("-")}`;
+        const no = idx + 1;
         html += `<tr>`;
-        html += `<td colspan="7" style="background:#f0f9ff; font-weight:600; padding:12px;">`;
-        html += `<strong>${escapeHtml(customer.pelanggan || "—")}</strong>`;
-        html += `<br><small>📍 ${escapeHtml(customer.alamat || "—")} | 📅 ${escapeHtml(customer.tglPesan || "—")}</small>`;
-        html += `<br>📊 ${customer.items.length} item`;
-        html += `</td></tr>`;
-
-        // Items for this customer
-        customer.items.forEach((item, idx2) => {
-          const statusClass = item.status || "belum dikirim";
-          const statusBadge = `badge-${statusClass.split(" ").join("-")}`;
-          html += `<tr>`;
-          html += `<td colspan="7">`;
-          html += `📦 <strong>${escapeHtml(item.barang || "—")}</strong>`;
-          html += `<br>Qty: ${escapeHtml(item.jumlah || "—")} ${escapeHtml(item.satuan || "—")} | Status: <span class="badge ${statusBadge}">${escapeHtml(item.status || "—")}</span>`;
-      html += `<div style="margin-top:8px; display:flex; gap:8px;">`;
-          html += `<button class="btn btn-sm btn-icon btn-icon-edit" onclick="bukaEdit('${escapeHtml(customer.pelanggan)}')">✏️</button>`;
-          html += `<button class="btn btn-sm btn-icon btn-icon-delete" onclick="hapusData('${escapeHtml(customer.pelanggan)}')">🗑️</button>`;
-          html += `<a href="javascript:void(0);" class="btn btn-sm btn-icon" onclick="kirimWa('${escapeHtml(customer.pelanggan)}')" style="background:#25d3aa;color:#fff;">💬 WA</a>`;
-          html += `</div>`;
-          html += `</td></tr>`;
-        });
+        html += `<td class="text-muted">${no}</td>`;
+        html += `<td>${escapeHtml(row.pelanggan || "")}</td>`;
+        html += `<td>${escapeHtml(row.alamat || "")}</td>`;
+        html += `<td>${escapeHtml(row.tglPesan || "")}</td>`;
+        html += `<td>${escapeHtml(row.barang || "")}</td>`;
+        html += `<td>${escapeHtml(row.jumlah || "")}</td>`;
+        html += `<td>${escapeHtml(row.satuan || "")}</td>`;
+        html += `<td><span class="badge ${statusBadge}">${escapeHtml(row.status || "")}</span></td>`;
+        html += `<td>${escapeHtml(row.tglKirim || "")}</td>`;
+        html += `<td>`;
+        html += `<div style="display:flex; gap:6px;">`;
+        html += `<button class="btn btn-sm btn-icon btn-icon-edit" onclick="bukaEdit('${escapeHtml(row.barang)}-${escapeHtml(row.jumlah)}-${escapeHtml(row.satuan)}-${escapeHtml(row.status)}')" title="Edit">✏️</button>`;
+        html += `<button class="btn btn-sm btn-icon btn-icon-delete" onclick="hapusData('${escapeHtml(row.barang)}-${escapeHtml(row.jumlah)}-${escapeHtml(row.satuan)}-${escapeHtml(row.status)}')" title="Hapus">🗑️</button>`;
+        html += `<a href="javascript:void(0);" class="btn btn-sm btn-icon" onclick="kirimWa('${escapeHtml(row.barang)}-${escapeHtml(row.jumlah)}-${escapeHtml(row.satuan)}-${escapeHtml(row.status)}')" title="Kirim WA" style="background:#25d3aa;color:#fff;">💬 WA</a>`;
+        html += `</div>`;
+        html += `</td>`;
+        html += `</tr>`;
       });
-
       tbody.innerHTML = html;
     }
 
@@ -574,11 +574,19 @@
       }
     }
 
-    async function hapusData(nama) {
+    async function hapusData(id) {
+      // id format: barang-jumlah-satuan-status
+      const parts = id.split("-");
+      if (parts.length < 4) {
+        showAlert("error", "Data tidak ditemukan.");
+        return;
+      }
+      const [barang, jumlah, satuan, status] = parts;
+
       if (!confirm("Hapus data ini? Tindakan ini permanen.")) return;
 
       try {
-        const resp = await fetch(`${SHEET_URL}?action=hapus&id=${encodeURIComponent(nama)}`);
+        const resp = await fetch(`${SHEET_URL}?action=hapus&id=${encodeURIComponent(id)}`);
         const result = await resp.json();
 
         if (result.success) {
@@ -592,10 +600,17 @@
       }
     }
 
-    async function bukaEdit(nama) {
-      clearAlert();
+    async function bukaEdit(id) {
+      // id format: barang-jumlah-satuan-status
+      const parts = id.split("-");
+      if (parts.length < 4) {
+        showAlert("error", "Data tidak ditemukan.");
+        return;
+      }
+      const [barang, jumlah, satuan, status] = parts;
+
       try {
-        const resp = await fetch(`${SHEET_URL}?action=detail&id=${encodeURIComponent(nama)}`);
+        const resp = await fetch(`${SHEET_URL}?action=detail&id=${encodeURIComponent(id)}`);
         const data = await resp.json();
 
         if (data.error) {
@@ -676,10 +691,17 @@
 
     document.addEventListener("DOMContentLoaded", loadAll);
   
-    async function kirimWa(nama) {
-      clearAlert();
+    async function kirimWa(id) {
+      // id format: barang-jumlah-satuan-status
+      const parts = id.split("-");
+      if (parts.length < 4) {
+        showAlert("error", "Data tidak ditemukan.");
+        return;
+      }
+      const [barang, jumlah, satuan, status] = parts;
+
       try {
-        const resp = await fetch(`${SHEET_URL}?action=detail&id=${encodeURIComponent(nama)}`);
+        const resp = await fetch(`${SHEET_URL}?action=detail&id=${encodeURIComponent(id)}`);
         const data = await resp.json();
 
         if (data.error || !data.pelanggan) {
@@ -687,17 +709,14 @@
           return;
         }
 
-        // Build message
+        // Build message with each item as [barang]-[jumlah]-[satuan]-[status]
         const pesan = [
           `📦 RINCIAN PESANAN`,
           `━━━━━━━━━━━━━━`,
           `👤 Nama: ${data.pelanggan || "—"}`,
           `📍 Alamat: ${data.alamat || "—"}`,
           `📅 Tanggal Pemesan: ${data.tglPesan || "—"}`,
-          `📌 Barang: ${data.barang || "—"}`,
-          `📊 Jumlah: ${data.jumlah || "—"} ${data.satuan || ""}`,
-          `⭐ Status: ${data.status || "belum dikirim"}`,
-          `📅 Tanggal Kirim: ${data.tglKirim || "—"}`,
+          `📌 Barang: ${barang}-${jumlah}-${satuan}-${status}`,
           `━━━━━━━━━━━━━━`
         ].join("\n");
 
